@@ -35,13 +35,27 @@
 </head>
 <body>
 
+<!-- CYBER LOADING SCREEN -->
+<div id="cyberLoader">
+  <div class="loader-content">
+    <h1 class="loader-title">INITIALIZING SYSTEM</h1>
+    <div class="loader-bar">
+      <div class="loader-progress"></div>
+    </div>
+    <p class="loader-text">Booting Jadwal Admin Gudang....#%$?:%...</p>
+  </div>
+</div>
+
+<!-- 3D PARTICLES -->
+<div id="particles-js"></div>
+
 <header>
-  <h1>Jadwal Admin Gudang 2026</h1>
+  <h1 class="glitch" data-text="Jadwal Admin">Jadwal Admin Gudang 2026</h1>
 
 <div class="controls">
   <select id="weekSelect"></select>
-  <button id="adminBtn">Masuk Admin</button>
-  <button id="logoutBtn" class="hidden">Keluar Admin</button>
+  <button id="adminBtn">Masuk KA Gudang</button>
+  <button id="logoutBtn" class="hidden">Keluar KA Gudang</button>
   <button id="saveBtn" class="hidden">Simpan Perubahan</button>
   <button id="exportBtn" class="hidden">Export Excel</button>
 </div>
@@ -53,18 +67,327 @@
 
 <!-- MODAL LOGIN -->
 <div id="loginModal" class="modal">
-  <div class="modal-box">
-    <h3>Login Admin</h3>
-    <input type="password" id="adminPassword" placeholder="Masukkan Password">
-    <div class="modal-buttons">
-      <button onclick="login()">Login</button>
-      <button onclick="closeModal()">Batal</button>
+  <div class="modal-box terminal">
+
+    <video id="camera" autoplay muted></video>
+
+    <div class="terminal-header">biometric@secure-system:~$</div>
+
+    <div id="fingerprintScanner" class="fingerprint">
+      <div class="scan-line"></div>
     </div>
+
+    <div id="bootText" class="terminal-body"></div>
+
+    <input type="password"
+           id="adminPassword"
+           placeholder="Enter password..."
+           onkeydown="if(event.key==='Enter'){startBiometricScan()}">
+
   </div>
 </div>
 
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+<script>
+/* ================= LOADING SCREEN ================= */
+
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.getElementById("cyberLoader").style.opacity = "0";
+    setTimeout(()=>{
+      document.getElementById("cyberLoader").style.display = "none";
+    },800);
+  }, 2500);
+});
+
+/* ================= PARTICLES 3D ================= */
+
+particlesJS("particles-js", {
+  "particles": {
+    "number": { "value": 80 },
+    "color": { "value": "#00ffe1" },
+    "shape": { "type": "circle" },
+    "opacity": { "value": 0.5 },
+    "size": { "value": 3 },
+    "line_linked": {
+      "enable": true,
+      "distance": 150,
+      "color": "#00ffe1",
+      "opacity": 0.4,
+      "width": 1
+    },
+    "move": {
+      "enable": true,
+      "speed": 2
+    }
+  },
+  "interactivity": {
+    "events": {
+      "onhover": { "enable": true, "mode": "repulse" }
+    }
+  }
+});
+
+/* ================= TERMINAL BOOT LOGIN ================= */
+
+function startBootLogin(){
+  const input = document.getElementById("adminPassword").value;
+  const boot = document.getElementById("bootText");
+
+  boot.innerHTML = "";
+  const lines = [
+    "Accessing secure server...",
+    "Decrypting credentials...",
+    "Verifying password...",
+    "Establishing encrypted tunnel...",
+    "Finalizing authentication..."
+  ];
+
+  let i = 0;
+
+  function typeLine(){
+    if(i < lines.length){
+      boot.innerHTML += lines[i] + "<br>";
+      i++;
+      setTimeout(typeLine, 400);
+    } else {
+      setTimeout(()=>{
+        if(input === "admin123"){
+          boot.innerHTML += "<span style='color:#00ff88'>ACCESS GRANTED</span>";
+          setTimeout(()=>{
+            login(); // pakai function lama
+          },800);
+        } else {
+          boot.innerHTML += "<span style='color:red'>ACCESS DENIED</span>";
+        }
+      },500);
+    }
+  }
+
+  typeLine();
+}
+</script>
+
+<script>
+
+/* ================= AI VOICE ================= */
+
+function speak(text){
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 0.9;
+  speech.pitch = 1;
+  speech.lang = "en-US";
+  window.speechSynthesis.speak(speech);
+}
+
+/* ================= BIOMETRIC LOGIN ================= */
+
+function startBiometricScan(){
+
+  const input = document.getElementById("adminPassword").value;
+  const boot = document.getElementById("bootText");
+
+  boot.innerHTML = "Scanning fingerprint...<br>";
+
+  setTimeout(()=>{
+    boot.innerHTML += "Analyzing biometric pattern...<br>";
+  },800);
+
+  setTimeout(()=>{
+    boot.innerHTML += "Matching database records...<br>";
+  },1600);
+
+  setTimeout(()=>{
+    if(input === "admin123"){
+      boot.innerHTML += "<span style='color:#00ff88'>BIOMETRIC VERIFIED</span><br>";
+      speak("Welcome administrator. Access granted.");
+      setTimeout(()=>{
+        login();
+      },1000);
+    } else {
+      boot.innerHTML += "<span style='color:red'>ACCESS DENIED</span>";
+      speak("Access denied. Unauthorized user detected.");
+    }
+  },2400);
+}
+
+</script>
+
+<div id="breachScreen">
+  <h1>⚠ SECURITY BREACH DETECTED ⚠</h1>
+  <p>Unauthorized Access Attempt Logged</p>
+  <p>IP Tracking Initiated...</p>
+</div>
+
+<script>
+
+/* ================= FACE RECOGNITION ================= */
+
+const camera = document.getElementById("camera");
+
+if(navigator.mediaDevices){
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      camera.srcObject = stream;
+    })
+    .catch(err => {
+      console.log("Camera access denied");
+    });
+}
+
+/* ================= LOGIN OVERRIDE ================= */
+
+/* ================= LOGIN OVERRIDE (FIXED VERSION) ================= */
+
+function startBiometricScan(){
+
+  const input = document.getElementById("adminPassword").value;
+  const boot = document.getElementById("bootText");
+  const body = document.body;
+
+  boot.innerHTML = "Scanning face recognition...<br>";
+
+  setTimeout(()=>{
+    boot.innerHTML += "Analyzing facial structure...<br>";
+  },800);
+
+  setTimeout(()=>{
+    boot.innerHTML += "Matching biometric database...<br>";
+  },1600);
+
+  setTimeout(()=>{
+
+    /* ================= LOGIN BERHASIL ================= */
+    if(input === ADMIN_PASSWORD){
+
+      boot.innerHTML += "<span style='color:#00ff88'>FACE VERIFIED</span><br>";
+      speak("Face recognized. Welcome administrator.");
+
+      setTimeout(()=>{
+        failedAttempts = 0;   // reset counter
+        login();              // panggil login asli dari app.js
+      },1000);
+
+    } else {
+
+      /* ================= LOGIN GAGAL ================= */
+
+      failedAttempts++;   // tambah counter
+
+      body.classList.add("red-alert");
+      speak("Security breach detected.");
+
+      boot.innerHTML += "<span style='color:red'>ACCESS DENIED</span><br>";
+
+      /* BREACH SCREEN */
+      setTimeout(()=>{
+        document.getElementById("breachScreen").style.display = "flex";
+      },800);
+
+      setTimeout(()=>{
+        document.getElementById("breachScreen").style.display = "none";
+        body.classList.remove("red-alert");
+      },4000);
+
+      /* FBI SCREEN SETELAH 2x GAGAL */
+      if(failedAttempts >= 2){
+        setTimeout(()=>{
+          triggerFBI();
+          failedAttempts = 0; // reset setelah FBI
+        },1500);
+      }
+
+    }
+
+  },2400);
+}
+
+</script>
+
+<!-- FBI LOCK SCREEN -->
+<div id="fbiLock">
+  <div class="fbi-content">
+    <h1>FEDERAL BUREAU OF INVESTIGATION</h1>
+    <p>Cyber Crime Division</p>
+    <h2>DEVICE LOCKED</h2>
+    <p>Unauthorized Network Intrusion Detected</p>
+    <p>Case ID: #XJ-291-A7</p>
+    <p>Tracking Location...</p>
+    <button onclick="closeFBI()">Release Device</button>
+  </div>
+</div>
+
+<script>
+
+function triggerFBI(){
+  document.getElementById("fbiLock").style.display = "flex";
+}
+
+function closeFBI(){
+  document.getElementById("fbiLock").style.display = "none";
+}
+
+/* Optional: aktifkan FBI screen setelah 3x gagal login */
+let failedAttempts = 0;
+
+function handleFailedLogin(){
+  failedAttempts++;
+
+  if(failedAttempts >= 2){
+    triggerFBI();
+    failedAttempts = 0; // reset setelah FBI muncul
+  }
+}
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+/* ================= 3D GLOBE RADAR ================= */
+
+const scene = new THREE.Scene();
+const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.domElement.style.position = "fixed";
+renderer.domElement.style.top = "0";
+renderer.domElement.style.left = "0";
+renderer.domElement.style.zIndex = "-3";
+document.body.appendChild(renderer.domElement);
+
+const geometry = new THREE.SphereGeometry(5, 32, 32);
+const material = new THREE.MeshBasicMaterial({
+  color: 0x00ffee,
+  wireframe: true
+});
+
+const globe = new THREE.Mesh(geometry, material);
+scene.add(globe);
+
+camera3D.position.z = 15;
+
+function animateGlobe() {
+  requestAnimationFrame(animateGlobe);
+  globe.rotation.y += 0.003;
+  globe.rotation.x += 0.001;
+  renderer.render(scene, camera3D);
+}
+
+animateGlobe();
+
+window.addEventListener("resize", ()=>{
+  camera3D.aspect = window.innerWidth / window.innerHeight;
+  camera3D.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="app.js"></script>
 </body>
-
 </html>
-
