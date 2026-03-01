@@ -522,3 +522,168 @@ td:hover {
   }
 
 }
+
+/* ================= REALTIME CLOCK ================= */
+
+.cyber-clock {
+  margin: 15px 0;
+  padding: 10px 20px;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: #00ffe1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,255,200,0.1));
+  border: 1px solid #00ffe1;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #00ffe1;
+  animation: glowClock 2s infinite alternate;
+}
+
+@keyframes glowClock {
+  from { box-shadow: 0 0 10px #00ffe1; }
+  to { box-shadow: 0 0 25px #00ffe1; }
+}
+
+/* ================= CYBER SIGNATURE ================= */
+
+.cyber-signature {
+  margin-top: 50px;
+  padding: 30px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,255,200,0.05));
+  border-top: 1px solid #00ffe1;
+  position: relative;
+  overflow: hidden;
+}
+
+.signature-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #00ffe1;
+  text-shadow: 0 0 8px #00ffe1;
+  animation: glitchText 4s infinite;
+}
+
+.signature-text a {
+  color: #ff00c8;
+  text-decoration: none;
+  font-weight: bold;
+  text-shadow: 0 0 10px #ff00c8;
+  transition: 0.3s;
+}
+
+.signature-text a:hover {
+  color: #ffffff;
+  text-shadow: 0 0 20px #ff00c8, 0 0 40px #ff00c8;
+}
+
+/* Glitch Animation */
+
+@keyframes glitchText {
+  0% { text-shadow: 2px 2px #00ffe1; }
+  25% { text-shadow: -2px 0px #ff00c8; }
+  50% { text-shadow: 2px -2px #00ffe1; }
+  75% { text-shadow: -1px 2px #ff00c8; }
+  100% { text-shadow: 0 0 10px #00ffe1; }
+}
+
+/* Mobile Responsive */
+
+@media (max-width:768px) {
+  .signature-text {
+    font-size: 12px;
+    padding: 0 10px;
+  }
+}
+
+/* ================= HACKER NAME ULTRA ================= */
+
+.hacker-name {
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 18px;
+  color: #00ff88;
+  text-decoration: none;
+  letter-spacing: 2px;
+  animation: hackerPulse 2s infinite alternate;
+}
+
+/* RGB Glow Pulse */
+@keyframes hackerPulse {
+  0% {
+    text-shadow:
+      0 0 5px #00ff88,
+      0 0 10px #00ff88,
+      0 0 20px #00ff88;
+  }
+  50% {
+    text-shadow:
+      0 0 5px #ff00c8,
+      0 0 20px #ff00c8,
+      0 0 40px #ff00c8;
+  }
+  100% {
+    text-shadow:
+      0 0 5px #00e1ff,
+      0 0 20px #00e1ff,
+      0 0 40px #00e1ff;
+  }
+}
+
+/* Glitch Effect */
+.hacker-name::before,
+.hacker-name::after {
+  content: "@benyoriki";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hacker-name::before {
+  color: #ff00c8;
+  animation: glitch1 2s infinite linear alternate-reverse;
+}
+
+.hacker-name::after {
+  color: #00e1ff;
+  animation: glitch2 2s infinite linear alternate-reverse;
+}
+
+@keyframes glitch1 {
+  0% { clip-path: inset(0 0 80% 0); transform: translate(-2px,-2px); }
+  25% { clip-path: inset(20% 0 60% 0); transform: translate(2px,2px); }
+  50% { clip-path: inset(40% 0 40% 0); transform: translate(-1px,1px); }
+  75% { clip-path: inset(60% 0 20% 0); transform: translate(1px,-1px); }
+  100% { clip-path: inset(80% 0 0 0); transform: translate(0,0); }
+}
+
+@keyframes glitch2 {
+  0% { clip-path: inset(80% 0 0 0); transform: translate(2px,0); }
+  25% { clip-path: inset(60% 0 20% 0); transform: translate(-2px,1px); }
+  50% { clip-path: inset(40% 0 40% 0); transform: translate(1px,-1px); }
+  75% { clip-path: inset(20% 0 60% 0); transform: translate(-1px,2px); }
+  100% { clip-path: inset(0 0 80% 0); transform: translate(0,0); }
+}
+
+/* Hover Explosion */
+.hacker-name:hover {
+  transform: scale(1.1);
+  text-shadow:
+    0 0 10px #ffffff,
+    0 0 30px #00ff88,
+    0 0 60px #00ff88,
+    0 0 100px #00ff88;
+  transition: 0.3s;
+}
+
+/* Mobile */
+@media (max-width:768px){
+  .hacker-name {
+    font-size: 15px;
+  }
+}
