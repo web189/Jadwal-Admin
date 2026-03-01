@@ -469,3 +469,56 @@ td:hover {
   z-index: 2;
   position: relative;
 }
+
+/* ================= CYBER LINK BUTTON ================= */
+
+.cyber-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  text-decoration: none;
+  color: #000;
+  background: linear-gradient(45deg, #00ffe1, #00aaff);
+  box-shadow: 0 0 15px #00ffe1;
+  transition: 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-link-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: translateX(-100%);
+  transition: 0.6s;
+}
+
+.cyber-link-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.cyber-link-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 25px #00ffe1, 0 0 40px #00aaff;
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 768px) {
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cyber-link-btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+}
