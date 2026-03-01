@@ -1,5 +1,5 @@
 // ================= CONFIG =================
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_PASSWORD = "0218756209";
 const START_WEEK = 6;
 const START_DATE = new Date("2026-02-02");
 
@@ -169,7 +169,7 @@ function login(){
     isAdmin = true;
     document.getElementById("loginModal").classList.remove("active");
     toggleAdminButtons(true);
-    alert("Mode Admin Aktif");
+    alert("KA Gudang Aktif");
   } else {
     alert("Password salah");
   }
@@ -294,3 +294,28 @@ function exportToExcel(){
 
   XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, {cellStyles:true});
 }
+
+// ================= REALTIME CLOCK =================
+
+function updateClock() {
+
+  const now = new Date();
+
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+  const dayName = hari[now.getDay()];
+
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = now.getFullYear();
+
+  const h = String(now.getHours()).padStart(2,'0');
+  const min = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+
+  const formatted = `${dayName} ${d}/${m}/${y} ${h}:${min}:${s} WIB`;
+
+  document.getElementById("liveClock").textContent = formatted;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
