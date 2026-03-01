@@ -6,7 +6,7 @@ const START_DATE = new Date("2026-02-02");
 // ================= DATA STAFF =================
 const staff = [
   { nik: "108191", nama: "M DAUD" },
-  { nik: "107271", nama: "RIKI HEMAWAN" },
+  { nik: "107271", nama: "RIKI HERMAWAN" },
   { nik: "107537", nama: "KAMIL M NUR" },
   { nik: "103356", nama: "BUDIYANSAH" },
   { nik: "105855", nama: "RANDHIKA" },
