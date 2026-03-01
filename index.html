@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Admin</title>
+  <link rel="stylesheet" href="style.css">
+    <!-- SheetJS -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Jadwal Admin</h1>
+
+<div class="controls">
+  <select id="weekSelect"></select>
+  <button id="adminBtn">Masuk Admin</button>
+  <button id="logoutBtn" class="hidden">Keluar Admin</button>
+  <button id="saveBtn" class="hidden">Simpan Perubahan</button>
+  <button id="exportBtn" class="hidden">Export Excel</button>
+</div>
+</header>
+
+<div class="table-wrapper">
+  <table id="scheduleTable"></table>
+</div>
+
+<!-- MODAL LOGIN -->
+<div id="loginModal" class="modal">
+  <div class="modal-box">
+    <h3>Login Admin</h3>
+    <input type="password" id="adminPassword" placeholder="Masukkan Password">
+    <div class="modal-buttons">
+      <button onclick="login()">Login</button>
+      <button onclick="closeModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
