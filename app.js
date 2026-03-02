@@ -3,6 +3,35 @@ const ADMIN_PASSWORD = "0218756209";
 const START_WEEK = 6;
 const START_DATE = new Date("2026-02-02");
 
+const nationalHolidays = {
+  "2026-01-01": { type: "LN", name: "Tahun Baru 2026 Masehi" },
+  "2026-01-16": { type: "LN", name: "Isra Mi’raj Nabi Muhammad SAW" },
+  "2026-02-17": { type: "LN", name: "Tahun Baru Imlek 2577 Kongzili" },
+  "2026-03-19": { type: "LN", name: "Hari Suci Nyepi (Tahun Baru Saka 1948)" },
+  "2026-03-21": { type: "LN", name: "Hari Raya Idul Fitri 1447 H" },
+  "2026-03-22": { type: "LN", name: "Hari Raya Idul Fitri 1447 H" },
+  "2026-04-03": { type: "LN", name: "Wafat Yesus Kristus / Jumat Agung" },
+  "2026-04-05": { type: "LN", name: "Kebangkitan Yesus Kristus (Paskah)" },
+  "2026-05-01": { type: "LN", name: "Hari Buruh Internasional" },
+  "2026-05-14": { type: "LN", name: "Kenaikan Yesus Kristus" },
+  "2026-05-27": { type: "LN", name: "Hari Raya Idul Adha 1447 H" },
+  "2026-05-31": { type: "LN", name: "Hari Raya Waisak 2570 BE" },
+  "2026-06-01": { type: "LN", name: "Hari Lahir Pancasila" },
+  "2026-06-16": { type: "LN", name: "Tahun Baru Islam 1448 H" },
+  "2026-08-17": { type: "LN", name: "Hari Kemerdekaan RI" },
+  "2026-08-25": { type: "LN", name: "Maulid Nabi Muhammad SAW" },
+  "2026-12-25": { type: "LN", name: "Hari Raya Natal" },
+
+  // Cuti Bersama
+  "2026-02-16": { type: "CB", name: "Cuti Bersama Tahun Baru Imlek" },
+  "2026-03-18": { type: "CB", name: "Cuti Bersama Nyepi" },
+  "2026-03-20": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
+  "2026-03-23": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
+  "2026-03-24": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
+  "2026-05-15": { type: "CB", name: "Cuti Bersama Kenaikan Yesus Kristus" },
+  "2026-05-28": { type: "CB", name: "Cuti Bersama Hari Raya Idul Adha" },
+  "2026-12-24": { type: "CB", name: "Cuti Bersama Hari Raya Natal" }
+};
 // ================= DATA STAFF =================
 const staff = [
   { nik: "108191", nama: "M DAUD" },
@@ -76,11 +105,35 @@ function renderSchedule(weekNumber) {
   const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
 
   let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
-  for(let i=0;i<7;i++){
-    let d = new Date(monday);
-    d.setDate(monday.getDate()+i);
-    header += `<th>${formatDate(d)}<br>${days[i]}</th>`;
+let holidayInfo = [];
+
+for(let i=0;i<7;i++){
+  let d = new Date(monday);
+  d.setDate(monday.getDate()+i);
+
+  const iso = formatISO(d);
+  let holidayClass = "";
+
+  if(nationalHolidays[iso]){
+    const holiday = nationalHolidays[iso];
+
+    if(holiday.type === "LN"){
+      holidayClass = "holiday-ln";
+    } else if(holiday.type === "CB"){
+      holidayClass = "holiday-cb";
+    }
+
+    holidayInfo.push({
+      date: formatDate(d),
+      type: holiday.type === "LN" ? "Libur Nasional" : "Cuti Bersama",
+      name: holiday.name
+    });
   }
+
+  header += `<th class="${holidayClass}">
+              ${formatDate(d)}<br>${days[i]}
+            </th>`;
+}
   header += "</tr>";
   table.innerHTML += header;
 
@@ -116,7 +169,31 @@ function renderSchedule(weekNumber) {
     row += "</tr>";
     table.innerHTML += row;
   }
+  
+  // ================= INFO LIBUR =================
+
+const oldInfoBox = document.getElementById("holidayInfoBox");
+if(oldInfoBox) oldInfoBox.remove();
+
+if(holidayInfo.length > 0){
+
+  const infoBox = document.createElement("div");
+  infoBox.id = "holidayInfoBox";
+  infoBox.className = "holiday-info-box";
+
+  let html = "<strong>📅 Informasi Minggu Ini:</strong><br>";
+
+  holidayInfo.forEach(h=>{
+    html += `• ${h.date} - ${h.type} (${h.name})<br>`;
+  });
+
+  infoBox.innerHTML = html;
+
+  document.querySelector(".table-wrapper").after(infoBox);
 }
+}
+
+
 
 // ================= EDIT =================
 function editShift(cell){
@@ -192,6 +269,13 @@ function formatDate(date){
   const m = String(date.getMonth()+1).padStart(2,'0');
   const y = date.getFullYear();
   return `${d}/${m}/${y}`;
+}
+
+function formatISO(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
 }
 
 function getCurrentWeekNumber(){
