@@ -412,7 +412,39 @@ window.addEventListener("resize", ()=>{
 </div>
 
 
+<!-- Firebase SDK -->
+<!-- Firebase SDK -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvJun21jAsquw8htCSBHK1N56T6Ld6jNY",
+  authDomain: "jadwal-admin-2026.firebaseapp.com",
+  databaseURL: "https://jadwal-admin-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "jadwal-admin-2026",
+  storageBucket: "jadwal-admin-2026.firebasestorage.app",
+  messagingSenderId: "638335464309",
+  appId: "1:638335464309:web:5094ebcd6bd082003c193c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// buat global agar bisa dipakai app.js
+window.db = db;
+window.firebaseRef = ref;
+window.firebaseSet = set;
+window.firebaseGet = get;
+
+// tandai firebase siap
+window.firebaseReady = true;
+
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="app.js"></script>
+<script src="app.js" defer></script>
 </body>
 </html>
+
