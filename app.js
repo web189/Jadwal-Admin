@@ -95,103 +95,66 @@ function generateWeekOptions() {
 function renderSchedule(weekNumber) {
 
   firebaseGet(firebaseRef(db, "schedules/week_"+weekNumber))
-  .then(snapshot => {
+    .then((snapshot) => {
 
-    const overrides = snapshot.exists() ? snapshot.val() : {};
+      const overrides = snapshot.exists() ? snapshot.val() : {};
 
-    const table = document.getElementById("scheduleTable");
-    table.innerHTML = "";
+      const table = document.getElementById("scheduleTable");
+      table.innerHTML = "";
 
-    const rotation = (weekNumber - START_WEEK) % 6;
+      const rotation = (weekNumber - START_WEEK) % 6;
 
-    const monday = new Date(START_DATE);
-    monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+      const monday = new Date(START_DATE);
+      monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
-    const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+      const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
 
-    let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
-    let holidayInfo = [];
+      let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
 
-    for(let i=0;i<7;i++){
-      let d = new Date(monday);
-      d.setDate(monday.getDate()+i);
-
-      const iso = formatISO(d);
-      let holidayClass = "";
-
-      if(nationalHolidays[iso]){
-        const holiday = nationalHolidays[iso];
-
-        if(holiday.type === "LN") holidayClass = "holiday-ln";
-        if(holiday.type === "CB") holidayClass = "holiday-cb";
-
-        holidayInfo.push({
-          date: formatDate(d),
-          type: holiday.type === "LN" ? "Libur Nasional" : "Cuti Bersama",
-          name: holiday.name
-        });
+      for(let i=0;i<7;i++){
+        let d = new Date(monday);
+        d.setDate(monday.getDate()+i);
+        header += `<th>${formatDate(d)}<br>${days[i]}</th>`;
       }
 
-      header += `<th class="${holidayClass}">
-                  ${formatDate(d)}<br>${days[i]}
-                </th>`;
-    }
+      header += "</tr>";
+      table.innerHTML += header;
 
-    header += "</tr>";
-    table.innerHTML += header;
+      for(let i=0;i<6;i++){
 
-    for(let i=0;i<6;i++){
+        const staffIndex = (i + rotation) % 6;
+        const person = staff[staffIndex];
 
-      const staffIndex = (i + rotation) % 6;
-      const person = staff[staffIndex];
+        let row = `<tr>
+          <td>${i+1}</td>
+          <td>${person.nik}</td>
+          <td>${person.nama}</td>`;
 
-      let row = `<tr>
-        <td>${i+1}</td>
-        <td>${person.nik}</td>
-        <td>${person.nama}</td>`;
+        for(let j=0;j<7;j++){
 
-      for(let j=0;j<7;j++){
+          let shift = basePattern[i][j];
 
-        let shift = basePattern[i][j];
+          if(overrides[i] && overrides[i][j]){
+            shift = overrides[i][j];
+          }
 
-        if(overrides[i] && overrides[i][j]){
-          shift = overrides[i][j];
+          row += `<td class="shift-${shift}"
+                    onclick="editShift(this)"
+                    data-row="${i}"
+                    data-col="${j}"
+                    data-shift="${shift}">
+                    ${shift}
+                  </td>`;
         }
 
-        row += `<td class="shift-${shift}"
-                  onclick="editShift(this)"
-                  data-row="${i}"
-                  data-col="${j}"
-                  data-shift="${shift}">
-                  ${shift}
-                </td>`;
+        row += "</tr>";
+        table.innerHTML += row;
       }
 
-      row += "</tr>";
-      table.innerHTML += row;
-    }
-
-    // ===== INFO LIBUR =====
-    const oldInfoBox = document.getElementById("holidayInfoBox");
-    if(oldInfoBox) oldInfoBox.remove();
-
-    if(holidayInfo.length > 0){
-      const infoBox = document.createElement("div");
-      infoBox.id = "holidayInfoBox";
-      infoBox.className = "holiday-info-box";
-
-      let html = "<strong>📅 Informasi Minggu Ini:</strong><br>";
-
-      holidayInfo.forEach(h=>{
-        html += `• ${h.date} - ${h.type} (${h.name})<br>`;
-      });
-
-      infoBox.innerHTML = html;
-      document.querySelector(".table-wrapper").after(infoBox);
-    }
-
-  });
+    });
 }
+
+
 
 // ================= EDIT =================
 function editShift(cell){
@@ -204,6 +167,7 @@ function editShift(cell){
 
   cell.dataset.shift = newShift;
   cell.textContent = newShift;
+
   cell.className = "";
   cell.classList.add("shift-" + newShift);
 }
@@ -225,66 +189,38 @@ function saveChanges(){
     data[row][col] = shift;
   });
 
-  firebaseSet(firebaseRef(db, "schedules/week_"+week), data)
+  localStorage.setItem("week_"+week, JSON.stringify(data));firebaseSet(firebaseRef(db, "schedules/week_"+week), data)
   .then(() => {
     alert("Perubahan disimpan ke Firebase!");
-    renderSchedule(parseInt(week));
   });
+  alert("Perubahan disimpan!");
 }
 
-// ================= EXPORT =================
-function exportToExcel(){
 
-  const weekNumber = parseInt(document.getElementById("weekSelect").value);
 
-  firebaseGet(firebaseRef(db, "schedules/week_"+weekNumber))
-  .then(snapshot => {
+// ================= LOGIN =================
+function login(){
+  const input = document.getElementById("adminPassword").value;
 
-    const overrides = snapshot.exists() ? snapshot.val() : {};
+  if(input === ADMIN_PASSWORD){
+    isAdmin = true;
+    document.getElementById("loginModal").classList.remove("active");
+    toggleAdminButtons(true);
+    alert("KA Gudang Aktif");
+  } else {
+    alert("Password salah");
+  }
+}
 
-    const rotation = (weekNumber - START_WEEK) % 6;
+function closeModal(){
+  document.getElementById("loginModal").classList.remove("active");
+}
 
-    const monday = new Date(START_DATE);
-    monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
-
-    const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
-
-    let data = [];
-    let header = ["No","NIK","Nama"];
-
-    for(let i=0;i<7;i++){
-      let d = new Date(monday);
-      d.setDate(monday.getDate()+i);
-      header.push(formatDate(d)+" "+days[i]);
-    }
-
-    data.push(header);
-
-    for(let i=0;i<6;i++){
-
-      const staffIndex = (i + rotation) % 6;
-      const person = staff[staffIndex];
-
-      let row = [i+1, person.nik, person.nama];
-
-      for(let j=0;j<7;j++){
-        let shift = basePattern[i][j];
-
-        if(overrides[i] && overrides[i][j]){
-          shift = overrides[i][j];
-        }
-
-        row.push(shift);
-      }
-
-      data.push(row);
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Week "+weekNumber);
-    XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`);
-  });
+function toggleAdminButtons(state){
+  document.getElementById("adminBtn").classList.toggle("hidden", state);
+  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
+  document.getElementById("saveBtn").classList.toggle("hidden", !state);
+  document.getElementById("exportBtn").classList.toggle("hidden", !state);
 }
 
 // ================= FORMAT =================
@@ -303,8 +239,12 @@ function formatISO(date){
 }
 
 function getCurrentWeekNumber(){
+
   const today = new Date();
-  if(today < START_DATE) return START_WEEK;
+
+  if(today < START_DATE){
+    return START_WEEK;
+  }
 
   const diffTime = today - START_DATE;
   const diffDays = Math.floor(diffTime / (1000*60*60*24));
@@ -312,5 +252,114 @@ function getCurrentWeekNumber(){
 
   let calculatedWeek = START_WEEK + diffWeeks;
   if(calculatedWeek > 52) calculatedWeek = 52;
+
   return calculatedWeek;
 }
+
+// ================= EXPORT =================
+function exportToExcel(){
+
+  const weekNumber = parseInt(document.getElementById("weekSelect").value);
+  const rotation = (weekNumber - START_WEEK) % 6;
+
+  const monday = new Date(START_DATE);
+  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+
+  const overrides = loadOverrides(weekNumber);
+  const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+
+  let data = [];
+  let header = ["No","NIK","Nama"];
+
+  for(let i=0;i<7;i++){
+    let d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    header.push(formatDate(d)+" "+days[i]);
+  }
+
+  data.push(header);
+
+  for(let i=0;i<6;i++){
+    const staffIndex = (i + rotation) % 6;
+    const person = staff[staffIndex];
+
+    let row = [i+1, person.nik, person.nama];
+
+    for(let j=0;j<7;j++){
+      let shift = basePattern[i][j];
+      if(overrides[i] && overrides[i][j]){
+        shift = overrides[i][j];
+      }
+      row.push(shift);
+    }
+
+    data.push(row);
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // ================= STYLE WARNA =================
+  for(let r=1; r<=6; r++){
+    for(let c=3; c<=9; c++){
+
+      const cellRef = XLSX.utils.encode_cell({r:r, c:c});
+      const cell = ws[cellRef];
+      if(!cell) continue;
+
+      let bgColor = "";
+
+      switch(cell.v){
+        case "P": bgColor = "6AA84F"; break;
+        case "S": bgColor = "E6B08A"; break;
+        case "M": bgColor = "2F5597"; break;
+        case "OFF": bgColor = "FF0000"; break;
+        case "C": bgColor = "8E44AD"; break;
+      }
+
+      cell.s = {
+        fill: {
+          patternType: "solid",
+          fgColor: { rgb: bgColor }
+        },
+        alignment: {
+          horizontal: "center",
+          vertical: "center"
+        },
+        font: {
+          bold: true,
+          color: { rgb: (cell.v==="M" || cell.v==="OFF" || cell.v==="C") ? "FFFFFF" : "000000" }
+        }
+      };
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Week "+weekNumber);
+
+  XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, {cellStyles:true});
+}
+
+// ================= REALTIME CLOCK =================
+
+function updateClock() {
+
+  const now = new Date();
+
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+  const dayName = hari[now.getDay()];
+
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = now.getFullYear();
+
+  const h = String(now.getHours()).padStart(2,'0');
+  const min = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+
+  const formatted = `${dayName} ${d}/${m}/${y} ${h}:${min}:${s} WIB`;
+
+  document.getElementById("liveClock").textContent = formatted;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
