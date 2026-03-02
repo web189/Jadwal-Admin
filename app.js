@@ -419,3 +419,359 @@ setInterval(() => {
   }
 }, 60000);
 
+// ================= THEME TOGGLE =================
+
+const toggleBtn = document.getElementById("themeToggle");
+
+// load tema tersimpan
+if(localStorage.getItem("theme") === "formal"){
+  document.body.classList.add("formal-theme");
+  toggleBtn.textContent = "🌐 Mode Hacker";
+}
+
+toggleBtn.addEventListener("click", () => {
+
+  document.body.classList.toggle("formal-theme");
+
+  if(document.body.classList.contains("formal-theme")){
+    localStorage.setItem("theme","formal");
+    toggleBtn.textContent = "🌐 Mode Hacker";
+  } else {
+    localStorage.setItem("theme","Hacker");
+    toggleBtn.textContent = "🌓 Mode Kantor";
+  }
+
+});    opt.textContent = "Week " + i;
+    select.appendChild(opt);
+  }
+}
+
+// ================= RENDER =================
+function renderSchedule(weekNumber) {
+
+  firebaseGet(firebaseRef(db, "schedules/week_"+weekNumber))
+    .then((snapshot) => {
+
+      const overrides = snapshot.exists() ? snapshot.val() : {};
+
+      const table = document.getElementById("scheduleTable");
+      table.innerHTML = "";
+
+      const rotation = (weekNumber - START_WEEK) % 6;
+
+      const monday = new Date(START_DATE);
+      monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+
+      const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+
+      let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
+
+      // ================= CEK HARI LIBUR =================
+let holidayInfo = [];
+
+for(let i=0;i<7;i++){
+  let d = new Date(monday);
+  d.setDate(monday.getDate()+i);
+
+  const iso = formatISO(d);
+  let holidayClass = "";
+
+  if(nationalHolidays[iso]){
+    const h = nationalHolidays[iso];
+
+    holidayClass = h.type === "LN" ? "holiday-ln" : "holiday-cb";
+
+    holidayInfo.push({
+      date: formatDate(d),
+      name: h.name,
+      type: h.type === "LN" ? "Libur Nasional" : "Cuti Bersama"
+    });
+  }
+
+  header += `<th class="${holidayClass}">
+               ${formatDate(d)}<br>${days[i]}
+             </th>`;
+}
+
+
+      header += "</tr>";
+      table.innerHTML += header;
+
+      for(let i=0;i<6;i++){
+
+        const staffIndex = (i + rotation) % 6;
+        const person = staff[staffIndex];
+
+        let row = `<tr>
+          <td>${i+1}</td>
+          <td>${person.nik}</td>
+          <td>${person.nama}</td>`;
+
+        for(let j=0;j<7;j++){
+
+          let shift = basePattern[i][j];
+
+          if(overrides[i] && overrides[i][j]){
+            shift = overrides[i][j];
+          }
+
+          row += `<td class="shift-${shift}"
+                    onclick="editShift(this)"
+                    data-row="${i}"
+                    data-col="${j}"
+                    data-shift="${shift}">
+                    ${shift}
+                  </td>`;
+        }
+
+        row += "</tr>";
+        table.innerHTML += row;
+      }
+	  
+	  // ================= TAMPILKAN INFO LIBUR =================
+
+const oldInfoBox = document.getElementById("holidayInfoBox");
+if(oldInfoBox) oldInfoBox.remove();
+
+if(holidayInfo.length > 0){
+
+  const infoBox = document.createElement("div");
+  infoBox.id = "holidayInfoBox";
+  infoBox.className = "holiday-info-box";
+
+  let html = "<strong>📅 Hari Libur Minggu Ini:</strong><br><br>";
+
+  holidayInfo.forEach(h=>{
+    html += `• ${h.date} - ${h.type}<br>   ${h.name}<br><br>`;
+  });
+
+  infoBox.innerHTML = html;
+
+  document.querySelector(".table-wrapper").after(infoBox);
+}
+
+
+    });
+	
+	
+}
+
+
+
+
+// ================= EDIT =================
+function editShift(cell){
+  if(!isAdmin) return;
+
+  const options = ["P","S","M","OFF","C"];
+  const current = cell.dataset.shift;
+  const nextIndex = (options.indexOf(current)+1)%options.length;
+  const newShift = options[nextIndex];
+
+  cell.dataset.shift = newShift;
+  cell.textContent = newShift;
+
+  cell.className = "";
+  cell.classList.add("shift-" + newShift);
+}
+
+// ================= SAVE =================
+function saveChanges(){
+
+  const week = document.getElementById("weekSelect").value;
+  const cells = document.querySelectorAll("#scheduleTable td[data-row]");
+
+  let data = {};
+
+  cells.forEach(cell=>{
+    const row = cell.dataset.row;
+    const col = cell.dataset.col;
+    const shift = cell.dataset.shift;
+
+    if(!data[row]) data[row] = {};
+    data[row][col] = shift;
+  });
+
+  localStorage.setItem("week_"+week, JSON.stringify(data));firebaseSet(firebaseRef(db, "schedules/week_"+week), data)
+  .then(() => {
+    alert("Perubahan disimpan ke Firebase!");
+  });
+  alert("Perubahan disimpan!");
+}
+
+
+
+// ================= LOGIN =================
+function login(){
+  const input = document.getElementById("adminPassword").value;
+
+  if(input === ADMIN_PASSWORD){
+    isAdmin = true;
+    document.getElementById("loginModal").classList.remove("active");
+    toggleAdminButtons(true);
+    alert("KA Gudang Aktif");
+  } else {
+    alert("Password salah");
+  }
+}
+
+function closeModal(){
+  document.getElementById("loginModal").classList.remove("active");
+}
+
+function toggleAdminButtons(state){
+  document.getElementById("adminBtn").classList.toggle("hidden", state);
+  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
+  document.getElementById("saveBtn").classList.toggle("hidden", !state);
+  document.getElementById("exportBtn").classList.toggle("hidden", !state);
+}
+
+// ================= FORMAT =================
+function formatDate(date){
+  const d = String(date.getDate()).padStart(2,'0');
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function formatISO(date){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function getCurrentWeekNumber(){
+
+  const today = new Date();
+
+  if(today < START_DATE){
+    return START_WEEK;
+  }
+
+  const diffTime = today - START_DATE;
+  const diffDays = Math.floor(diffTime / (1000*60*60*24));
+  const diffWeeks = Math.floor(diffDays/7);
+
+  let calculatedWeek = START_WEEK + diffWeeks;
+  if(calculatedWeek > 52) calculatedWeek = 52;
+
+  return calculatedWeek;
+}
+
+// ================= EXPORT =================
+function exportToExcel(){
+
+  const weekNumber = parseInt(document.getElementById("weekSelect").value);
+  const rotation = (weekNumber - START_WEEK) % 6;
+
+  const monday = new Date(START_DATE);
+  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+
+  const overrides = loadOverrides(weekNumber);
+  const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+
+  let data = [];
+  let header = ["No","NIK","Nama"];
+
+  for(let i=0;i<7;i++){
+    let d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    header.push(formatDate(d)+" "+days[i]);
+  }
+
+  data.push(header);
+
+  for(let i=0;i<6;i++){
+    const staffIndex = (i + rotation) % 6;
+    const person = staff[staffIndex];
+
+    let row = [i+1, person.nik, person.nama];
+
+    for(let j=0;j<7;j++){
+      let shift = basePattern[i][j];
+      if(overrides[i] && overrides[i][j]){
+        shift = overrides[i][j];
+      }
+      row.push(shift);
+    }
+
+    data.push(row);
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // ================= STYLE WARNA =================
+  for(let r=1; r<=6; r++){
+    for(let c=3; c<=9; c++){
+
+      const cellRef = XLSX.utils.encode_cell({r:r, c:c});
+      const cell = ws[cellRef];
+      if(!cell) continue;
+
+      let bgColor = "";
+
+      switch(cell.v){
+        case "P": bgColor = "6AA84F"; break;
+        case "S": bgColor = "E6B08A"; break;
+        case "M": bgColor = "2F5597"; break;
+        case "OFF": bgColor = "FF0000"; break;
+        case "C": bgColor = "8E44AD"; break;
+      }
+
+      cell.s = {
+        fill: {
+          patternType: "solid",
+          fgColor: { rgb: bgColor }
+        },
+        alignment: {
+          horizontal: "center",
+          vertical: "center"
+        },
+        font: {
+          bold: true,
+          color: { rgb: (cell.v==="M" || cell.v==="OFF" || cell.v==="C") ? "FFFFFF" : "000000" }
+        }
+      };
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Week "+weekNumber);
+
+  XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, {cellStyles:true});
+}
+
+// ================= REALTIME CLOCK =================
+
+function updateClock() {
+
+  const now = new Date();
+
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+  const dayName = hari[now.getDay()];
+
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = now.getFullYear();
+
+  const h = String(now.getHours()).padStart(2,'0');
+  const min = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+
+  const formatted = `${dayName} ${d}/${m}/${y} ${h}:${min}:${s} WIB`;
+
+  document.getElementById("liveClock").textContent = formatted;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+setInterval(() => {
+  if (!document.hidden && !isAdmin) {
+    const week = parseInt(document.getElementById("weekSelect").value);
+    renderSchedule(week);
+  }
+}, 60000);
+
+
