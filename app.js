@@ -111,11 +111,33 @@ function renderSchedule(weekNumber) {
 
       let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
 
-      for(let i=0;i<7;i++){
-        let d = new Date(monday);
-        d.setDate(monday.getDate()+i);
-        header += `<th>${formatDate(d)}<br>${days[i]}</th>`;
-      }
+      // ================= CEK HARI LIBUR =================
+let holidayInfo = [];
+
+for(let i=0;i<7;i++){
+  let d = new Date(monday);
+  d.setDate(monday.getDate()+i);
+
+  const iso = formatISO(d);
+  let holidayClass = "";
+
+  if(nationalHolidays[iso]){
+    const h = nationalHolidays[iso];
+
+    holidayClass = h.type === "LN" ? "holiday-ln" : "holiday-cb";
+
+    holidayInfo.push({
+      date: formatDate(d),
+      name: h.name,
+      type: h.type === "LN" ? "Libur Nasional" : "Cuti Bersama"
+    });
+  }
+
+  header += `<th class="${holidayClass}">
+               ${formatDate(d)}<br>${days[i]}
+             </th>`;
+}
+
 
       header += "</tr>";
       table.innerHTML += header;
@@ -150,9 +172,35 @@ function renderSchedule(weekNumber) {
         row += "</tr>";
         table.innerHTML += row;
       }
+	  
+	  // ================= TAMPILKAN INFO LIBUR =================
+
+const oldInfoBox = document.getElementById("holidayInfoBox");
+if(oldInfoBox) oldInfoBox.remove();
+
+if(holidayInfo.length > 0){
+
+  const infoBox = document.createElement("div");
+  infoBox.id = "holidayInfoBox";
+  infoBox.className = "holiday-info-box";
+
+  let html = "<strong>📅 Hari Libur Minggu Ini:</strong><br><br>";
+
+  holidayInfo.forEach(h=>{
+    html += `• ${h.date} - ${h.type}<br>   ${h.name}<br><br>`;
+  });
+
+  infoBox.innerHTML = html;
+
+  document.querySelector(".table-wrapper").after(infoBox);
+}
+
 
     });
+	
+	
 }
+
 
 
 
