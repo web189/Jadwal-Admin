@@ -94,106 +94,104 @@ function generateWeekOptions() {
 // ================= RENDER =================
 function renderSchedule(weekNumber) {
 
-  const table = document.getElementById("scheduleTable");
-  table.innerHTML = "";
+  firebaseGet(firebaseRef(db, "schedules/week_"+weekNumber))
+  .then(snapshot => {
 
-  const rotation = (weekNumber - START_WEEK) % 6;
+    const overrides = snapshot.exists() ? snapshot.val() : {};
 
-  const monday = new Date(START_DATE);
-  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+    const table = document.getElementById("scheduleTable");
+    table.innerHTML = "";
 
-  const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+    const rotation = (weekNumber - START_WEEK) % 6;
 
-  let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
-let holidayInfo = [];
+    const monday = new Date(START_DATE);
+    monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
-for(let i=0;i<7;i++){
-  let d = new Date(monday);
-  d.setDate(monday.getDate()+i);
+    const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
 
-  const iso = formatISO(d);
-  let holidayClass = "";
+    let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
+    let holidayInfo = [];
 
-  if(nationalHolidays[iso]){
-    const holiday = nationalHolidays[iso];
+    for(let i=0;i<7;i++){
+      let d = new Date(monday);
+      d.setDate(monday.getDate()+i);
 
-    if(holiday.type === "LN"){
-      holidayClass = "holiday-ln";
-    } else if(holiday.type === "CB"){
-      holidayClass = "holiday-cb";
-    }
+      const iso = formatISO(d);
+      let holidayClass = "";
 
-    holidayInfo.push({
-      date: formatDate(d),
-      type: holiday.type === "LN" ? "Libur Nasional" : "Cuti Bersama",
-      name: holiday.name
-    });
-  }
+      if(nationalHolidays[iso]){
+        const holiday = nationalHolidays[iso];
 
-  header += `<th class="${holidayClass}">
-              ${formatDate(d)}<br>${days[i]}
-            </th>`;
-}
-  header += "</tr>";
-  table.innerHTML += header;
+        if(holiday.type === "LN") holidayClass = "holiday-ln";
+        if(holiday.type === "CB") holidayClass = "holiday-cb";
 
-  const overrides = loadOverrides(weekNumber);
-
-  for(let i=0;i<6;i++){
-
-    const staffIndex = (i + rotation) % 6;
-    const person = staff[staffIndex];
-
-    let row = `<tr>
-      <td>${i+1}</td>
-      <td>${person.nik}</td>
-      <td>${person.nama}</td>`;
-
-    for(let j=0;j<7;j++){
-
-      let shift = basePattern[i][j];
-
-      if(overrides[i] && overrides[i][j]){
-        shift = overrides[i][j];
+        holidayInfo.push({
+          date: formatDate(d),
+          type: holiday.type === "LN" ? "Libur Nasional" : "Cuti Bersama",
+          name: holiday.name
+        });
       }
 
-      row += `<td class="shift-${shift}"
-                onclick="editShift(this)"
-                data-row="${i}"
-                data-col="${j}"
-                data-shift="${shift}">
-                ${shift}
-              </td>`;
+      header += `<th class="${holidayClass}">
+                  ${formatDate(d)}<br>${days[i]}
+                </th>`;
     }
 
-    row += "</tr>";
-    table.innerHTML += row;
-  }
-  
-  // ================= INFO LIBUR =================
+    header += "</tr>";
+    table.innerHTML += header;
 
-const oldInfoBox = document.getElementById("holidayInfoBox");
-if(oldInfoBox) oldInfoBox.remove();
+    for(let i=0;i<6;i++){
 
-if(holidayInfo.length > 0){
+      const staffIndex = (i + rotation) % 6;
+      const person = staff[staffIndex];
 
-  const infoBox = document.createElement("div");
-  infoBox.id = "holidayInfoBox";
-  infoBox.className = "holiday-info-box";
+      let row = `<tr>
+        <td>${i+1}</td>
+        <td>${person.nik}</td>
+        <td>${person.nama}</td>`;
 
-  let html = "<strong>📅 Informasi Minggu Ini:</strong><br>";
+      for(let j=0;j<7;j++){
 
-  holidayInfo.forEach(h=>{
-    html += `• ${h.date} - ${h.type} (${h.name})<br>`;
+        let shift = basePattern[i][j];
+
+        if(overrides[i] && overrides[i][j]){
+          shift = overrides[i][j];
+        }
+
+        row += `<td class="shift-${shift}"
+                  onclick="editShift(this)"
+                  data-row="${i}"
+                  data-col="${j}"
+                  data-shift="${shift}">
+                  ${shift}
+                </td>`;
+      }
+
+      row += "</tr>";
+      table.innerHTML += row;
+    }
+
+    // ===== INFO LIBUR =====
+    const oldInfoBox = document.getElementById("holidayInfoBox");
+    if(oldInfoBox) oldInfoBox.remove();
+
+    if(holidayInfo.length > 0){
+      const infoBox = document.createElement("div");
+      infoBox.id = "holidayInfoBox";
+      infoBox.className = "holiday-info-box";
+
+      let html = "<strong>📅 Informasi Minggu Ini:</strong><br>";
+
+      holidayInfo.forEach(h=>{
+        html += `• ${h.date} - ${h.type} (${h.name})<br>`;
+      });
+
+      infoBox.innerHTML = html;
+      document.querySelector(".table-wrapper").after(infoBox);
+    }
+
   });
-
-  infoBox.innerHTML = html;
-
-  document.querySelector(".table-wrapper").after(infoBox);
 }
-}
-
-
 
 // ================= EDIT =================
 function editShift(cell){
@@ -206,7 +204,6 @@ function editShift(cell){
 
   cell.dataset.shift = newShift;
   cell.textContent = newShift;
-
   cell.className = "";
   cell.classList.add("shift-" + newShift);
 }
@@ -228,39 +225,66 @@ function saveChanges(){
     data[row][col] = shift;
   });
 
-  localStorage.setItem("week_"+week, JSON.stringify(data));
-  alert("Perubahan disimpan!");
+  firebaseSet(firebaseRef(db, "schedules/week_"+week), data)
+  .then(() => {
+    alert("Perubahan disimpan ke Firebase!");
+    renderSchedule(parseInt(week));
+  });
 }
 
-// ================= LOAD =================
-function loadOverrides(week){
-  const data = localStorage.getItem("week_"+week);
-  return data ? JSON.parse(data) : {};
-}
+// ================= EXPORT =================
+function exportToExcel(){
 
-// ================= LOGIN =================
-function login(){
-  const input = document.getElementById("adminPassword").value;
+  const weekNumber = parseInt(document.getElementById("weekSelect").value);
 
-  if(input === ADMIN_PASSWORD){
-    isAdmin = true;
-    document.getElementById("loginModal").classList.remove("active");
-    toggleAdminButtons(true);
-    alert("KA Gudang Aktif");
-  } else {
-    alert("Password salah");
-  }
-}
+  firebaseGet(firebaseRef(db, "schedules/week_"+weekNumber))
+  .then(snapshot => {
 
-function closeModal(){
-  document.getElementById("loginModal").classList.remove("active");
-}
+    const overrides = snapshot.exists() ? snapshot.val() : {};
 
-function toggleAdminButtons(state){
-  document.getElementById("adminBtn").classList.toggle("hidden", state);
-  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
-  document.getElementById("saveBtn").classList.toggle("hidden", !state);
-  document.getElementById("exportBtn").classList.toggle("hidden", !state);
+    const rotation = (weekNumber - START_WEEK) % 6;
+
+    const monday = new Date(START_DATE);
+    monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+
+    const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+
+    let data = [];
+    let header = ["No","NIK","Nama"];
+
+    for(let i=0;i<7;i++){
+      let d = new Date(monday);
+      d.setDate(monday.getDate()+i);
+      header.push(formatDate(d)+" "+days[i]);
+    }
+
+    data.push(header);
+
+    for(let i=0;i<6;i++){
+
+      const staffIndex = (i + rotation) % 6;
+      const person = staff[staffIndex];
+
+      let row = [i+1, person.nik, person.nama];
+
+      for(let j=0;j<7;j++){
+        let shift = basePattern[i][j];
+
+        if(overrides[i] && overrides[i][j]){
+          shift = overrides[i][j];
+        }
+
+        row.push(shift);
+      }
+
+      data.push(row);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Week "+weekNumber);
+    XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`);
+  });
 }
 
 // ================= FORMAT =================
@@ -279,12 +303,8 @@ function formatISO(date){
 }
 
 function getCurrentWeekNumber(){
-
   const today = new Date();
-
-  if(today < START_DATE){
-    return START_WEEK;
-  }
+  if(today < START_DATE) return START_WEEK;
 
   const diffTime = today - START_DATE;
   const diffDays = Math.floor(diffTime / (1000*60*60*24));
@@ -292,114 +312,5 @@ function getCurrentWeekNumber(){
 
   let calculatedWeek = START_WEEK + diffWeeks;
   if(calculatedWeek > 52) calculatedWeek = 52;
-
   return calculatedWeek;
 }
-
-// ================= EXPORT =================
-function exportToExcel(){
-
-  const weekNumber = parseInt(document.getElementById("weekSelect").value);
-  const rotation = (weekNumber - START_WEEK) % 6;
-
-  const monday = new Date(START_DATE);
-  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
-
-  const overrides = loadOverrides(weekNumber);
-  const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
-
-  let data = [];
-  let header = ["No","NIK","Nama"];
-
-  for(let i=0;i<7;i++){
-    let d = new Date(monday);
-    d.setDate(monday.getDate()+i);
-    header.push(formatDate(d)+" "+days[i]);
-  }
-
-  data.push(header);
-
-  for(let i=0;i<6;i++){
-    const staffIndex = (i + rotation) % 6;
-    const person = staff[staffIndex];
-
-    let row = [i+1, person.nik, person.nama];
-
-    for(let j=0;j<7;j++){
-      let shift = basePattern[i][j];
-      if(overrides[i] && overrides[i][j]){
-        shift = overrides[i][j];
-      }
-      row.push(shift);
-    }
-
-    data.push(row);
-  }
-
-  const ws = XLSX.utils.aoa_to_sheet(data);
-
-  // ================= STYLE WARNA =================
-  for(let r=1; r<=6; r++){
-    for(let c=3; c<=9; c++){
-
-      const cellRef = XLSX.utils.encode_cell({r:r, c:c});
-      const cell = ws[cellRef];
-      if(!cell) continue;
-
-      let bgColor = "";
-
-      switch(cell.v){
-        case "P": bgColor = "6AA84F"; break;
-        case "S": bgColor = "E6B08A"; break;
-        case "M": bgColor = "2F5597"; break;
-        case "OFF": bgColor = "FF0000"; break;
-        case "C": bgColor = "8E44AD"; break;
-      }
-
-      cell.s = {
-        fill: {
-          patternType: "solid",
-          fgColor: { rgb: bgColor }
-        },
-        alignment: {
-          horizontal: "center",
-          vertical: "center"
-        },
-        font: {
-          bold: true,
-          color: { rgb: (cell.v==="M" || cell.v==="OFF" || cell.v==="C") ? "FFFFFF" : "000000" }
-        }
-      };
-    }
-  }
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Week "+weekNumber);
-
-  XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, {cellStyles:true});
-}
-
-// ================= REALTIME CLOCK =================
-
-function updateClock() {
-
-  const now = new Date();
-
-  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-  const dayName = hari[now.getDay()];
-
-  const d = String(now.getDate()).padStart(2,'0');
-  const m = String(now.getMonth()+1).padStart(2,'0');
-  const y = now.getFullYear();
-
-  const h = String(now.getHours()).padStart(2,'0');
-  const min = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-
-  const formatted = `${dayName} ${d}/${m}/${y} ${h}:${min}:${s} WIB`;
-
-  document.getElementById("liveClock").textContent = formatted;
-}
-
-setInterval(updateClock, 1000);
-updateClock();
