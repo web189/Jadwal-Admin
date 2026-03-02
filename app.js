@@ -411,3 +411,11 @@ function updateClock() {
 
 setInterval(updateClock, 1000);
 updateClock();
+
+setInterval(() => {
+  if (!document.hidden && !isAdmin) {
+    const week = parseInt(document.getElementById("weekSelect").value);
+    renderSchedule(week);
+  }
+}, 60000);
+
