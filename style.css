@@ -715,3 +715,150 @@ td:hover {
   font-family: 'Share Tech Mono', monospace;
   color: #00ffe1;
 }
+
+/* ================= FORMAL HRD THEME ================= */
+
+body.formal-theme {
+  background: #f4f6f9;
+  color: #222;
+}
+
+/* header */
+body.formal-theme header {
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* judul */
+body.formal-theme .glitch {
+  color: #0d47a1;
+  text-shadow: none;
+}
+
+/* tabel */
+body.formal-theme table {
+  background: #ffffff;
+  border-collapse: collapse;
+}
+
+body.formal-theme th {
+  background: #0d47a1;
+  color: white;
+}
+
+body.formal-theme td {
+  border: 1px solid #ddd;
+}
+
+/* tombol */
+body.formal-theme button {
+  background: #0d47a1;
+  color: white;
+  border: none;
+}
+
+body.formal-theme button:hover {
+  background: #1565c0;
+}
+
+/* hilangkan efek cyber */
+body.formal-theme #particles-js,
+body.formal-theme canvas,
+body.formal-theme #matrixCanvas {
+  display: none !important;
+}
+
+/* ================= HRD HEADER STYLE ================= */
+
+body.formal-theme .glitch {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #1a237e;
+  text-shadow: none;
+  animation: none;
+}
+
+body.formal-theme {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+body.formal-theme button {
+  background: #1a237e;
+  color: white;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-weight: 500;
+}
+
+body.formal-theme button:hover {
+  background: #283593;
+}
+
+body.formal-theme table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+body.formal-theme th {
+  background: #1a237e;
+  color: white;
+  font-weight: 600;
+}
+
+body.formal-theme tr:nth-child(even) {
+  background: #f5f7fa;
+}
+
+body.formal-theme #particles-js,
+body.formal-theme canvas,
+body.formal-theme #matrixCanvas,
+body.formal-theme .cyber-signature {
+  display: none !important;
+}
+
+@media (hover: none) {
+  td:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (max-width:768px) {
+  #particles-js,
+  canvas {
+    display: none !important;
+  }
+}
+
+@media (max-width:768px) {
+  .glitch {
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+}
+
+@media (max-width:768px) {
+  th, td {
+    padding: 6px;
+    font-size: 12px;
+  }
+}
+
+/* ===== WEEK SELECT MODE HRD ===== */
+
+body.formal-theme #weekSelect {
+  background: #ffffff;
+  color: #1a237e;
+  border: 2px solid #1a237e;
+  font-weight: 600;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+body.formal-theme #weekSelect:focus {
+  outline: none;
+  border-color: #3949ab;
+}
+
