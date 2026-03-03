@@ -690,11 +690,50 @@ td:hover {
 
 /* ================= HOLIDAY EFFECT ================= */
 
-.holiday-ln {
-  background: rgba(255, 0, 0, 0.15) !important;
-  border: 2px solid rgba(255, 0, 0, 0.6) !important;
-  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+/* ================= HOLIDAY TABLE MARKER UPGRADE ================= */
+
+/* LIBUR NASIONAL */
+body:not(.formal-theme) .holiday-ln {
+  background: linear-gradient(45deg, #330000, #660000) !important;
+  color: #ffffff !important;
+  border: 2px solid #ff0000 !important;
+  box-shadow: 0 0 10px red;
 }
+
+/* CUTI BERSAMA */
+body:not(.formal-theme) .holiday-cb {
+  background: linear-gradient(45deg, #663c00, #cc8400) !important;
+  color: #000 !important;
+  border: 2px solid #ffae00 !important;
+  box-shadow: 0 0 10px orange;
+}
+
+/* ===== FORMAL MODE ===== */
+
+body.formal-theme .holiday-ln {
+  background: #ffebee !important;
+  border: 2px solid #d32f2f !important;
+  color: #b71c1c !important;
+  font-weight: 600;
+}
+
+body.formal-theme .holiday-cb {
+  background: #fff8e1 !important;
+  border: 2px solid #f9a825 !important;
+  color: #e65100 !important;
+  font-weight: 600;
+}
+
+/* Tambah icon otomatis */
+
+.holiday-ln::after {
+  content: " 🇮🇩";
+}
+
+.holiday-cb::after {
+  content: " 📅";
+}
+
 
 .holiday-cb {
   background: rgba(255, 180, 0, 0.15) !important;
@@ -704,17 +743,33 @@ td:hover {
 
 /* ================= HOLIDAY INFO BOX ================= */
 
+/* ================= HOLIDAY INFO BOX UPGRADE ================= */
+
 .holiday-info-box {
   margin-top: 20px;
-  padding: 15px 20px;
-  border-radius: 15px;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 0, 0, 0.3);
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
-  font-family: 'Share Tech Mono', monospace;
+  padding: 18px 22px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Hacker Mode */
+body:not(.formal-theme) .holiday-info-box {
+  background: rgba(255, 0, 0, 0.08);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
   color: #00ffe1;
 }
+
+/* Formal Mode */
+body.formal-theme .holiday-info-box {
+  background: #fff3e0;
+  border-left: 5px solid #f57c00;
+  color: #333;
+  box-shadow: none;
+}
+
 
 /* ================= FORMAL HRD THEME ================= */
 
@@ -861,4 +916,165 @@ body.formal-theme #weekSelect:focus {
   outline: none;
   border-color: #3949ab;
 }
+
+/* ================= FIX TABLE BORDER FORMAL MODE ================= */
+
+body.formal-theme th,
+body.formal-theme td {
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+body.formal-theme tr td:first-child,
+body.formal-theme tr th:first-child {
+  border-left: 1px solid #e0e0e0;
+}
+
+body.formal-theme tr:first-child th {
+  border-top: 1px solid #e0e0e0;
+}
+
+/* ================= DISABLE CYBER HOVER IN FORMAL ================= */
+
+body.formal-theme td:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ================= CLOCK FORMAL MODE ================= */
+
+body.formal-theme .cyber-clock {
+  background: #ffffff;
+  color: #1a237e;
+  border: 1px solid #d0d0d0;
+  box-shadow: none;
+  animation: none;
+}
+
+body.formal-theme button {
+  box-shadow: none;
+}
+
+body.formal-theme select,
+body.formal-theme input {
+  background: #ffffff;
+  color: #1a237e;
+  border: 1px solid #ccc;
+  box-shadow: none;
+}
+
+body.formal-theme .table-wrapper {
+  backdrop-filter: none;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  box-shadow: none;
+}
+
+body.formal-theme::after {
+  display: none;
+}
+
+/* ================= WEEK SELECT - HACKER MODE ================= */
+
+body:not(.formal-theme) #weekSelect {
+  background: rgba(0, 0, 0, 0.7);
+  color: #00ffe1;
+  border: 2px solid #00ffe1;
+  box-shadow: 0 0 10px #00ffe1;
+  font-weight: bold;
+  text-shadow: 0 0 5px #00ffe1;
+  transition: 0.3s;
+}
+
+/* Hover Effect */
+body:not(.formal-theme) #weekSelect:hover {
+  box-shadow: 0 0 20px #00ffe1, 0 0 40px #00aaff;
+  transform: translateY(-2px);
+}
+
+/* Focus Effect */
+body:not(.formal-theme) #weekSelect:focus {
+  outline: none;
+  border-color: #00aaff;
+  box-shadow: 0 0 20px #00aaff;
+}
+
+/* Dropdown list color fix */
+
+body:not(.formal-theme) #weekSelect option {
+  background: #000;
+  color: #00ffe1;
+}
+
+body:not(.formal-theme) #weekSelect {
+  animation: hackerGlow 2s infinite alternate;
+}
+
+@keyframes hackerGlow {
+  from { box-shadow: 0 0 8px #00ffe1; }
+  to { box-shadow: 0 0 25px #00aaff; }
+}
+
+/* ================= NEWS TICKER ================= */
+
+.news-ticker {
+  width: 100%;
+  overflow: hidden;
+  margin-top: 10px;
+  border-radius: 8px;
+  position: relative;
+}
+
+/* Hacker Mode */
+body:not(.formal-theme) .news-ticker {
+  background: rgba(0, 255, 225, 0.05);
+  border: 1px solid #00ffe1;
+  box-shadow: 0 0 10px #00ffe1;
+}
+
+/* Formal Mode */
+body.formal-theme .news-ticker {
+  background: #e3f2fd;
+  border-left: 4px solid #1a237e;
+}
+
+/* Running animation */
+.news-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 8px 0;
+  animation: scrollNews 25s linear infinite;
+}
+
+.news-track span {
+  padding-left: 100%;
+  font-weight: 500;
+}
+
+body:not(.formal-theme) .news-track span {
+  color: #00ffe1;
+  text-shadow: 0 0 8px #00ffe1;
+}
+
+body.formal-theme .news-track span {
+  color: #1a237e;
+}
+
+@keyframes scrollNews {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.news-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 8px 0;
+  animation: scrollNews 10s linear infinite; /* makin besar makin pelan */
+}
+
+@keyframes scrollNews {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
 
