@@ -481,7 +481,7 @@ function loadStory() {
   ticker.style.animation = null;
 
   newsContent.textContent = randomText;
-}
+
 
 // Load pertama kali
 loadStory();
