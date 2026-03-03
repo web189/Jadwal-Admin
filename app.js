@@ -442,3 +442,49 @@ toggleBtn.addEventListener("click", () => {
   }
 
 });
+
+const exportBtn = document.getElementById("exportBtn");
+
+exportBtn.addEventListener("click", function () {
+  const table = document.getElementById("scheduleTable");
+
+  if (!table) {
+    alert("Tabel tidak ditemukan!");
+    return;
+  }
+
+  const wb = XLSX.utils.table_to_book(table, { sheet: "Jadwal Admin" });
+  XLSX.writeFile(wb, "Jadwal_Admin_Gudang.xlsx");
+});
+
+/* ================================
+   📖 RUNNING STORY TEXT
+================================ */
+
+function loadStory() {
+
+  const stories = [ xxx
+
+  ];
+
+  // Ambil random cerita
+  const randomText = stories[Math.floor(Math.random() * stories.length)];
+
+  const newsContent = document.getElementById("newsContent");
+  const ticker = document.querySelector(".news-track");
+
+  if (!newsContent || !ticker) return;
+
+  // Reset animasi supaya smooth
+  ticker.style.animation = "none";
+  void ticker.offsetWidth;
+  ticker.style.animation = null;
+
+  newsContent.textContent = randomText;
+}
+
+// Load pertama kali
+loadStory();
+
+// Ganti cerita setiap 10 menit
+setInterval(loadStory, 600000);
