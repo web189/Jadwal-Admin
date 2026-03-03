@@ -269,6 +269,7 @@ function toggleAdminButtons(state){
   document.getElementById("logoutBtn").classList.toggle("hidden", !state);
   document.getElementById("saveBtn").classList.toggle("hidden", !state);
   document.getElementById("exportBtn").classList.toggle("hidden", !state);
+  
 }
 
 // ================= FORMAT =================
@@ -419,6 +420,39 @@ setInterval(() => {
   }
 }, 60000);
 
+
+/* ================================
+   🔁 DETEKSI SHIFT DENGAN TOLERANSI 30 MENIT
+================================ */
+
+function getCurrentShift() {
+
+  const now = new Date();
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+  const shift1Start = 7 * 60 + 30;   // 07:30
+  const shift2Start = 15 * 60 + 30;  // 15:30
+  const shift3Start = 23 * 60 + 30;  // 23:30
+
+  if (minutesNow >= shift3Start || minutesNow < shift1Start) {
+    return 3;
+  }
+
+  if (minutesNow >= shift1Start && minutesNow < shift2Start) {
+    return 1;
+  }
+
+  if (minutesNow >= shift2Start && minutesNow < shift3Start) {
+    return 2;
+  }
+
+  return 3;
+}
+
+
+
+
+
 // ================= THEME TOGGLE =================
 
 const toggleBtn = document.getElementById("themeToggle");
@@ -457,34 +491,54 @@ exportBtn.addEventListener("click", function () {
   XLSX.writeFile(wb, "Jadwal_Admin_Gudang.xlsx");
 });
 
-/* ================================
-   📖 RUNNING STORY TEXT
-================================ */
+function loadSerahTerima() {
 
-function loadStory() {
+  const shift = getCurrentShift();
 
-  const stories = [ xxx
+  const today = new Date();
+  const dateKey = today.toISOString().split("T")[0];
 
-  ];
+  firebaseGet(firebaseRef(db, "serahTerima/" + dateKey))
+    .then(snapshot => {
 
-  // Ambil random cerita
-  const randomText = stories[Math.floor(Math.random() * stories.length)];
+      let data = snapshot.exists() ? snapshot.val() : {};
 
-  const newsContent = document.getElementById("newsContent");
-  const ticker = document.querySelector(".news-track");
+      let isi = data["shift" + shift] || "Belum ada catatan.";
 
-  if (!newsContent || !ticker) return;
+      const text = `SERAH TERIMA SHIFT ${shift} : ${isi}`;
 
-  // Reset animasi supaya smooth
-  ticker.style.animation = "none";
-  void ticker.offsetWidth;
-  ticker.style.animation = null;
+      const el = document.getElementById("serahTerimaText");
+      const ticker = document.querySelector(".news-track");
 
-  newsContent.textContent = randomText;
+      if (!el || !ticker) return;
 
+      ticker.style.animation = "none";
+      void ticker.offsetWidth;
+      ticker.style.animation = null;
 
-// Load pertama kali
-loadStory();
+      el.textContent = text;
 
-// Ganti cerita setiap 10 menit
-setInterval(loadStory, 600000);
+    });
+}
+
+setInterval(loadSerahTerima, 60000);
+loadSerahTerima();
+
+document.getElementById("serahTerimaBtn").addEventListener("click", () => {
+
+  const shift = getCurrentShift();
+  const isi = prompt("Masukkan Serah Terima SHIFT " + shift);
+
+  if (!isi) return;
+
+  const today = new Date();
+  const dateKey = today.toISOString().split("T")[0];
+
+  firebaseSet(firebaseRef(db, "serahTerima/" + dateKey + "/shift" + shift), isi)
+    .then(() => {
+      alert("Serah Terima disimpan!");
+      loadSerahTerima();
+    });
+
+});
+
