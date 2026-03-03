@@ -55,7 +55,7 @@
 
 <div class="controls">
   <select id="weekSelect"></select>
-  <button id="themeToggle">🌓 Mode Kantor</button>
+  <button id="themeToggle">🌓 Mode Hacker</button>
   <button id="adminBtn">🔒Menu KA Gudang</button>
   <button id="logoutBtn" class="hidden">↩️Keluar KA Gudang</button>
   <button id="saveBtn" class="hidden">💾Simpan Perubahan</button>
@@ -69,7 +69,14 @@
 
 </div>
 <div id="liveClock" class="cyber-clock"></div>
+<div id="newsTicker" class="news-ticker">
+  <div class="news-track">
+    <span id="newsContent">Loading berita terbaru...</span>
+  </div>
+</div>
+
 </header>
+
 
 <div class="table-wrapper">
   <table id="scheduleTable"></table>
@@ -450,4 +457,3 @@ window.firebaseReady = true;
 <script src="app.js" defer></script>
 </body>
 </html>
-
