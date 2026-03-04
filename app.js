@@ -460,7 +460,7 @@ const toggleBtn = document.getElementById("themeToggle");
 // load tema tersimpan
 if(localStorage.getItem("theme") === "formal"){
   document.body.classList.add("formal-theme");
-  toggleBtn.textContent = "🌐 Mode Hacker";
+  toggleBtn.textContent = "🌐 Mode Gelap";
 }
 
 toggleBtn.addEventListener("click", () => {
@@ -469,10 +469,10 @@ toggleBtn.addEventListener("click", () => {
 
   if(document.body.classList.contains("formal-theme")){
     localStorage.setItem("theme","formal");
-    toggleBtn.textContent = "🌐 Mode Hacker";
+    toggleBtn.textContent = "🌐 Mode Gelap";
   } else {
-    localStorage.setItem("theme","Hacker");
-    toggleBtn.textContent = "🌓 Mode Kantor";
+    localStorage.setItem("theme","Gelap");
+    toggleBtn.textContent = "🌓 Mode Terang";
   }
 
 });
