@@ -491,34 +491,93 @@ exportBtn.addEventListener("click", function () {
   XLSX.writeFile(wb, "Jadwal_Admin_Gudang.xlsx");
 });
 
-function loadSerahTerima() {
+function loadSerahTerima(){
 
-  const shift = getCurrentShift();
+  const shiftAktif = getCurrentShift();
 
   const today = new Date();
   const dateKey = today.toISOString().split("T")[0];
 
-  firebaseGet(firebaseRef(db, "serahTerima/" + dateKey))
-    .then(snapshot => {
+  firebaseGet(firebaseRef(db,"serahTerima/"+dateKey))
+  .then(snapshot=>{
 
-      let data = snapshot.exists() ? snapshot.val() : {};
+    let data = snapshot.exists()?snapshot.val():{};
 
-      let isi = data["shift" + shift] || "Belum ada catatan.";
+    let s1 = data.shift1 || "Belum ada catatan";
+    let s2 = data.shift2 || "Belum ada catatan";
+    let s3 = data.shift3 || "Belum ada catatan";
 
-      const text = `SERAH TERIMA SHIFT ${shift} : ${isi}`;
+    const text =
 
-      const el = document.getElementById("serahTerimaText");
-      const ticker = document.querySelector(".news-track");
+    `<span class="shift3 ${shiftAktif===3?'activeShift':''}">
+    ◆ Serah Terima SHIFT 3 ➜ ${s3}
+    </span>
 
-      if (!el || !ticker) return;
+    ◆◆◆
 
-      ticker.style.animation = "none";
-      void ticker.offsetWidth;
-      ticker.style.animation = null;
+    <span class="shift1 ${shiftAktif===1?'activeShift':''}">
+    Serah Terima SHIFT 1 ➜ ${s1}
+    </span>
 
-      el.textContent = text;
+    ◆◆◆
 
-    });
+    <span class="shift2 ${shiftAktif===2?'activeShift':''}">
+    Serah Terima SHIFT 2 ➜ ${s2}
+    </span>
+
+    ◆◆◆`;
+
+    const el = document.getElementById("serahTerimaText");
+    const clone = document.getElementById("serahTerimaClone");
+
+    if(!el || !clone) return;
+
+    el.innerHTML = text;
+    clone.innerHTML = text;
+
+    const track = document.getElementById("newsTrack");
+
+    setTimeout(()=>{
+
+      const width = el.scrollWidth;
+
+      let duration = width / 120;
+
+      if(duration < 15){
+        duration = 15;
+      }
+
+      track.style.animationDuration = duration + "s";
+
+    },200);
+
+  });
+
+}
+
+function updateShiftIndicator(){
+
+  const shift = getCurrentShift();
+
+  const box = document.getElementById("shiftAktifBox");
+
+  box.className = "shift-box";
+
+  if(shift === 1){
+    box.classList.add("shift1-box");
+    box.innerText = "SHIFT 1";
+  }
+
+  if(shift === 2){
+    box.classList.add("shift2-box");
+    box.innerText = "SHIFT 2";
+  }
+
+  if(shift === 3){
+    box.classList.add("shift3-box");
+    box.innerText = "SHIFT 3";
+  }
+
 }
 
 setInterval(loadSerahTerima, 60000);
@@ -541,4 +600,3 @@ document.getElementById("serahTerimaBtn").addEventListener("click", () => {
     });
 
 });
-
