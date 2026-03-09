@@ -425,29 +425,57 @@ setInterval(() => {
    🔁 DETEKSI SHIFT DENGAN TOLERANSI 30 MENIT
 ================================ */
 
-function getCurrentShift() {
+/* ================================
+   🔁 DETEKSI SHIFT DENGAN TOLERANSI (FIXED)
+================================ */
 
+function getCurrentShift() {
   const now = new Date();
   const minutesNow = now.getHours() * 60 + now.getMinutes();
 
-  const shift1Start = 7 * 60 + 30;   // 07:30
-  const shift2Start = 15 * 60 + 30;  // 15:30
-  const shift3Start = 23 * 60 + 30;  // 23:30
+  // Konversi batas waktu ke total menit
+  const limit1 = 7 * 60 + 30;   // 07:30
+  const limit2 = 15 * 60 + 30;  // 15:30
+  const limit3 = 23 * 60 + 30;  // 23:30
 
-  if (minutesNow >= shift3Start || minutesNow < shift1Start) {
-    return 3;
-  }
-
-  if (minutesNow >= shift1Start && minutesNow < shift2Start) {
+  // Logika Shift 1 (07:31 - 15:30)
+  if (minutesNow > limit1 && minutesNow <= limit2) {
     return 1;
   }
-
-  if (minutesNow >= shift2Start && minutesNow < shift3Start) {
+  // Logika Shift 2 (15:31 - 23:30)
+  else if (minutesNow > limit2 && minutesNow <= limit3) {
     return 2;
   }
-
-  return 3;
+  // Logika Shift 3 (23:31 - 07:30)
+  else {
+    return 3;
+  }
 }
+
+// Fungsi untuk memperbarui tampilan BOX SHIFT ACTIVE
+function updateShiftIndicator(){
+  const shift = getCurrentShift();
+  const box = document.getElementById("shiftAktifBox");
+  if(!box) return;
+
+  box.className = "shift-box"; // Reset class
+
+  if(shift === 1){
+    box.classList.add("shift1-box");
+    box.innerText = "SHIFT 1";
+  } else if(shift === 2){
+    box.classList.add("shift2-box");
+    box.innerText = "SHIFT 2";
+  } else {
+    box.classList.add("shift3-box");
+    box.innerText = "SHIFT 3";
+  }
+}
+
+// PANGGIL FUNGSI SAAT STARTUP & SET INTERVAL
+updateShiftIndicator(); 
+setInterval(updateShiftIndicator, 10000); // Cek setiap 10 detik
+
 
 
 
