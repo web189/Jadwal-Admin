@@ -429,24 +429,22 @@ setInterval(() => {
    🔁 DETEKSI SHIFT DENGAN TOLERANSI (FIXED)
 ================================ */
 
+// ================= SHIFT LOGIC =================
+
 function getCurrentShift() {
   const now = new Date();
   const minutesNow = now.getHours() * 60 + now.getMinutes();
 
-  // Konversi batas waktu ke total menit
-  const limit1 = 7 * 60 + 30;   // 07:30
-  const limit2 = 15 * 60 + 30;  // 15:30
-  const limit3 = 23 * 60 + 30;  // 23:30
+  const limit1 = 7 * 60 + 30;
+  const limit2 = 15 * 60 + 30;
+  const limit3 = 23 * 60 + 30;
 
-  // Logika Shift 1 (07:31 - 15:30)
   if (minutesNow > limit1 && minutesNow <= limit2) {
     return 1;
   }
-  // Logika Shift 2 (15:31 - 23:30)
   else if (minutesNow > limit2 && minutesNow <= limit3) {
     return 2;
   }
-  // Logika Shift 3 (23:31 - 07:30)
   else {
     return 3;
   }
@@ -463,9 +461,6 @@ function getActiveWorkShift(){
   const s2_start = 15*60+1;
   const s2_end   = 23*60;
 
-  const s3_start = 23*60+1;
-  const s3_end   = 7*60;
-
   if(minutes >= s1_start && minutes <= s1_end){
     return 1;
   }
@@ -478,24 +473,42 @@ function getActiveWorkShift(){
 
 }
 
+// ================= SHIFT INDICATOR =================
 
-// Fungsi untuk memperbarui tampilan BOX SHIFT ACTIVE
+function updateShiftIndicator(){
 
+  const shift = getCurrentShift();
+  const box = document.getElementById("shiftAktifBox");
 
-// PANGGIL FUNGSI SAAT STARTUP & SET INTERVAL
-updateShiftIndicator(); 
-setInterval(updateShiftIndicator, 10000); // Cek setiap 10 detik
+  if(!box) return;
 
+  box.className = "shift-box";
 
+  if(shift === 1){
+    box.classList.add("shift1-box");
+    box.innerText = "SHIFT 1";
+  }
 
+  if(shift === 2){
+    box.classList.add("shift2-box");
+    box.innerText = "SHIFT 2";
+  }
 
+  if(shift === 3){
+    box.classList.add("shift3-box");
+    box.innerText = "SHIFT 3";
+  }
+
+}
+
+updateShiftIndicator();
+setInterval(updateShiftIndicator, 10000);
 
 
 // ================= THEME TOGGLE =================
 
 const toggleBtn = document.getElementById("themeToggle");
 
-// load tema tersimpan
 if(localStorage.getItem("theme") === "formal"){
   document.body.classList.add("formal-theme");
   toggleBtn.textContent = "🌐 Mode Gelap";
@@ -515,9 +528,13 @@ toggleBtn.addEventListener("click", () => {
 
 });
 
+
+// ================= EXPORT EXCEL =================
+
 const exportBtn = document.getElementById("exportBtn");
 
 exportBtn.addEventListener("click", function () {
+
   const table = document.getElementById("scheduleTable");
 
   if (!table) {
@@ -527,11 +544,15 @@ exportBtn.addEventListener("click", function () {
 
   const wb = XLSX.utils.table_to_book(table, { sheet: "Jadwal Admin" });
   XLSX.writeFile(wb, "Jadwal_Admin_Gudang.xlsx");
+
 });
 
-function loadSerahTerima(){
 
-  const shiftAktif = getCurrentShift();
+// ================= SERAH TERIMA =================
+
+let currentDateKey = new Date().toISOString().split("T")[0];
+
+function loadSerahTerima(){
 
   const today = new Date();
   const dateKey = today.toISOString().split("T")[0];
@@ -558,7 +579,7 @@ function loadSerahTerima(){
 <span class="ticker-item">
 ◆ SHIFT 2 ➜ ${s2}
 </span>`;
-    
+
     const el = document.getElementById("serahTerimaText");
     const clone = document.getElementById("serahTerimaClone");
 
@@ -569,51 +590,60 @@ function loadSerahTerima(){
 
     const track = document.getElementById("newsTrack");
 
-    setTimeout(()=>{
+    if(track){
 
-      const width = el.scrollWidth;
+      // restart animation
+      track.style.animation = "none";
+      track.offsetHeight;
+      track.style.animation = null;
 
-      let duration = width / 120;
+      setTimeout(()=>{
 
-      if(duration < 15){
-        duration = 15;
-      }
+        const width = el.scrollWidth;
+        let duration = width / 120;
 
-      track.style.animationDuration = duration + "s";
+        if(duration < 15){
+          duration = 15;
+        }
 
-    },200);
+        track.style.animationDuration = duration + "s";
+
+      },200);
+
+    }
 
   });
 
 }
 
-function updateShiftIndicator(){
 
-  const shift = getCurrentShift();
+// ================= AUTO UPDATE =================
 
-  const box = document.getElementById("shiftAktifBox");
+setInterval(loadSerahTerima, 60000);
+loadSerahTerima();
 
-  box.className = "shift-box";
 
-  if(shift === 1){
-    box.classList.add("shift1-box");
-    box.innerText = "SHIFT 1";
-  }
+// ================= CEK PERGANTIAN TANGGAL =================
 
-  if(shift === 2){
-    box.classList.add("shift2-box");
-    box.innerText = "SHIFT 2";
-  }
+function checkDateChange(){
 
-  if(shift === 3){
-    box.classList.add("shift3-box");
-    box.innerText = "SHIFT 3";
+  const now = new Date();
+  const newDateKey = now.toISOString().split("T")[0];
+
+  if(newDateKey !== currentDateKey){
+
+    currentDateKey = newDateKey;
+
+    loadSerahTerima();
+
   }
 
 }
 
-setInterval(loadSerahTerima, 60000);
-loadSerahTerima();
+setInterval(checkDateChange,60000);
+
+
+// ================= INPUT SERAH TERIMA =================
 
 document.getElementById("serahTerimaBtn").addEventListener("click", () => {
 
@@ -625,33 +655,44 @@ document.getElementById("serahTerimaBtn").addEventListener("click", () => {
   const today = new Date();
   const dateKey = today.toISOString().split("T")[0];
 
-  function checkDateChange(){
-
-  const now = new Date();
-  const newDateKey = now.toISOString().split("T")[0];
-
-  if(newDateKey !== currentDateKey){
-
-    currentDateKey = newDateKey;
-
-    loadSerahTerima(); // reload running text
-
-  }
-
-}
-  
-  setInterval(checkDateChange, 60000);
-  
   firebaseSet(firebaseRef(db, "serahTerima/" + dateKey + "/shift" + shift), isi)
     .then(() => {
+
       alert("Serah Terima disimpan!");
       loadSerahTerima();
+
     });
 
 });
 
-document.getElementById("historyBtn").addEventListener("click", () => {
 
-  alert("Fitur History Serah Terima akan menampilkan data beberapa hari terakhir.");
+// ================= HISTORY =================
+
+document.getElementById("historyBtn").addEventListener("click", async () => {
+
+  const ref = firebaseRef(db, "serahTerima");
+  const snapshot = await firebaseGet(ref);
+
+  if(!snapshot.exists()){
+    alert("Belum ada history");
+    return;
+  }
+
+  const data = snapshot.val();
+
+  let text = "📜 HISTORY SERAH TERIMA\n\n";
+
+  Object.keys(data).slice(-7).forEach(date => {
+
+    const d = data[date];
+
+    text += date + "\n";
+    text += "Shift1 : " + (d.shift1 || "-") + "\n";
+    text += "Shift2 : " + (d.shift2 || "-") + "\n";
+    text += "Shift3 : " + (d.shift3 || "-") + "\n\n";
+
+  });
+
+  alert(text);
 
 });
