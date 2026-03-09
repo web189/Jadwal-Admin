@@ -452,25 +452,35 @@ function getCurrentShift() {
   }
 }
 
-// Fungsi untuk memperbarui tampilan BOX SHIFT ACTIVE
-function updateShiftIndicator(){
-  const shift = getCurrentShift();
-  const box = document.getElementById("shiftAktifBox");
-  if(!box) return;
+function getActiveWorkShift(){
 
-  box.className = "shift-box"; // Reset class
+  const now = new Date();
+  const minutes = now.getHours()*60 + now.getMinutes();
 
-  if(shift === 1){
-    box.classList.add("shift1-box");
-    box.innerText = "SHIFT 1";
-  } else if(shift === 2){
-    box.classList.add("shift2-box");
-    box.innerText = "SHIFT 2";
-  } else {
-    box.classList.add("shift3-box");
-    box.innerText = "SHIFT 3";
+  const s1_start = 7*60+1;
+  const s1_end   = 15*60;
+
+  const s2_start = 15*60+1;
+  const s2_end   = 23*60;
+
+  const s3_start = 23*60+1;
+  const s3_end   = 7*60;
+
+  if(minutes >= s1_start && minutes <= s1_end){
+    return 1;
   }
+
+  if(minutes >= s2_start && minutes <= s2_end){
+    return 2;
+  }
+
+  return 3;
+
 }
+
+
+// Fungsi untuk memperbarui tampilan BOX SHIFT ACTIVE
+
 
 // PANGGIL FUNGSI SAAT STARTUP & SET INTERVAL
 updateShiftIndicator(); 
@@ -537,24 +547,18 @@ function loadSerahTerima(){
 
     const text =
 
-    `<span class="shift3 ${shiftAktif===3?'activeShift':''}">
-    ◆ Serah Terima SHIFT 3 ➜ ${s3}
-    </span>
+`<span class="ticker-item">
+📅 ${dateKey} ◆ SHIFT 3 ➜ ${s3}
+</span>
 
-    ◆◆◆
+<span class="ticker-item">
+◆ SHIFT 1 ➜ ${s1}
+</span>
 
-    <span class="shift1 ${shiftAktif===1?'activeShift':''}">
-    Serah Terima SHIFT 1 ➜ ${s1}
-    </span>
-
-    ◆◆◆
-
-    <span class="shift2 ${shiftAktif===2?'activeShift':''}">
-    Serah Terima SHIFT 2 ➜ ${s2}
-    </span>
-
-    ◆◆◆`;
-
+<span class="ticker-item">
+◆ SHIFT 2 ➜ ${s2}
+</span>`;
+    
     const el = document.getElementById("serahTerimaText");
     const clone = document.getElementById("serahTerimaClone");
 
@@ -621,10 +625,33 @@ document.getElementById("serahTerimaBtn").addEventListener("click", () => {
   const today = new Date();
   const dateKey = today.toISOString().split("T")[0];
 
+  function checkDateChange(){
+
+  const now = new Date();
+  const newDateKey = now.toISOString().split("T")[0];
+
+  if(newDateKey !== currentDateKey){
+
+    currentDateKey = newDateKey;
+
+    loadSerahTerima(); // reload running text
+
+  }
+
+}
+  
+  setInterval(checkDateChange, 60000);
+  
   firebaseSet(firebaseRef(db, "serahTerima/" + dateKey + "/shift" + shift), isi)
     .then(() => {
       alert("Serah Terima disimpan!");
       loadSerahTerima();
     });
+
+});
+
+document.getElementById("historyBtn").addEventListener("click", () => {
+
+  alert("Fitur History Serah Terima akan menampilkan data beberapa hari terakhir.");
 
 });
