@@ -1015,41 +1015,151 @@ body:not(.formal-theme) #weekSelect {
   to { box-shadow: 0 0 25px #00aaff; }
 }
 
-/* ================= NEWS TICKER ================= */
+/* ================= RUNNING TEXT FIX ================= */
 
-.news-ticker {
-  width: 100%;
-  overflow: hidden;
-  margin-top: 10px;
-  border-radius: 8px;
-  position: relative;
+
+/* ================= NEWS TICKER FINAL ================= */
+
+.news-ticker{
+  width:100%;
+  overflow:hidden;
+  position:relative;
 }
 
-/* Hacker Mode */
-body:not(.formal-theme) .news-ticker {
-  background: rgba(0, 255, 225, 0.05);
-  border: 1px solid #00ffe1;
-  box-shadow: 0 0 10px #00ffe1;
+/* track */
+
+.news-track{
+  display:inline-block;
+  white-space:nowrap;
+  padding:8px 0;
+  animation: tickerRun 20s linear infinite;
 }
 
-/* Formal Mode */
-body.formal-theme .news-ticker {
-  background: #e3f2fd;
-  border-left: 4px solid #1a237e;
+/* teks */
+
+.news-track span{
+  display:inline-block;
+  padding-left:100vw;
+  padding-right:50px;
+  font-weight:500;
 }
 
-/* Running animation */
-.news-track {
-  display: inline-block;
-  white-space: nowrap;
-  padding: 8px 0;
-  animation: scrollNews 25s linear infinite;
+/* animasi */
+
+@keyframes tickerRun{
+
+  0%{
+    transform:translateX(0);
+  }
+
+  100%{
+    transform:translateX(-100%);
+  }
+
 }
 
-.news-track span {
-  padding-left: 100%;
-  font-weight: 500;
+/* hacker mode */
+
+body:not(.formal-theme) .news-track span{
+  color:#00ffe1;
+  text-shadow:0 0 8px #00ffe1;
 }
+
+/* formal mode */
+
+body.formal-theme .news-track span{
+  color:#1a237e;
+}
+
+/* box */
+
+body:not(.formal-theme) .news-ticker{
+  background:rgba(0,255,225,0.05);
+  border:1px solid #00ffe1;
+  box-shadow:0 0 10px #00ffe1;
+}
+
+body.formal-theme .news-ticker{
+  background:#e3f2fd;
+  border-left:4px solid #1a237e;
+}
+
+/* RUNNING TEXT */
+
+.news-ticker{
+  width:100%;
+  overflow:hidden;
+  position:relative;
+  padding:8px 0;
+}
+
+/* hacker mode */
+
+body:not(.formal-theme) .news-ticker{
+  background:rgba(0,255,225,0.05);
+  border:1px solid #00ffe1;
+}
+
+/* formal mode */
+
+body.formal-theme .news-ticker{
+  background:#e3f2fd;
+  border-left:4px solid #1a237e;
+}
+
+
+/* track */
+
+.ticker-track{
+  display:flex;
+  white-space:nowrap;
+  animation:tickerMove 18s linear infinite;
+}
+
+
+/* teks */
+
+.ticker-track span{
+  padding-right:80px;
+  font-weight:500;
+}
+
+/* animasi smooth */
+
+@keyframes tickerMove{
+
+  0%{
+    transform:translateX(0);
+  }
+
+  100%{
+    transform:translateX(-50%);
+  }
+
+}
+
+
+/* editor */
+
+.ticker-editor{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+}
+
+.ticker-editor input{
+  flex:1;
+  padding:8px;
+}
+
+.ticker-editor button{
+  padding:8px 14px;
+  cursor:pointer;
+}
+
+
+
+
 
 body:not(.formal-theme) .news-track span {
   color: #00ffe1;
@@ -1065,12 +1175,7 @@ body.formal-theme .news-track span {
   100% { transform: translateX(-100%); }
 }
 
-.news-track {
-  display: inline-block;
-  white-space: nowrap;
-  padding: 8px 0;
-  animation: scrollNews 10s linear infinite; /* makin besar makin pelan */
-}
+
 
 @keyframes scrollNews {
   0% { transform: translateX(0); }
@@ -1086,3 +1191,177 @@ body.formal-theme .news-track span {
   border-radius: 6px;
 }
 
+/* ================= TICKER ================= */
+
+.news-ticker{
+  width:100%;
+  overflow:hidden;
+  height:42px;
+  display:flex;
+  align-items:center;
+  background:#0a0f1f;
+  border-top:1px solid rgba(255,255,255,0.1);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  font-size:15px;
+}
+
+/* LIVE indicator */
+
+.live-indicator{
+  display:flex;
+  align-items:center;
+  font-weight:600;
+  color:#fff;
+  padding:0 14px;
+  background:#111;
+  border-right:1px solid rgba(255,255,255,0.1);
+}
+
+.live-dot{
+  width:8px;
+  height:8px;
+  background:#ff2b2b;
+  border-radius:50%;
+  margin-right:6px;
+  animation:liveBlink 1s infinite;
+}
+
+@keyframes liveBlink{
+  0%{opacity:1;}
+  50%{opacity:0.3;}
+  100%{opacity:1;}
+}
+
+/* track */
+
+.news-track{
+  display:flex;
+  white-space:nowrap;
+  animation:ticker linear infinite;
+}
+
+.news-track span{
+  padding-right:120px;
+}
+
+@keyframes ticker{
+
+  from{
+    transform:translateX(0);
+  }
+
+  to{
+    transform:translateX(-50%);
+  }
+
+}
+
+/* warna shift normal */
+
+.shift1{
+  color:#5bd4ff;
+}
+
+.shift2{
+  color:#4cff9a;
+}
+
+.shift3{
+  color:#ffd65b;
+}
+
+
+
+/* container */
+
+.shift-indicator{
+  font-weight:600;
+  margin-left:10px;
+}
+
+/* box shift */
+
+.shift-box{
+  padding:4px 10px;
+  border-radius:6px;
+  font-weight:700;
+  margin-left:6px;
+}
+
+/* SHIFT 1 */
+
+.shift1-box{
+  background:#00d9ff;
+  color:#000;
+  box-shadow:0 0 8px #00d9ff;
+}
+
+/* SHIFT 2 */
+
+.shift2-box{
+  background:#00ff9c;
+  color:#000;
+  box-shadow:0 0 8px #00ff9c;
+}
+
+/* SHIFT 3 */
+
+.shift3-box{
+  background:#ffd500;
+  color:#000;
+  box-shadow:0 0 8px #ffd500;
+}
+
+/* MODE TERANG */
+
+@media (prefers-color-scheme: light){
+
+  .shift1-box{
+    background:#0094c7;
+    color:#fff;
+    box-shadow:none;
+  }
+
+  .shift2-box{
+    background:#009c5c;
+    color:#fff;
+    box-shadow:none;
+  }
+
+  .shift3-box{
+    background:#c79b00;
+    color:#fff;
+    box-shadow:none;
+  }
+
+}
+
+/* SHIFT NORMAL */
+
+.shift1{
+  color:#0077ff;
+}
+
+.shift2{
+  color:#00a85a;
+}
+
+.shift3{
+  color:#c48a00;
+}
+
+
+/* SHIFT AKTIF */
+
+.activeShift{
+
+  color:#AB6500 !important;
+  font-weight:300;
+
+  background:rgba(0,0,0,0.25);
+  padding:3px 10px;
+  border-radius:6px;
+
+  border-left:4px solid #ff3b3b;
+
+}
