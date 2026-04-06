@@ -2,31 +2,19 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-<!-- Title -->
-<title>Jadwal Admin Gudang - Sistem Manajemen Jadwal</title>
+<title>Jadwal Admin Gudang 2026 - Sistem Manajemen Jadwal</title>
 
-<!-- Primary Meta -->
-<meta name="title" content="Jadwal Admin Gudang- Sistem Manajemen Jadwal">
-<meta name="description" content="Website manajemen jadwal admin gudang yang memudahkan pengaturan shift, pembagian tugas, dan monitoring jadwal secara efisien dan terorganisir.">
+<meta name="title" content="Jadwal Admin Gudang - Sistem Manajemen Jadwal">
+<meta name="description" content="Website manajemen jadwal admin gudang yang memudahkan pengaturan shift, pembagian tugas, dan monitoring jadwal secara efisien.">
 
-<!-- Open Graph (WA / Facebook) -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://web189.github.io/Jadwal-Admin/">
-<meta property="og:title" content="Jadwal Admin Gudang 2026- Sistem Manajemen Jadwal">
-<meta property="og:description" content="Website jadwal Sdmin Gudang monitoring jadwal dalam satu sistem yang terstruktur.">
+<meta property="og:title" content="Jadwal Admin Gudang 2026 - Sistem Manajemen Jadwal">
+<meta property="og:description" content="Website jadwal Admin Gudang - monitoring jadwal dalam satu sistem yang terstruktur.">
 <meta property="og:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
 
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:title" content="Jadwal Admin - Sistem Manajemen Jadwal">
-<meta property="twitter:description" content="Sistem pengelolaan jadwal admin yang efisien dan mudah digunakan.">
-<meta property="twitter:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg">
-
-<!-- Icon -->
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -34,319 +22,119 @@
 <canvas id="matrixCanvas"></canvas>
 </head>
 <body class="formal-theme">
-  
 
-<!-- CYBER LOADING SCREEN -->
+<!-- ===== LOADING SCREEN ===== -->
 <div id="cyberLoader">
   <div class="loader-content">
-    <h1 class="loader-title">INITIALIZING SYSTEM WEB</h1>
+    <h1 class="loader-title">INITIALIZING SYSTEM..... update v.02</h1>
+	
+	<h3 class="loader-title">Website Developer by @benyoriki</h3>
     <div class="loader-bar">
       <div class="loader-progress"></div>
     </div>
-    <p class="loader-text">Booting Jadwal Admin Gudang 2026.......</p>
+    <p class="loader-text">BOOTING JADWAL ADMIN GUDANG 2026...</p>
   </div>
 </div>
 
-<!-- 3D PARTICLES -->
+<!-- ===== PARTICLES ===== -->
 <div id="particles-js"></div>
 
+<!-- ===== HEADER ===== -->
 <header>
-  <h1 class="glitch" data-text="Jadwal Admin">Jadwal Admin Gudang 2026</h1>
+  <h1 class="glitch" data-text="Jadwal Admin Gudang 2026">Jadwal Admin Gudang 2026</h1>
 
-<div class="controls">
-  <select id="weekSelect"></select>
-  <button id="themeToggle">🌓 Mode Gelap</button>
-  <button id="adminBtn">🔒Menu KA Gudang</button>
-  <button id="logoutBtn" class="hidden">↩️Keluar KA Gudang</button>
-  <button id="saveBtn" class="hidden">💾Simpan Perubahan</button>
-  <button id="exportBtn" class="hidden">📊⬇️Export Excel</button>
-  <a href="https://web189.github.io/UangRitase/" 
-   target="_blank" 
-   class="cyber-link-btn">
-   <i class="fas fa-coins"></i>
-   Uang Ritase
-</a>
+  <div id="liveClock" class="cyber-clock"></div>
 
-</div>
-<div id="liveClock" class="cyber-clock"></div>
-
-<div id="shiftIndicator" class="shift-indicator">
-  SHIFT ACTIVE : <span id="shiftAktifBox" class="shift-box">SHIFT 1</span>
-</div>
-<div id="serahTerimaTicker" class="news-ticker">
-<div class="live-indicator">
-    <span class="live-dot"></span>
-    LIVE
+  <div class="controls">
+    <select id="weekSelect"></select>
+    <button id="themeToggle">🌓 Mode Terang</button>
+    <button id="adminBtn">🔒 Menu KA Gudang</button>
+    <button id="logoutBtn" class="hidden">↩️ Keluar KA Gudang</button>
+    <button id="saveBtn" class="hidden">💾 Simpan Perubahan</button>
+    <button id="exportBtn" class="hidden">📊 Export Excel</button>
+    <a href="https://web189.github.io/UangRitase/" target="_blank" class="cyber-link-btn">
+      <i class="fas fa-coins"></i> Uang Ritase
+    </a>
   </div>
-  <div class="news-track" id="newsTrack">
-    <div id="serahTerimaText">Memuat serah terima...</div>
-    <div id="serahTerimaClone"></div>
+
+  <div id="shiftIndicator" class="shift-indicator">
+    SHIFT AKTIF: <span id="shiftAktifBox" class="shift-box">SHIFT 1</span>
   </div>
-</div>
 
-<div class="serahterima-actions">
+  <div id="serahTerimaTicker" class="news-ticker">
+    <div class="live-indicator">
+      <span class="live-dot"></span>
+      LIVE
+    </div>
+    <div class="news-track" id="newsTrack">
+      <div id="serahTerimaText">Memuat serah terima...</div>
+      <div id="serahTerimaClone"></div>
+    </div>
+  </div>
 
-<button id="serahTerimaBtn">📝 Serah Terima Shift</button>
-
-<button id="historyBtn" class="history-btn">
-📜 History
-</button>
-
-</div>
-
-
+  <div class="serahterima-actions">
+    <button id="serahTerimaBtn">📝 Serah Terima Shift</button>
+    <button id="historyBtn" class="history-btn">📜 History</button>
+  </div>
 </header>
 
-
+<!-- ===== SCHEDULE TABLE ===== -->
 <div class="table-wrapper">
   <table id="scheduleTable"></table>
 </div>
 
-<!-- MODAL LOGIN -->
+<!-- ===== LOGIN MODAL ===== -->
 <div id="loginModal" class="modal">
   <div class="modal-box terminal">
-
-    <video id="camera" autoplay muted></video>
-
+    <video id="camera" autoplay muted playsinline></video>
     <div class="terminal-header">biometric@secure-system:~$</div>
-
     <div id="fingerprintScanner" class="fingerprint">
       <div class="scan-line"></div>
     </div>
-
     <div id="bootText" class="terminal-body"></div>
-
     <input type="password"
            id="adminPassword"
            placeholder="Enter password..."
-           onkeydown="if(event.key==='Enter'){startBiometricScan()}">
-
+           autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') startBiometricScan()">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn-primary" onclick="startBiometricScan()">🔐 Verifikasi</button>
+    </div>
   </div>
 </div>
 
-</script>
+<!-- ===== SERAH TERIMA MODAL (replaces prompt) ===== -->
+<div id="serahTerimaModal" class="modal">
+  <div class="modal-box">
+    <span id="serahTerimaShiftLabel"></span>
+    <textarea id="serahTerimaInput" placeholder="Masukkan catatan serah terima..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="serahTerimaCloseBtn">Batal</button>
+      <button class="btn-primary" id="serahTerimaSaveBtn">💾 Simpan</button>
+    </div>
+  </div>
+</div>
 
+<!-- ===== HISTORY MODAL (replaces alert) ===== -->
+<div id="historyModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">📜 HISTORY SERAH TERIMA — 7 HARI TERAKHIR</div>
+    <div id="historyContent"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-primary" id="historyCloseBtn">Tutup</button>
+    </div>
+  </div>
+</div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-
-<script>
-/* ================= LOADING SCREEN ================= */
-
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    document.getElementById("cyberLoader").style.opacity = "0";
-    setTimeout(()=>{
-      document.getElementById("cyberLoader").style.display = "none";
-    },800);
-  }, 2500);
-});
-
-/* ================= PARTICLES 3D ================= */
-
-particlesJS("particles-js", {
-  "particles": {
-    "number": { "value": 80 },
-    "color": { "value": "#00ffe1" },
-    "shape": { "type": "circle" },
-    "opacity": { "value": 0.5 },
-    "size": { "value": 3 },
-    "line_linked": {
-      "enable": true,
-      "distance": 150,
-      "color": "#00ffe1",
-      "opacity": 0.4,
-      "width": 1
-    },
-    "move": {
-      "enable": true,
-      "speed": 2
-    }
-  },
-  "interactivity": {
-    "events": {
-      "onhover": { "enable": true, "mode": "repulse" }
-    }
-  }
-});
-
-/* ================= TERMINAL BOOT LOGIN ================= */
-
-function startBootLogin(){
-  const input = document.getElementById("adminPassword").value;
-  const boot = document.getElementById("bootText");
-
-  boot.innerHTML = "";
-  const lines = [
-    "Accessing secure server...",
-    "Decrypting credentials...",
-    "Verifying password...",
-    "Establishing encrypted tunnel...",
-    "Finalizing authentication..."
-  ];
-
-  let i = 0;
-
-  function typeLine(){
-    if(i < lines.length){
-      boot.innerHTML += lines[i] + "<br>";
-      i++;
-      setTimeout(typeLine, 400);
-    } else {
-      setTimeout(()=>{
-        if(input === "admin123"){
-          boot.innerHTML += "<span style='color:#00ff88'>ACCESS GRANTED</span>";
-          setTimeout(()=>{
-            login(); // pakai function lama
-          },800);
-        } else {
-          boot.innerHTML += "<span style='color:red'>ACCESS DENIED</span>";
-        }
-      },500);
-    }
-  }
-
-  typeLine();
-}
-</script>
-
-<script>
-
-/* ================= AI VOICE ================= */
-
-function speak(text){
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.rate = 0.9;
-  speech.pitch = 1;
-  speech.lang = "en-US";
-  window.speechSynthesis.speak(speech);
-}
-
-/* ================= BIOMETRIC LOGIN ================= */
-
-function startBiometricScan(){
-
-  const input = document.getElementById("adminPassword").value;
-  const boot = document.getElementById("bootText");
-
-  boot.innerHTML = "Scanning fingerprint...<br>";
-
-  setTimeout(()=>{
-    boot.innerHTML += "Analyzing biometric pattern...<br>";
-  },800);
-
-  setTimeout(()=>{
-    boot.innerHTML += "Matching database records...<br>";
-  },1600);
-
-  setTimeout(()=>{
-    if(input === "admin123"){
-      boot.innerHTML += "<span style='color:#00ff88'>BIOMETRIC VERIFIED</span><br>";
-      speak("Welcome administrator. Access granted.");
-      setTimeout(()=>{
-        login();
-      },1000);
-    } else {
-      boot.innerHTML += "<span style='color:red'>ACCESS DENIED</span>";
-      speak("Access denied. Unauthorized user detected.");
-    }
-  },2400);
-}
-
-</script>
-
+<!-- ===== BREACH SCREEN ===== -->
 <div id="breachScreen">
   <h1>⚠ SECURITY BREACH DETECTED ⚠</h1>
   <p>Unauthorized Access Attempt Logged</p>
   <p>IP Tracking Initiated...</p>
 </div>
 
-<script>
-
-/* ================= FACE RECOGNITION ================= */
-
-const camera = document.getElementById("camera");
-
-if(navigator.mediaDevices){
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      camera.srcObject = stream;
-    })
-    .catch(err => {
-      console.log("Camera access denied");
-    });
-}
-
-/* ================= LOGIN OVERRIDE ================= */
-
-/* ================= LOGIN OVERRIDE (FIXED VERSION) ================= */
-
-function startBiometricScan(){
-
-  const input = document.getElementById("adminPassword").value;
-  const boot = document.getElementById("bootText");
-  const body = document.body;
-
-  boot.innerHTML = "Scanning face recognition...<br>";
-
-  setTimeout(()=>{
-    boot.innerHTML += "Analyzing facial structure...<br>";
-  },800);
-
-  setTimeout(()=>{
-    boot.innerHTML += "Matching biometric database...<br>";
-  },1600);
-
-  setTimeout(()=>{
-
-    /* ================= LOGIN BERHASIL ================= */
-    if(input === ADMIN_PASSWORD){
-
-      boot.innerHTML += "<span style='color:#00ff88'>FACE VERIFIED</span><br>";
-      speak("Face recognized. Welcome administrator.");
-
-      setTimeout(()=>{
-        failedAttempts = 0;   // reset counter
-        login();              // panggil login asli dari app.js
-      },1000);
-
-    } else {
-
-      /* ================= LOGIN GAGAL ================= */
-
-      failedAttempts++;   // tambah counter
-
-      body.classList.add("red-alert");
-      speak("Security breach detected.");
-
-      boot.innerHTML += "<span style='color:red'>ACCESS DENIED</span><br>";
-
-      /* BREACH SCREEN */
-      setTimeout(()=>{
-        document.getElementById("breachScreen").style.display = "flex";
-      },800);
-
-      setTimeout(()=>{
-        document.getElementById("breachScreen").style.display = "none";
-        body.classList.remove("red-alert");
-      },4000);
-
-      /* FBI SCREEN SETELAH 2x GAGAL */
-      if(failedAttempts >= 2){
-        setTimeout(()=>{
-          triggerFBI();
-          failedAttempts = 0; // reset setelah FBI
-        },1500);
-      }
-
-    }
-
-  },2400);
-}
-
-</script>
-
-<!-- FBI LOCK SCREEN -->
+<!-- ===== FBI LOCK SCREEN ===== -->
 <div id="fbiLock">
   <div class="fbi-content">
     <h1>FEDERAL BUREAU OF INVESTIGATION</h1>
@@ -359,93 +147,24 @@ function startBiometricScan(){
   </div>
 </div>
 
-<script>
-
-function triggerFBI(){
-  document.getElementById("fbiLock").style.display = "flex";
-}
-
-function closeFBI(){
-  document.getElementById("fbiLock").style.display = "none";
-}
-
-/* Optional: aktifkan FBI screen setelah 3x gagal login */
-let failedAttempts = 0;
-
-function handleFailedLogin(){
-  failedAttempts++;
-
-  if(failedAttempts >= 2){
-    triggerFBI();
-    failedAttempts = 0; // reset setelah FBI muncul
-  }
-}
-
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<script>
-/* ================= 3D GLOBE RADAR ================= */
-
-const scene = new THREE.Scene();
-const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.domElement.style.position = "fixed";
-renderer.domElement.style.top = "0";
-renderer.domElement.style.left = "0";
-renderer.domElement.style.zIndex = "-3";
-document.body.appendChild(renderer.domElement);
-
-const geometry = new THREE.SphereGeometry(5, 32, 32);
-const material = new THREE.MeshBasicMaterial({
-  color: 0x00ffee,
-  wireframe: true
-});
-
-const globe = new THREE.Mesh(geometry, material);
-scene.add(globe);
-
-camera3D.position.z = 15;
-
-function animateGlobe() {
-  requestAnimationFrame(animateGlobe);
-  globe.rotation.y += 0.003;
-  globe.rotation.x += 0.001;
-  renderer.render(scene, camera3D);
-}
-
-animateGlobe();
-
-window.addEventListener("resize", ()=>{
-  camera3D.aspect = window.innerWidth / window.innerHeight;
-  camera3D.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
-
+<!-- ===== SIGNATURE ===== -->
 <div class="cyber-signature">
   <div class="signature-text">
-    ⚡ SYSTEM CORE INITIALIZED ⚡<br>
-    Website ini merupakan sistem terintegrasi berbasis cyber interface 
-    yang dirancang dengan presisi algoritma dan estetika digital futuristik.<br><br>
-    Crafted with encrypted passion, engineered with logic, 
-    and deployed from the shadows of the network.<br><br>
-    Developed & Secured by 
-<a href="https://www.instagram.com/benyoriki?igsh=cGZkOXpuN2JyYjAy" 
-   target="_blank"
-   class="hacker-name">
-   <span>@benyoriki</span>
-</a>
+    ⚡ SYSTEM CORE v2026 ⚡<br>
+    Sistem terintegrasi berbasis cyber interface — dirancang dengan presisi algoritma.<br><br>
+    Developed & Secured by
+    <a href="https://www.instagram.com/benyoriki?igsh=cGZkOXpuN2JyYjAy"
+       target="_blank" class="hacker-name">@benyoriki</a>
   </div>
 </div>
 
+<!-- ===== SCRIPTS ===== -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-<!-- Firebase SDK -->
-<!-- Firebase SDK -->
+<!-- FIREBASE SDK -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -462,18 +181,88 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// buat global agar bisa dipakai app.js
 window.db = db;
 window.firebaseRef = ref;
 window.firebaseSet = set;
 window.firebaseGet = get;
-
-// tandai firebase siap
 window.firebaseReady = true;
-
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- INLINE SCRIPTS (non-module, runs after Firebase ready) -->
+<script>
+/* ===== LOADING SCREEN ===== */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const loader = document.getElementById("cyberLoader");
+    loader.style.opacity = "0";
+    setTimeout(() => { loader.style.display = "none"; }, 800);
+  }, 2500);
+});
+
+/* ===== PARTICLES ===== */
+if (typeof particlesJS !== "undefined") {
+  particlesJS("particles-js", {
+    particles: {
+      number: { value: 60 },
+      color: { value: "#00f5ff" },
+      shape: { type: "circle" },
+      opacity: { value: 0.4 },
+      size: { value: 2 },
+      line_linked: {
+        enable: true, distance: 140,
+        color: "#00f5ff", opacity: 0.3, width: 1
+      },
+      move: { enable: true, speed: 1.5 }
+    },
+    interactivity: {
+      events: { onhover: { enable: true, mode: "repulse" } }
+    }
+  });
+}
+
+/* ===== 3D GLOBE ===== */
+(function() {
+  if (typeof THREE === "undefined") return;
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const canvas = renderer.domElement;
+  canvas.style.cssText = "position:fixed;top:0;left:0;z-index:-3;pointer-events:none;";
+  document.body.appendChild(canvas);
+
+  const geo = new THREE.SphereGeometry(5, 28, 28);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, wireframe: true, opacity: 0.15, transparent: true });
+  const globe = new THREE.Mesh(geo, mat);
+  scene.add(globe);
+  cam.position.z = 15;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    globe.rotation.y += 0.002;
+    globe.rotation.x += 0.0008;
+    renderer.render(scene, cam);
+  }
+  animate();
+
+  window.addEventListener("resize", () => {
+    cam.aspect = window.innerWidth / window.innerHeight;
+    cam.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+
+/* ===== CAMERA ===== */
+const cameraEl = document.getElementById("camera");
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => { cameraEl.srcObject = stream; })
+    .catch(() => { cameraEl.style.display = "none"; });
+}
+</script>
+
 <script src="app.js" defer></script>
 </body>
 </html>

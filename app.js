@@ -5,7 +5,7 @@ const START_DATE = new Date("2026-02-02");
 
 const nationalHolidays = {
   "2026-01-01": { type: "LN", name: "Tahun Baru 2026 Masehi" },
-  "2026-01-16": { type: "LN", name: "Isra Mi’raj Nabi Muhammad SAW" },
+  "2026-01-16": { type: "LN", name: "Isra Mi'raj Nabi Muhammad SAW" },
   "2026-02-17": { type: "LN", name: "Tahun Baru Imlek 2577 Kongzili" },
   "2026-03-19": { type: "LN", name: "Hari Suci Nyepi (Tahun Baru Saka 1948)" },
   "2026-03-21": { type: "LN", name: "Hari Raya Idul Fitri 1447 H" },
@@ -21,8 +21,6 @@ const nationalHolidays = {
   "2026-08-17": { type: "LN", name: "Hari Kemerdekaan RI" },
   "2026-08-25": { type: "LN", name: "Maulid Nabi Muhammad SAW" },
   "2026-12-25": { type: "LN", name: "Hari Raya Natal" },
-
-  // Cuti Bersama
   "2026-02-16": { type: "CB", name: "Cuti Bersama Tahun Baru Imlek" },
   "2026-03-18": { type: "CB", name: "Cuti Bersama Nyepi" },
   "2026-03-20": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
@@ -32,6 +30,7 @@ const nationalHolidays = {
   "2026-05-28": { type: "CB", name: "Cuti Bersama Hari Raya Idul Adha" },
   "2026-12-24": { type: "CB", name: "Cuti Bersama Hari Raya Natal" }
 };
+
 // ================= DATA STAFF =================
 const staff = [
   { nik: "108191", nama: "M DAUD" },
@@ -53,37 +52,98 @@ const basePattern = [
 ];
 
 let isAdmin = false;
+let failedAttempts = 0; // single declaration — BUG FIX
+let currentDateKey = new Date().toISOString().split("T")[0];
+
+// ================= WAIT FOR FIREBASE =================
+function waitForFirebase(cb) {
+  if (window.firebaseReady && window.db) {
+    cb();
+  } else {
+    setTimeout(() => waitForFirebase(cb), 100);
+  }
+}
 
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
   generateWeekOptions();
   const currentWeek = getCurrentWeekNumber();
   document.getElementById("weekSelect").value = currentWeek;
-  renderSchedule(currentWeek);
+
+  // Wait for firebase before rendering
+  waitForFirebase(() => {
+    renderSchedule(currentWeek);
+    loadSerahTerima();
+  });
+
+  setupEvents();
+  updateClock();
+  setInterval(updateClock, 1000);
+  updateShiftIndicator();
+  setInterval(updateShiftIndicator, 10000);
+
+  // Auto-refresh schedule every 60s (only when not admin)
+  setInterval(() => {
+    if (!document.hidden && !isAdmin) {
+      const week = parseInt(document.getElementById("weekSelect").value);
+      renderSchedule(week);
+    }
+  }, 60000);
+
+  // Serah terima auto-refresh
+  setInterval(loadSerahTerima, 60000);
+  setInterval(checkDateChange, 60000);
+
+  // Theme restore
+  const toggleBtn = document.getElementById("themeToggle");
+  if (localStorage.getItem("theme") === "formal") {
+    document.body.classList.add("formal-theme");
+    toggleBtn.textContent = "🌐 Mode Gelap";
+  }
 });
 
-// ================= EVENTS =================
-document.getElementById("weekSelect").addEventListener("change", e => {
-  renderSchedule(parseInt(e.target.value));
-});
+// ================= SETUP EVENTS (single place, no duplicates) =================
+function setupEvents() {
+  document.getElementById("weekSelect").addEventListener("change", e => {
+    renderSchedule(parseInt(e.target.value));
+  });
 
-document.getElementById("adminBtn").addEventListener("click", () => {
-  document.getElementById("loginModal").classList.add("active");
-});
+  document.getElementById("adminBtn").addEventListener("click", () => {
+    document.getElementById("loginModal").classList.add("active");
+    document.getElementById("adminPassword").value = "";
+    document.getElementById("bootText").innerHTML = "";
+  });
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  isAdmin = false;
-  toggleAdminButtons(false);
-  renderSchedule(parseInt(document.getElementById("weekSelect").value));
-});
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    isAdmin = false;
+    toggleAdminButtons(false);
+    renderSchedule(parseInt(document.getElementById("weekSelect").value));
+    showToast("✅ Berhasil keluar dari mode KA Gudang");
+  });
 
-document.getElementById("saveBtn").addEventListener("click", saveChanges);
-document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+  document.getElementById("saveBtn").addEventListener("click", saveChanges);
+  document.getElementById("exportBtn").addEventListener("click", exportToExcel);
+
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    document.body.classList.toggle("formal-theme");
+    const btn = document.getElementById("themeToggle");
+    if (document.body.classList.contains("formal-theme")) {
+      localStorage.setItem("theme", "formal");
+      btn.textContent = "🌐 Mode Gelap";
+    } else {
+      localStorage.setItem("theme", "Gelap");
+      btn.textContent = "🌓 Mode Terang";
+    }
+  });
+
+  document.getElementById("serahTerimaBtn").addEventListener("click", openSerahTerimaModal);
+  document.getElementById("historyBtn").addEventListener("click", openHistoryModal);
+}
 
 // ================= WEEK OPTIONS =================
 function generateWeekOptions() {
   const select = document.getElementById("weekSelect");
-  for(let i=6;i<=52;i++){
+  for (let i = 6; i <= 52; i++) {
     const opt = document.createElement("option");
     opt.value = i;
     opt.textContent = "Week " + i;
@@ -93,250 +153,169 @@ function generateWeekOptions() {
 
 // ================= RENDER =================
 function renderSchedule(weekNumber) {
+  if (!window.db) return;
 
-  firebaseGet(firebaseRef(db, "schedules/week_"+weekNumber))
+  firebaseGet(firebaseRef(db, "schedules/week_" + weekNumber))
     .then((snapshot) => {
-
       const overrides = snapshot.exists() ? snapshot.val() : {};
-
       const table = document.getElementById("scheduleTable");
       table.innerHTML = "";
 
       const rotation = (weekNumber - START_WEEK) % 6;
-
       const monday = new Date(START_DATE);
       monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
-      const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+      const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
       let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
+      let holidayInfo = [];
 
-      // ================= CEK HARI LIBUR =================
-let holidayInfo = [];
+      for (let i = 0; i < 7; i++) {
+        let d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const iso = formatISO(d);
+        let holidayClass = "";
 
-for(let i=0;i<7;i++){
-  let d = new Date(monday);
-  d.setDate(monday.getDate()+i);
+        if (nationalHolidays[iso]) {
+          const h = nationalHolidays[iso];
+          holidayClass = h.type === "LN" ? "holiday-ln" : "holiday-cb";
+          holidayInfo.push({
+            date: formatDate(d),
+            name: h.name,
+            type: h.type === "LN" ? "Libur Nasional" : "Cuti Bersama"
+          });
+        }
 
-  const iso = formatISO(d);
-  let holidayClass = "";
-
-  if(nationalHolidays[iso]){
-    const h = nationalHolidays[iso];
-
-    holidayClass = h.type === "LN" ? "holiday-ln" : "holiday-cb";
-
-    holidayInfo.push({
-      date: formatDate(d),
-      name: h.name,
-      type: h.type === "LN" ? "Libur Nasional" : "Cuti Bersama"
-    });
-  }
-
-  header += `<th class="${holidayClass}">
-               ${formatDate(d)}<br>${days[i]}
-             </th>`;
-}
-
+        header += `<th class="${holidayClass}">${formatDate(d)}<br>${days[i]}</th>`;
+      }
 
       header += "</tr>";
       table.innerHTML += header;
 
-      for(let i=0;i<6;i++){
-
+      for (let i = 0; i < 6; i++) {
         const staffIndex = (i + rotation) % 6;
         const person = staff[staffIndex];
 
         let row = `<tr>
-          <td>${i+1}</td>
+          <td>${i + 1}</td>
           <td>${person.nik}</td>
-          <td>${person.nama}</td>`;
+          <td class="nama-cell">${person.nama}</td>`;
 
-        for(let j=0;j<7;j++){
-
+        for (let j = 0; j < 7; j++) {
           let shift = basePattern[i][j];
-
-          if(overrides[i] && overrides[i][j]){
+          if (overrides[i] && overrides[i][j]) {
             shift = overrides[i][j];
           }
 
-          row += `<td class="shift-${shift}"
-                    onclick="editShift(this)"
-                    data-row="${i}"
-                    data-col="${j}"
-                    data-shift="${shift}">
-                    ${shift}
-                  </td>`;
+          row += `<td class="shift-${shift}" onclick="editShift(this)" data-row="${i}" data-col="${j}" data-shift="${shift}">${shift}</td>`;
         }
 
         row += "</tr>";
         table.innerHTML += row;
       }
-	  
-	  // ================= TAMPILKAN INFO LIBUR =================
 
-const oldInfoBox = document.getElementById("holidayInfoBox");
-if(oldInfoBox) oldInfoBox.remove();
+      // Holiday info box
+      const oldInfoBox = document.getElementById("holidayInfoBox");
+      if (oldInfoBox) oldInfoBox.remove();
 
-if(holidayInfo.length > 0){
+      if (holidayInfo.length > 0) {
+        const infoBox = document.createElement("div");
+        infoBox.id = "holidayInfoBox";
+        infoBox.className = "holiday-info-box";
 
-  const infoBox = document.createElement("div");
-  infoBox.id = "holidayInfoBox";
-  infoBox.className = "holiday-info-box";
+        let html = "<strong>📅 Hari Libur Minggu Ini:</strong><br>";
+        holidayInfo.forEach(h => {
+          html += `<span class="holiday-item ${h.type === 'Libur Nasional' ? 'ln' : 'cb'}">● ${h.date} — ${h.type}: ${h.name}</span><br>`;
+        });
 
-  let html = "<strong>📅 Hari Libur Minggu Ini:</strong><br><br>";
-
-  holidayInfo.forEach(h=>{
-    html += `• ${h.date} - ${h.type}<br>   ${h.name}<br><br>`;
-  });
-
-  infoBox.innerHTML = html;
-
-  document.querySelector(".table-wrapper").after(infoBox);
-}
-
-
+        infoBox.innerHTML = html;
+        document.querySelector(".table-wrapper").after(infoBox);
+      }
+    })
+    .catch(err => {
+      console.error("Firebase error:", err);
     });
-	
-	
 }
 
-
-
-
-// ================= EDIT =================
-function editShift(cell){
-  if(!isAdmin) return;
-
-  const options = ["P","S","M","OFF","C"];
+// ================= EDIT SHIFT =================
+function editShift(cell) {
+  if (!isAdmin) return;
+  const options = ["P", "S", "M", "OFF", "C"];
   const current = cell.dataset.shift;
-  const nextIndex = (options.indexOf(current)+1)%options.length;
+  const nextIndex = (options.indexOf(current) + 1) % options.length;
   const newShift = options[nextIndex];
 
   cell.dataset.shift = newShift;
   cell.textContent = newShift;
-
-  cell.className = "";
-  cell.classList.add("shift-" + newShift);
+  cell.className = "shift-" + newShift;
+  cell.setAttribute("onclick", "editShift(this)");
+  cell.setAttribute("data-row", cell.dataset.row);
+  cell.setAttribute("data-col", cell.dataset.col);
 }
 
 // ================= SAVE =================
-function saveChanges(){
-
+function saveChanges() {
   const week = document.getElementById("weekSelect").value;
   const cells = document.querySelectorAll("#scheduleTable td[data-row]");
 
   let data = {};
-
-  cells.forEach(cell=>{
+  cells.forEach(cell => {
     const row = cell.dataset.row;
     const col = cell.dataset.col;
     const shift = cell.dataset.shift;
-
-    if(!data[row]) data[row] = {};
+    if (!data[row]) data[row] = {};
     data[row][col] = shift;
   });
 
-  localStorage.setItem("week_"+week, JSON.stringify(data));firebaseSet(firebaseRef(db, "schedules/week_"+week), data)
-  .then(() => {
-    alert("Perubahan disimpan ke Firebase!");
-  });
-  alert("Perubahan disimpan!");
+  // BUG FIX: single save flow, no double alert
+  firebaseSet(firebaseRef(db, "schedules/week_" + week), data)
+    .then(() => {
+      showToast("💾 Perubahan berhasil disimpan ke Firebase!");
+    })
+    .catch(err => {
+      showToast("❌ Gagal menyimpan: " + err.message);
+    });
 }
 
-
-
-// ================= LOGIN =================
-function login(){
-  const input = document.getElementById("adminPassword").value;
-
-  if(input === ADMIN_PASSWORD){
-    isAdmin = true;
-    document.getElementById("loginModal").classList.remove("active");
-    toggleAdminButtons(true);
-    alert("KA Gudang Aktif");
-  } else {
-    alert("Password salah");
-  }
-}
-
-function closeModal(){
-  document.getElementById("loginModal").classList.remove("active");
-}
-
-function toggleAdminButtons(state){
-  document.getElementById("adminBtn").classList.toggle("hidden", state);
-  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
-  document.getElementById("saveBtn").classList.toggle("hidden", !state);
-  document.getElementById("exportBtn").classList.toggle("hidden", !state);
-  
-}
-
-// ================= FORMAT =================
-function formatDate(date){
-  const d = String(date.getDate()).padStart(2,'0');
-  const m = String(date.getMonth()+1).padStart(2,'0');
-  const y = date.getFullYear();
-  return `${d}/${m}/${y}`;
-}
-
-function formatISO(date){
-  const y = date.getFullYear();
-  const m = String(date.getMonth()+1).padStart(2,'0');
-  const d = String(date.getDate()).padStart(2,'0');
-  return `${y}-${m}-${d}`;
-}
-
-function getCurrentWeekNumber(){
-
-  const today = new Date();
-
-  if(today < START_DATE){
-    return START_WEEK;
-  }
-
-  const diffTime = today - START_DATE;
-  const diffDays = Math.floor(diffTime / (1000*60*60*24));
-  const diffWeeks = Math.floor(diffDays/7);
-
-  let calculatedWeek = START_WEEK + diffWeeks;
-  if(calculatedWeek > 52) calculatedWeek = 52;
-
-  return calculatedWeek;
-}
-
-// ================= EXPORT =================
-function exportToExcel(){
-
+// ================= EXPORT (BUG FIX: removed undefined loadOverrides call) =================
+function exportToExcel() {
   const weekNumber = parseInt(document.getElementById("weekSelect").value);
   const rotation = (weekNumber - START_WEEK) % 6;
 
   const monday = new Date(START_DATE);
   monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
-  const overrides = loadOverrides(weekNumber);
-  const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
+  // Read overrides from current table cells (not from undefined function)
+  const cells = document.querySelectorAll("#scheduleTable td[data-row]");
+  let overrides = {};
+  cells.forEach(cell => {
+    const r = cell.dataset.row;
+    const c = cell.dataset.col;
+    const s = cell.dataset.shift;
+    if (!overrides[r]) overrides[r] = {};
+    overrides[r][c] = s;
+  });
 
+  const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
   let data = [];
-  let header = ["No","NIK","Nama"];
+  let header = ["No", "NIK", "Nama"];
 
-  for(let i=0;i<7;i++){
+  for (let i = 0; i < 7; i++) {
     let d = new Date(monday);
-    d.setDate(monday.getDate()+i);
-    header.push(formatDate(d)+" "+days[i]);
+    d.setDate(monday.getDate() + i);
+    header.push(formatDate(d) + " " + days[i]);
   }
 
   data.push(header);
 
-  for(let i=0;i<6;i++){
+  for (let i = 0; i < 6; i++) {
     const staffIndex = (i + rotation) % 6;
     const person = staff[staffIndex];
+    let row = [i + 1, person.nik, person.nama];
 
-    let row = [i+1, person.nik, person.nama];
-
-    for(let j=0;j<7;j++){
+    for (let j = 0; j < 7; j++) {
       let shift = basePattern[i][j];
-      if(overrides[i] && overrides[i][j]){
+      if (overrides[i] && overrides[i][j]) {
         shift = overrides[i][j];
       }
       row.push(shift);
@@ -347,352 +326,296 @@ function exportToExcel(){
 
   const ws = XLSX.utils.aoa_to_sheet(data);
 
-  // ================= STYLE WARNA =================
-  for(let r=1; r<=6; r++){
-    for(let c=3; c<=9; c++){
-
-      const cellRef = XLSX.utils.encode_cell({r:r, c:c});
+  for (let r = 1; r <= 6; r++) {
+    for (let c = 3; c <= 9; c++) {
+      const cellRef = XLSX.utils.encode_cell({ r, c });
       const cell = ws[cellRef];
-      if(!cell) continue;
+      if (!cell) continue;
 
       let bgColor = "";
-
-      switch(cell.v){
-        case "P": bgColor = "6AA84F"; break;
-        case "S": bgColor = "E6B08A"; break;
-        case "M": bgColor = "2F5597"; break;
-        case "OFF": bgColor = "FF0000"; break;
-        case "C": bgColor = "8E44AD"; break;
+      switch (cell.v) {
+        case "P":   bgColor = "26DE3C"; break;
+        case "S":   bgColor = "FF9066"; break;
+        case "M":   bgColor = "5A54B8"; break;
+        case "OFF": bgColor = "A60000"; break;
+        case "C":   bgColor = "FFFF26"; break;
       }
 
       cell.s = {
-        fill: {
-          patternType: "solid",
-          fgColor: { rgb: bgColor }
-        },
-        alignment: {
-          horizontal: "center",
-          vertical: "center"
-        },
+        fill: { patternType: "solid", fgColor: { rgb: bgColor } },
+        alignment: { horizontal: "center", vertical: "center" },
         font: {
           bold: true,
-          color: { rgb: (cell.v==="M" || cell.v==="OFF" || cell.v==="C") ? "FFFFFF" : "000000" }
+          color: { rgb: (cell.v === "M" || cell.v === "OFF") ? "FFFFFF" : "000000" }
         }
       };
     }
   }
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Week "+weekNumber);
-
-  XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, {cellStyles:true});
+  XLSX.utils.book_append_sheet(wb, ws, "Week " + weekNumber);
+  XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, { cellStyles: true });
+  showToast("📊 Export Excel berhasil!");
 }
 
-// ================= REALTIME CLOCK =================
+// ================= LOGIN =================
+function login() {
+  isAdmin = true;
+  document.getElementById("loginModal").classList.remove("active");
+  toggleAdminButtons(true);
+  failedAttempts = 0;
+  showToast("🔓 KA Gudang Mode Aktif");
+}
 
+function closeModal() {
+  document.getElementById("loginModal").classList.remove("active");
+}
+
+function toggleAdminButtons(state) {
+  document.getElementById("adminBtn").classList.toggle("hidden", state);
+  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
+  document.getElementById("saveBtn").classList.toggle("hidden", !state);
+  document.getElementById("exportBtn").classList.toggle("hidden", !state);
+}
+
+// ================= BIOMETRIC SCAN (single definition — BUG FIX) =================
+function startBiometricScan() {
+  const input = document.getElementById("adminPassword").value;
+  const boot = document.getElementById("bootText");
+  const body = document.body;
+
+  boot.innerHTML = "› Scanning face recognition...<br>";
+
+  setTimeout(() => { boot.innerHTML += "› Analyzing facial structure...<br>"; }, 600);
+  setTimeout(() => { boot.innerHTML += "› Matching biometric database...<br>"; }, 1200);
+  setTimeout(() => { boot.innerHTML += "› Verifying credentials...<br>"; }, 1800);
+
+  setTimeout(() => {
+    if (input === ADMIN_PASSWORD) {
+      boot.innerHTML += '<span style="color:#00ff88">✔ IDENTITY CONFIRMED</span><br>';
+      speak("Face recognized. Welcome administrator.");
+      setTimeout(() => { login(); }, 800);
+    } else {
+      failedAttempts++;
+      body.classList.add("red-alert");
+      speak("Access denied. Unauthorized user detected.");
+      boot.innerHTML += '<span style="color:#ff3333">✘ ACCESS DENIED</span><br>';
+
+      setTimeout(() => {
+        document.getElementById("breachScreen").style.display = "flex";
+      }, 600);
+
+      setTimeout(() => {
+        document.getElementById("breachScreen").style.display = "none";
+        body.classList.remove("red-alert");
+      }, 3500);
+
+      if (failedAttempts >= 2) {
+        setTimeout(() => {
+          triggerFBI();
+          failedAttempts = 0;
+        }, 1200);
+      }
+    }
+  }, 2400);
+}
+
+function triggerFBI() {
+  document.getElementById("fbiLock").style.display = "flex";
+}
+
+function closeFBI() {
+  document.getElementById("fbiLock").style.display = "none";
+}
+
+// ================= SPEAK =================
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 0.9;
+  speech.pitch = 1;
+  speech.lang = "en-US";
+  window.speechSynthesis.speak(speech);
+}
+
+// ================= FORMAT =================
+function formatDate(date) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function formatISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getCurrentWeekNumber() {
+  const today = new Date();
+  if (today < START_DATE) return START_WEEK;
+  const diffDays = Math.floor((today - START_DATE) / (1000 * 60 * 60 * 24));
+  let calculatedWeek = START_WEEK + Math.floor(diffDays / 7);
+  if (calculatedWeek > 52) calculatedWeek = 52;
+  return calculatedWeek;
+}
+
+// ================= CLOCK =================
 function updateClock() {
-
   const now = new Date();
-
-  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-  const dayName = hari[now.getDay()];
-
-  const d = String(now.getDate()).padStart(2,'0');
-  const m = String(now.getMonth()+1).padStart(2,'0');
+  const hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const d = String(now.getDate()).padStart(2, '0');
+  const m = String(now.getMonth() + 1).padStart(2, '0');
   const y = now.getFullYear();
-
-  const h = String(now.getHours()).padStart(2,'0');
-  const min = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-
-  const formatted = `${dayName} ${d}/${m}/${y} ${h}:${min}:${s} WIB`;
-
-  document.getElementById("liveClock").textContent = formatted;
+  const h = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  const el = document.getElementById("liveClock");
+  if (el) el.textContent = `${hari[now.getDay()]} ${d}/${m}/${y} ${h}:${min}:${s} WIB`;
 }
-
-setInterval(updateClock, 1000);
-updateClock();
-
-setInterval(() => {
-  if (!document.hidden && !isAdmin) {
-    const week = parseInt(document.getElementById("weekSelect").value);
-    renderSchedule(week);
-  }
-}, 60000);
-
-
-/* ================================
-   🔁 DETEKSI SHIFT DENGAN TOLERANSI 30 MENIT
-================================ */
-
-/* ================================
-   🔁 DETEKSI SHIFT DENGAN TOLERANSI (FIXED)
-================================ */
 
 // ================= SHIFT LOGIC =================
-
 function getCurrentShift() {
   const now = new Date();
   const minutesNow = now.getHours() * 60 + now.getMinutes();
-
-  const limit1 = 7 * 60 + 30;
-  const limit2 = 15 * 60 + 30;
-  const limit3 = 23 * 60 + 30;
-
-  if (minutesNow > limit1 && minutesNow <= limit2) {
-    return 1;
-  }
-  else if (minutesNow > limit2 && minutesNow <= limit3) {
-    return 2;
-  }
-  else {
-    return 3;
-  }
-}
-
-function getActiveWorkShift(){
-
-  const now = new Date();
-  const minutes = now.getHours()*60 + now.getMinutes();
-
-  const s1_start = 7*60+1;
-  const s1_end   = 15*60;
-
-  const s2_start = 15*60+1;
-  const s2_end   = 23*60;
-
-  if(minutes >= s1_start && minutes <= s1_end){
-    return 1;
-  }
-
-  if(minutes >= s2_start && minutes <= s2_end){
-    return 2;
-  }
-
+  if (minutesNow > 7 * 60 + 30 && minutesNow <= 15 * 60 + 30) return 1;
+  if (minutesNow > 15 * 60 + 30 && minutesNow <= 23 * 60 + 30) return 2;
   return 3;
-
 }
 
-// ================= SHIFT INDICATOR =================
-
-function updateShiftIndicator(){
-
+function updateShiftIndicator() {
   const shift = getCurrentShift();
   const box = document.getElementById("shiftAktifBox");
-
-  if(!box) return;
+  if (!box) return;
 
   box.className = "shift-box";
+  const labels = { 1: "SHIFT 1", 2: "SHIFT 2", 3: "SHIFT 3" };
+  const classes = { 1: "shift1-box", 2: "shift2-box", 3: "shift3-box" };
 
-  if(shift === 1){
-    box.classList.add("shift1-box");
-    box.innerText = "SHIFT 1";
-  }
-
-  if(shift === 2){
-    box.classList.add("shift2-box");
-    box.innerText = "SHIFT 2";
-  }
-
-  if(shift === 3){
-    box.classList.add("shift3-box");
-    box.innerText = "SHIFT 3";
-  }
-
+  box.classList.add(classes[shift]);
+  box.innerText = labels[shift];
 }
-
-updateShiftIndicator();
-setInterval(updateShiftIndicator, 10000);
-
-
-// ================= THEME TOGGLE =================
-
-const toggleBtn = document.getElementById("themeToggle");
-
-if(localStorage.getItem("theme") === "formal"){
-  document.body.classList.add("formal-theme");
-  toggleBtn.textContent = "🌐 Mode Gelap";
-}
-
-toggleBtn.addEventListener("click", () => {
-
-  document.body.classList.toggle("formal-theme");
-
-  if(document.body.classList.contains("formal-theme")){
-    localStorage.setItem("theme","formal");
-    toggleBtn.textContent = "🌐 Mode Gelap";
-  } else {
-    localStorage.setItem("theme","Gelap");
-    toggleBtn.textContent = "🌓 Mode Terang";
-  }
-
-});
-
-
-// ================= EXPORT EXCEL =================
-
-const exportBtn = document.getElementById("exportBtn");
-
-exportBtn.addEventListener("click", function () {
-
-  const table = document.getElementById("scheduleTable");
-
-  if (!table) {
-    alert("Tabel tidak ditemukan!");
-    return;
-  }
-
-  const wb = XLSX.utils.table_to_book(table, { sheet: "Jadwal Admin" });
-  XLSX.writeFile(wb, "Jadwal_Admin_Gudang.xlsx");
-
-});
-
 
 // ================= SERAH TERIMA =================
-
-let currentDateKey = new Date().toISOString().split("T")[0];
-
-function loadSerahTerima(){
-
+function loadSerahTerima() {
+  if (!window.db) return;
   const today = new Date();
   const dateKey = today.toISOString().split("T")[0];
 
-  firebaseGet(firebaseRef(db,"serahTerima/"+dateKey))
-  .then(snapshot=>{
+  firebaseGet(firebaseRef(db, "serahTerima/" + dateKey))
+    .then(snapshot => {
+      let data = snapshot.exists() ? snapshot.val() : {};
+      let s1 = data.shift1 || "Belum ada catatan";
+      let s2 = data.shift2 || "Belum ada catatan";
+      let s3 = data.shift3 || "Belum ada catatan";
 
-    let data = snapshot.exists()?snapshot.val():{};
+      const text = `<span class="ticker-item">📅 ${dateKey} ◆ SHIFT 3 ➜ ${s3}</span><span class="ticker-item">◆ SHIFT 1 ➜ ${s1}</span><span class="ticker-item">◆ SHIFT 2 ➜ ${s2}</span>`;
 
-    let s1 = data.shift1 || "Belum ada catatan";
-    let s2 = data.shift2 || "Belum ada catatan";
-    let s3 = data.shift3 || "Belum ada catatan";
+      const el = document.getElementById("serahTerimaText");
+      const clone = document.getElementById("serahTerimaClone");
+      if (!el || !clone) return;
 
-    const text =
+      el.innerHTML = text;
+      clone.innerHTML = text;
 
-`<span class="ticker-item">
-📅 ${dateKey} ◆ SHIFT 3 ➜ ${s3}
-</span>
+      const track = document.getElementById("newsTrack");
+      if (track) {
+        track.style.animation = "none";
+        void track.offsetHeight;
+        track.style.animation = null;
 
-<span class="ticker-item">
-◆ SHIFT 1 ➜ ${s1}
-</span>
-
-<span class="ticker-item">
-◆ SHIFT 2 ➜ ${s2}
-</span>`;
-
-    const el = document.getElementById("serahTerimaText");
-    const clone = document.getElementById("serahTerimaClone");
-
-    if(!el || !clone) return;
-
-    el.innerHTML = text;
-    clone.innerHTML = text;
-
-    const track = document.getElementById("newsTrack");
-
-    if(track){
-
-      // restart animation
-      track.style.animation = "none";
-      track.offsetHeight;
-      track.style.animation = null;
-
-      setTimeout(()=>{
-
-        const width = el.scrollWidth;
-        let duration = width / 120;
-
-        if(duration < 15){
-          duration = 15;
-        }
-
-        track.style.animationDuration = duration + "s";
-
-      },200);
-
-    }
-
-  });
-
-}
-
-
-// ================= AUTO UPDATE =================
-
-setInterval(loadSerahTerima, 60000);
-loadSerahTerima();
-
-
-// ================= CEK PERGANTIAN TANGGAL =================
-
-function checkDateChange(){
-
-  const now = new Date();
-  const newDateKey = now.toISOString().split("T")[0];
-
-  if(newDateKey !== currentDateKey){
-
-    currentDateKey = newDateKey;
-
-    loadSerahTerima();
-
-  }
-
-}
-
-setInterval(checkDateChange,60000);
-
-
-// ================= INPUT SERAH TERIMA =================
-
-document.getElementById("serahTerimaBtn").addEventListener("click", () => {
-
-  const shift = getCurrentShift();
-  const isi = prompt("Masukkan Serah Terima SHIFT " + shift);
-
-  if (!isi) return;
-
-  const today = new Date();
-  const dateKey = today.toISOString().split("T")[0];
-
-  firebaseSet(firebaseRef(db, "serahTerima/" + dateKey + "/shift" + shift), isi)
-    .then(() => {
-
-      alert("Serah Terima disimpan!");
-      loadSerahTerima();
-
+        setTimeout(() => {
+          const width = el.scrollWidth;
+          let duration = Math.max(15, width / 120);
+          track.style.animationDuration = duration + "s";
+        }, 200);
+      }
     });
+}
 
-});
+function checkDateChange() {
+  const newDateKey = new Date().toISOString().split("T")[0];
+  if (newDateKey !== currentDateKey) {
+    currentDateKey = newDateKey;
+    loadSerahTerima();
+  }
+}
 
+// ================= SERAH TERIMA MODAL (replaces prompt()) =================
+function openSerahTerimaModal() {
+  const shift = getCurrentShift();
+  const modal = document.getElementById("serahTerimaModal");
+  document.getElementById("serahTerimaShiftLabel").textContent = "Input Serah Terima SHIFT " + shift;
+  document.getElementById("serahTerimaInput").value = "";
+  modal.classList.add("active");
 
-// ================= HISTORY =================
+  document.getElementById("serahTerimaSaveBtn").onclick = () => {
+    const isi = document.getElementById("serahTerimaInput").value.trim();
+    if (!isi) { showToast("⚠️ Catatan tidak boleh kosong!"); return; }
 
-document.getElementById("historyBtn").addEventListener("click", async () => {
+    const dateKey = new Date().toISOString().split("T")[0];
+    firebaseSet(firebaseRef(db, "serahTerima/" + dateKey + "/shift" + shift), isi)
+      .then(() => {
+        showToast("✅ Serah Terima Shift " + shift + " disimpan!");
+        modal.classList.remove("active");
+        loadSerahTerima();
+      });
+  };
 
-  const ref = firebaseRef(db, "serahTerima");
-  const snapshot = await firebaseGet(ref);
+  document.getElementById("serahTerimaCloseBtn").onclick = () => {
+    modal.classList.remove("active");
+  };
+}
 
-  if(!snapshot.exists()){
-    alert("Belum ada history");
-    return;
+// ================= HISTORY MODAL (replaces alert()) =================
+async function openHistoryModal() {
+  if (!window.db) return;
+  const snapshot = await firebaseGet(firebaseRef(db, "serahTerima"));
+  const modal = document.getElementById("historyModal");
+  const content = document.getElementById("historyContent");
+
+  if (!snapshot.exists()) {
+    content.innerHTML = "<p style='text-align:center;opacity:0.6'>Belum ada history serah terima.</p>";
+  } else {
+    const data = snapshot.val();
+    let html = "";
+    Object.keys(data).sort().slice(-7).reverse().forEach(date => {
+      const d = data[date];
+      html += `
+        <div class="history-card">
+          <div class="history-date">📅 ${date}</div>
+          <div class="history-shifts">
+            <div class="history-shift shift1-label">SHIFT 1: <span>${d.shift1 || "—"}</span></div>
+            <div class="history-shift shift2-label">SHIFT 2: <span>${d.shift2 || "—"}</span></div>
+            <div class="history-shift shift3-label">SHIFT 3: <span>${d.shift3 || "—"}</span></div>
+          </div>
+        </div>`;
+    });
+    content.innerHTML = html;
   }
 
-  const data = snapshot.val();
+  modal.classList.add("active");
+  document.getElementById("historyCloseBtn").onclick = () => {
+    modal.classList.remove("active");
+  };
+}
 
-  let text = "📜 HISTORY SERAH TERIMA\n\n";
+// ================= TOAST NOTIFICATION (replaces all alert()) =================
+function showToast(message) {
+  const existing = document.getElementById("toastNotif");
+  if (existing) existing.remove();
 
-  Object.keys(data).slice(-7).forEach(date => {
+  const toast = document.createElement("div");
+  toast.id = "toastNotif";
+  toast.className = "toast-notif";
+  toast.textContent = message;
+  document.body.appendChild(toast);
 
-    const d = data[date];
-
-    text += date + "\n";
-    text += "Shift1 : " + (d.shift1 || "-") + "\n";
-    text += "Shift2 : " + (d.shift2 || "-") + "\n";
-    text += "Shift3 : " + (d.shift3 || "-") + "\n\n";
-
-  });
-
-  alert(text);
-
-});
+  setTimeout(() => toast.classList.add("show"), 10);
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+}
