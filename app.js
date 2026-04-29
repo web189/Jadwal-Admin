@@ -2,6 +2,7 @@
 const ADMIN_PASSWORD = "0218756209";
 const START_WEEK = 6;
 const START_DATE = new Date("2026-02-02");
+const auth = window.auth;
 
 const nationalHolidays = {
   "2026-01-01": { type: "LN", name: "Tahun Baru 2026 Masehi" },
@@ -109,13 +110,21 @@ function setupEvents() {
   });
 
   document.getElementById("adminBtn").addEventListener("click", () => {
+	  
     document.getElementById("loginModal").classList.add("active");
+	document.getElementById("adminEmail").value = "";
     document.getElementById("adminPassword").value = "";
     document.getElementById("bootText").innerHTML = "";
   });
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
-    isAdmin = false;
+    signOutFirebase(auth).then(() => {
+
+  toggleAdminButtons(false);
+
+  showToast("✅ Logout berhasil");
+
+});
     toggleAdminButtons(false);
     renderSchedule(parseInt(document.getElementById("weekSelect").value));
     showToast("✅ Berhasil keluar dari mode KA Gudang");
@@ -359,65 +368,124 @@ function exportToExcel() {
 }
 
 // ================= LOGIN =================
-function login() {
-  isAdmin = true;
-  document.getElementById("loginModal").classList.remove("active");
-  toggleAdminButtons(true);
-  failedAttempts = 0;
-  showToast("🔓 KA Gudang Mode Aktif");
+async function startBiometricScan() {
+
+  const email =
+    document.getElementById("adminEmail").value.trim();
+
+  const password =
+    document.getElementById("adminPassword").value;
+
+  const boot =
+    document.getElementById("bootText");
+
+  if (!email || !password) {
+    showToast("⚠️ Email dan password wajib diisi");
+    return;
+  }
+
+  boot.innerHTML =
+    "› Connecting Firebase...<br>";
+
+  setTimeout(() => {
+    boot.innerHTML +=
+      "› Verifying administrator...<br>";
+  }, 500);
+
+  setTimeout(() => {
+    boot.innerHTML +=
+      "› Authenticating secure access...<br>";
+  }, 1000);
+
+  try {
+
+    await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    boot.innerHTML +=
+      '<span style="color:#00ff88">✔ ACCESS GRANTED</span><br>';
+
+    setTimeout(() => {
+
+      isAdmin = true;
+
+      document.body.classList.add("admin-active");
+
+      document.getElementById("loginModal")
+        .classList.remove("active");
+
+      toggleAdminButtons(true);
+
+      showToast("✅ Login berhasil");
+
+    }, 700);
+
+  } catch(err) {
+
+    console.error(err);
+
+    boot.innerHTML +=
+      '<span style="color:#ff4444">✘ LOGIN FAILED</span><br>';
+
+    showToast("❌ Email atau password salah");
+
+  }
 }
 
+onAuthStateChanged(auth, (user) => {
+
+  if (user) {
+
+    isAdmin = true;
+
+    toggleAdminButtons(true);
+
+    document.body.classList.add("admin-active");
+
+  } else {
+
+    isAdmin = false;
+
+    toggleAdminButtons(false);
+
+    document.body.classList.remove("admin-active");
+  }
+});
+
 function closeModal() {
-  document.getElementById("loginModal").classList.remove("active");
+  document.getElementById("loginModal")
+    .classList.remove("active");
 }
 
 function toggleAdminButtons(state) {
-  document.getElementById("adminBtn").classList.toggle("hidden", state);
-  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
-  document.getElementById("saveBtn").classList.toggle("hidden", !state);
-  document.getElementById("exportBtn").classList.toggle("hidden", !state);
-}
 
-// ================= BIOMETRIC SCAN (single definition — BUG FIX) =================
-function startBiometricScan() {
-  const input = document.getElementById("adminPassword").value;
-  const boot = document.getElementById("bootText");
-  const body = document.body;
+  isAdmin = state;
 
-  boot.innerHTML = "› Scanning face recognition...<br>";
+  document.getElementById("adminBtn")
+    .classList.toggle("hidden", state);
 
-  setTimeout(() => { boot.innerHTML += "› Analyzing facial structure...<br>"; }, 600);
-  setTimeout(() => { boot.innerHTML += "› Matching biometric database...<br>"; }, 1200);
-  setTimeout(() => { boot.innerHTML += "› Verifying credentials...<br>"; }, 1800);
+  document.getElementById("logoutBtn")
+    .classList.toggle("hidden", !state);
 
-  setTimeout(() => {
-    if (input === ADMIN_PASSWORD) {
-      boot.innerHTML += '<span style="color:#00ff88">✔ IDENTITY CONFIRMED</span><br>';
-      speak("Face recognized. Welcome administrator.");
-      setTimeout(() => { login(); }, 800);
-    } else {
-      failedAttempts++;
-      body.classList.add("red-alert");
-      speak("Access denied. Unauthorized user detected.");
-      boot.innerHTML += '<span style="color:#ff3333">✘ ACCESS DENIED</span><br>';
+  document.getElementById("saveBtn")
+    .classList.toggle("hidden", !state);
 
-      setTimeout(() => {
-        document.getElementById("breachScreen").style.display = "flex";
-      }, 600);
+  document.getElementById("exportBtn")
+    .classList.toggle("hidden", !state);
 
-      setTimeout(() => {
-        document.getElementById("breachScreen").style.display = "none";
-        body.classList.remove("red-alert");
-      }, 3500);
+  // tombol edit aktif
+  document.body.classList.toggle(
+    "admin-active",
+    state
+  );
 
-      if (failedAttempts >= 2) {
-        setTimeout(() => {
-          triggerFBI();
-          failedAttempts = 0;
-        }, 1200);
-      }
-    }
-  }, 2400);
+  // refresh tabel
+  renderSchedule(
+    parseInt(document.getElementById("weekSelect").value)
+  );
 }
 
 function triggerFBI() {
@@ -619,3 +687,4 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 400);
   }, 3000);
 }
+

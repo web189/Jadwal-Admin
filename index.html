@@ -84,23 +84,48 @@
 </div>
 
 <!-- ===== LOGIN MODAL ===== -->
+<!-- ===== LOGIN MODAL ===== -->
 <div id="loginModal" class="modal">
   <div class="modal-box terminal">
-    <video id="camera" autoplay muted playsinline></video>
-    <div class="terminal-header">biometric@secure-system:~$</div>
+
+    <div class="terminal-header">
+      firebase-auth@secure-system:~$
+    </div>
+
     <div id="fingerprintScanner" class="fingerprint">
       <div class="scan-line"></div>
     </div>
+
     <div id="bootText" class="terminal-body"></div>
-    <input type="password"
-           id="adminPassword"
-           placeholder="Enter password..."
-           autocomplete="current-password"
-           onkeydown="if(event.key==='Enter') startBiometricScan()">
+
+    <!-- EMAIL -->
+    <input
+      type="email"
+      id="adminEmail"
+      placeholder="Masukkan email admin..."
+      autocomplete="email"
+    >
+
+    <!-- PASSWORD -->
+    <input
+      type="password"
+      id="adminPassword"
+      placeholder="Masukkan password..."
+      autocomplete="current-password"
+      onkeydown="if(event.key==='Enter') startBiometricScan()"
+    >
+
     <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal()">Batal</button>
-      <button class="btn-primary" onclick="startBiometricScan()">🔐 Verifikasi</button>
+      <button class="btn-ghost" onclick="closeModal()">
+        Batal
+      </button>
+
+      <button class="btn-primary"
+              onclick="startBiometricScan()">
+        🔐 Login Admin
+      </button>
     </div>
+
   </div>
 </div>
 
@@ -166,7 +191,20 @@
 <!-- FIREBASE SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+import {
+  getDatabase,
+  ref,
+  set,
+  get
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAvJun21jAsquw8htCSBHK1N56T6Ld6jNY",
@@ -179,12 +217,22 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
+const auth = getAuth(app);
+
 window.db = db;
+window.auth = auth;
+
 window.firebaseRef = ref;
 window.firebaseSet = set;
 window.firebaseGet = get;
+
+window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.signOutFirebase = signOut;
+window.onAuthStateChangedFirebase = onAuthStateChanged;
+
 window.firebaseReady = true;
 </script>
 
