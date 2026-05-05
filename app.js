@@ -2,6 +2,7 @@
 const ADMIN_PASSWORD = "0218756209";
 const START_WEEK = 6;
 const START_DATE = new Date("2026-02-02");
+const START_ROTATION_WEEK = 19; // Rotasi baru dimulai dari week ini
 const auth = window.auth;
 
 const nationalHolidays = {
@@ -33,7 +34,18 @@ const nationalHolidays = {
 };
 
 // ================= DATA STAFF =================
+// Urutan baru mulai Week 19
 const staff = [
+  { nik: "107537", nama: "KAMIL M NUR" },
+  { nik: "103356", nama: "BUDIYANSAH" },
+  { nik: "105855", nama: "RANDHIKA" },
+  { nik: "107271", nama: "RIKI HERMAWAN" },
+  { nik: "107317", nama: "ACHMAD TAHIR" },
+  { nik: "108191", nama: "M DAUD" }
+];
+
+// Urutan staff lama (week sebelum 19)
+const staffOld = [
   { nik: "108191", nama: "M DAUD" },
   { nik: "107271", nama: "RIKI HERMAWAN" },
   { nik: "107537", nama: "KAMIL M NUR" },
@@ -52,9 +64,21 @@ const basePattern = [
   ["M","M","M","M","M","OFF","OFF"]
 ];
 
+// ================= DATA KEGIATAN KEBERSIHAN =================
+const kegiatanDefault = [
+  { nama: "KAMIL M NUR",    tugas: "Perapihan arsip, Sawang-sawang, Kebersihan lantai area depan" },
+  { nama: "BUDIYANSAH",     tugas: "Kebersihan toilet, Lap meja, Buang sampah harian" },
+  { nama: "RANDHIKA",       tugas: "Kebersihan area loading, Sapu & pel koridor" },
+  { nama: "RIKI HERMAWAN",  tugas: "Perapihan rak gudang, Cek label barang, Kebersihan area storage" },
+  { nama: "ACHMAD TAHIR",   tugas: "Kebersihan kantin, Lap kaca, Siram tanaman" },
+  { nama: "M DAUD",         tugas: "Kebersihan parkir, Rapikan gerobak, Cek kebocoran atap" }
+];
+
 let isAdmin = false;
-let failedAttempts = 0; // single declaration — BUG FIX
+let failedAttempts = 0;
 let currentDateKey = new Date().toISOString().split("T")[0];
+let chatUnsubscribe = null;
+let chatLastCount = 0;
 
 // ================= WAIT FOR FIREBASE =================
 function waitForFirebase(cb) {
@@ -71,10 +95,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentWeek = getCurrentWeekNumber();
   document.getElementById("weekSelect").value = currentWeek;
 
-  // Wait for firebase before rendering
   waitForFirebase(() => {
     renderSchedule(currentWeek);
     loadSerahTerima();
+    initChat();
+    loadKegiatan();
   });
 
   setupEvents();
@@ -83,7 +108,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateShiftIndicator();
   setInterval(updateShiftIndicator, 10000);
 
-  // Auto-refresh schedule every 60s (only when not admin)
   setInterval(() => {
     if (!document.hidden && !isAdmin) {
       const week = parseInt(document.getElementById("weekSelect").value);
@@ -91,11 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 60000);
 
-  // Serah terima auto-refresh
   setInterval(loadSerahTerima, 60000);
   setInterval(checkDateChange, 60000);
 
-  // Theme restore
   const toggleBtn = document.getElementById("themeToggle");
   if (localStorage.getItem("theme") === "formal") {
     document.body.classList.add("formal-theme");
@@ -103,28 +125,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ================= SETUP EVENTS (single place, no duplicates) =================
+// ================= SETUP EVENTS =================
 function setupEvents() {
   document.getElementById("weekSelect").addEventListener("change", e => {
     renderSchedule(parseInt(e.target.value));
   });
 
   document.getElementById("adminBtn").addEventListener("click", () => {
-	  
     document.getElementById("loginModal").classList.add("active");
-	document.getElementById("adminEmail").value = "";
+    document.getElementById("adminEmail").value = "";
     document.getElementById("adminPassword").value = "";
     document.getElementById("bootText").innerHTML = "";
   });
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
     signOutFirebase(auth).then(() => {
-
-  toggleAdminButtons(false);
-
-  showToast("✅ Logout berhasil");
-
-});
+      toggleAdminButtons(false);
+      showToast("✅ Logout berhasil");
+    });
     toggleAdminButtons(false);
     renderSchedule(parseInt(document.getElementById("weekSelect").value));
     showToast("✅ Berhasil keluar dari mode KA Gudang");
@@ -147,6 +165,34 @@ function setupEvents() {
 
   document.getElementById("serahTerimaBtn").addEventListener("click", openSerahTerimaModal);
   document.getElementById("historyBtn").addEventListener("click", openHistoryModal);
+
+  // Chat events
+  document.getElementById("chatSendBtn").addEventListener("click", sendChatMessage);
+  document.getElementById("chatInput").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  });
+
+  // Chat toggle
+  document.getElementById("chatToggleBtn").addEventListener("click", () => {
+    const panel = document.getElementById("chatPanel");
+    panel.classList.toggle("open");
+    if (panel.classList.contains("open")) {
+      document.getElementById("chatBadge").style.display = "none";
+      chatLastCount = 0;
+      scrollChatToBottom();
+    }
+  });
+
+  // Kegiatan toggle
+  document.getElementById("kegiatanToggleBtn").addEventListener("click", () => {
+    const body = document.getElementById("kegiatanBody");
+    const arrow = document.getElementById("kegiatanArrow");
+    body.classList.toggle("open");
+    arrow.textContent = body.classList.contains("open") ? "▲" : "▼";
+  });
 }
 
 // ================= WEEK OPTIONS =================
@@ -160,7 +206,7 @@ function generateWeekOptions() {
   }
 }
 
-// ================= RENDER =================
+// ================= RENDER SCHEDULE =================
 function renderSchedule(weekNumber) {
   if (!window.db) return;
 
@@ -170,13 +216,23 @@ function renderSchedule(weekNumber) {
       const table = document.getElementById("scheduleTable");
       table.innerHTML = "";
 
-      const rotation = (weekNumber - START_WEEK) % 6;
+      // ===== ROTASI BARU: Reset mulai Week 19 =====
+      let rotation;
+      if (weekNumber < START_ROTATION_WEEK) {
+        rotation = (weekNumber - START_WEEK) % 6;
+      } else {
+        rotation = (weekNumber - START_ROTATION_WEEK) % 6;
+      }
+
+      // Pilih array staff sesuai periode
+      const activeStaff = weekNumber < START_ROTATION_WEEK ? staffOld : staff;
+
       const monday = new Date(START_DATE);
       monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
       const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
-      let header = "<tr><th>No</th><th>NIK</th><th>Nama</th>";
+      let header = "<tr><th>No</th><th>NIK</th><th class='nama-col-header'>Nama</th>";
       let holidayInfo = [];
 
       for (let i = 0; i < 7; i++) {
@@ -203,7 +259,7 @@ function renderSchedule(weekNumber) {
 
       for (let i = 0; i < 6; i++) {
         const staffIndex = (i + rotation) % 6;
-        const person = staff[staffIndex];
+        const person = activeStaff[staffIndex];
 
         let row = `<tr>
           <td>${i + 1}</td>
@@ -223,7 +279,6 @@ function renderSchedule(weekNumber) {
         table.innerHTML += row;
       }
 
-      // Holiday info box
       const oldInfoBox = document.getElementById("holidayInfoBox");
       if (oldInfoBox) oldInfoBox.remove();
 
@@ -276,7 +331,6 @@ function saveChanges() {
     data[row][col] = shift;
   });
 
-  // BUG FIX: single save flow, no double alert
   firebaseSet(firebaseRef(db, "schedules/week_" + week), data)
     .then(() => {
       showToast("💾 Perubahan berhasil disimpan ke Firebase!");
@@ -286,15 +340,22 @@ function saveChanges() {
     });
 }
 
-// ================= EXPORT (BUG FIX: removed undefined loadOverrides call) =================
+// ================= EXPORT =================
 function exportToExcel() {
   const weekNumber = parseInt(document.getElementById("weekSelect").value);
-  const rotation = (weekNumber - START_WEEK) % 6;
+
+  let rotation;
+  if (weekNumber < START_ROTATION_WEEK) {
+    rotation = (weekNumber - START_WEEK) % 6;
+  } else {
+    rotation = (weekNumber - START_ROTATION_WEEK) % 6;
+  }
+
+  const activeStaff = weekNumber < START_ROTATION_WEEK ? staffOld : staff;
 
   const monday = new Date(START_DATE);
   monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
-  // Read overrides from current table cells (not from undefined function)
   const cells = document.querySelectorAll("#scheduleTable td[data-row]");
   let overrides = {};
   cells.forEach(cell => {
@@ -319,7 +380,7 @@ function exportToExcel() {
 
   for (let i = 0; i < 6; i++) {
     const staffIndex = (i + rotation) % 6;
-    const person = staff[staffIndex];
+    const person = activeStaff[staffIndex];
     let row = [i + 1, person.nik, person.nama];
 
     for (let j = 0; j < 7; j++) {
@@ -369,123 +430,62 @@ function exportToExcel() {
 
 // ================= LOGIN =================
 async function startBiometricScan() {
-
-  const email =
-    document.getElementById("adminEmail").value.trim();
-
-  const password =
-    document.getElementById("adminPassword").value;
-
-  const boot =
-    document.getElementById("bootText");
+  const email = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  const boot = document.getElementById("bootText");
 
   if (!email || !password) {
     showToast("⚠️ Email dan password wajib diisi");
     return;
   }
 
-  boot.innerHTML =
-    "› Connecting Firebase...<br>";
-
-  setTimeout(() => {
-    boot.innerHTML +=
-      "› Verifying administrator...<br>";
-  }, 500);
-
-  setTimeout(() => {
-    boot.innerHTML +=
-      "› Authenticating secure access...<br>";
-  }, 1000);
+  boot.innerHTML = "› Connecting Firebase...<br>";
+  setTimeout(() => { boot.innerHTML += "› Verifying administrator...<br>"; }, 500);
+  setTimeout(() => { boot.innerHTML += "› Authenticating secure access...<br>"; }, 1000);
 
   try {
-
-    await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-
-    boot.innerHTML +=
-      '<span style="color:#00ff88">✔ ACCESS GRANTED</span><br>';
+    await signInWithEmailAndPassword(auth, email, password);
+    boot.innerHTML += '<span style="color:#00ff88">✔ ACCESS GRANTED</span><br>';
 
     setTimeout(() => {
-
       isAdmin = true;
-
       document.body.classList.add("admin-active");
-
-      document.getElementById("loginModal")
-        .classList.remove("active");
-
+      document.getElementById("loginModal").classList.remove("active");
       toggleAdminButtons(true);
-
       showToast("✅ Login berhasil");
-
     }, 700);
 
   } catch(err) {
-
     console.error(err);
-
-    boot.innerHTML +=
-      '<span style="color:#ff4444">✘ LOGIN FAILED</span><br>';
-
+    boot.innerHTML += '<span style="color:#ff4444">✘ LOGIN FAILED</span><br>';
     showToast("❌ Email atau password salah");
-
   }
 }
 
 onAuthStateChanged(auth, (user) => {
-
   if (user) {
-
     isAdmin = true;
-
     toggleAdminButtons(true);
-
     document.body.classList.add("admin-active");
-
   } else {
-
     isAdmin = false;
-
     toggleAdminButtons(false);
-
     document.body.classList.remove("admin-active");
   }
 });
 
 function closeModal() {
-  document.getElementById("loginModal")
-    .classList.remove("active");
+  document.getElementById("loginModal").classList.remove("active");
 }
 
 function toggleAdminButtons(state) {
-
   isAdmin = state;
-
-  document.getElementById("adminBtn")
-    .classList.toggle("hidden", state);
-
-  document.getElementById("logoutBtn")
-    .classList.toggle("hidden", !state);
-
-  document.getElementById("saveBtn")
-    .classList.toggle("hidden", !state);
-
-  document.getElementById("exportBtn")
-    .classList.toggle("hidden", !state);
-
-  // tombol edit aktif
-  document.body.classList.toggle(
-    "admin-active",
-    state
-  );
-
-  // refresh tabel
-  renderSchedule(
-    parseInt(document.getElementById("weekSelect").value)
-  );
+  document.getElementById("adminBtn").classList.toggle("hidden", state);
+  document.getElementById("logoutBtn").classList.toggle("hidden", !state);
+  document.getElementById("saveBtn").classList.toggle("hidden", !state);
+  document.getElementById("exportBtn").classList.toggle("hidden", !state);
+  document.body.classList.toggle("admin-active", state);
+  renderSchedule(parseInt(document.getElementById("weekSelect").value));
 }
 
 function triggerFBI() {
@@ -611,7 +611,7 @@ function checkDateChange() {
   }
 }
 
-// ================= SERAH TERIMA MODAL (replaces prompt()) =================
+// ================= SERAH TERIMA MODAL =================
 function openSerahTerimaModal() {
   const shift = getCurrentShift();
   const modal = document.getElementById("serahTerimaModal");
@@ -637,7 +637,7 @@ function openSerahTerimaModal() {
   };
 }
 
-// ================= HISTORY MODAL (replaces alert()) =================
+// ================= HISTORY MODAL =================
 async function openHistoryModal() {
   if (!window.db) return;
   const snapshot = await firebaseGet(firebaseRef(db, "serahTerima"));
@@ -670,7 +670,7 @@ async function openHistoryModal() {
   };
 }
 
-// ================= TOAST NOTIFICATION (replaces all alert()) =================
+// ================= TOAST NOTIFICATION =================
 function showToast(message) {
   const existing = document.getElementById("toastNotif");
   if (existing) existing.remove();
@@ -688,3 +688,157 @@ function showToast(message) {
   }, 3000);
 }
 
+// ================= CHAT GLOBAL (Firebase Realtime) =================
+function initChat() {
+  if (!window.db) return;
+
+  // Listen realtime dari Firebase
+  const { getDatabase, ref, onChildAdded, limitToLast } = window._firebaseDB || {};
+
+  // Gunakan polling karena kita sudah punya firebaseGet
+  loadChatMessages();
+  setInterval(loadChatMessages, 5000);
+}
+
+async function loadChatMessages() {
+  if (!window.db) return;
+  try {
+    const snapshot = await firebaseGet(firebaseRef(db, "chatGlobal"));
+    const container = document.getElementById("chatMessages");
+    if (!snapshot.exists()) return;
+
+    const data = snapshot.val();
+    const keys = Object.keys(data).sort();
+    const last100 = keys.slice(-100);
+
+    // Cek apakah ada pesan baru
+    if (last100.length > chatLastCount) {
+      const panel = document.getElementById("chatPanel");
+      if (!panel.classList.contains("open") && chatLastCount > 0) {
+        const badge = document.getElementById("chatBadge");
+        badge.style.display = "flex";
+        badge.textContent = last100.length - chatLastCount;
+      }
+    }
+    chatLastCount = last100.length;
+
+    const myName = localStorage.getItem("chatNama") || "User";
+    let html = "";
+
+    last100.forEach(key => {
+      const msg = data[key];
+      const isMe = msg.nama === myName;
+      const waktu = new Date(msg.waktu).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+
+      html += `
+        <div class="chat-bubble ${isMe ? 'chat-me' : 'chat-other'}">
+          ${!isMe ? `<div class="chat-sender">${msg.nama}</div>` : ""}
+          <div class="chat-text">${escapeHtml(msg.pesan)}</div>
+          <div class="chat-time">${waktu}</div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+
+    const panel = document.getElementById("chatPanel");
+    if (panel.classList.contains("open")) {
+      scrollChatToBottom();
+    }
+  } catch(e) {
+    console.error("Chat load error:", e);
+  }
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const pesan = input.value.trim();
+  if (!pesan) return;
+
+  let nama = localStorage.getItem("chatNama");
+  if (!nama) {
+    nama = prompt("Masukkan nama Anda untuk chat:") || "Anonim";
+    localStorage.setItem("chatNama", nama);
+  }
+
+  const msgId = "msg_" + Date.now();
+  await firebaseSet(firebaseRef(db, "chatGlobal/" + msgId), {
+    nama: nama,
+    pesan: pesan,
+    waktu: Date.now()
+  });
+
+  input.value = "";
+  await loadChatMessages();
+  scrollChatToBottom();
+}
+
+function scrollChatToBottom() {
+  const container = document.getElementById("chatMessages");
+  if (container) container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ================= KEGIATAN KEBERSIHAN =================
+async function loadKegiatan() {
+  if (!window.db) return;
+  try {
+    const snapshot = await firebaseGet(firebaseRef(db, "kegiatan"));
+    let data = snapshot.exists() ? snapshot.val() : null;
+
+    if (!data) {
+      // Load default
+      data = {};
+      kegiatanDefault.forEach((k, i) => {
+        data["k_" + i] = { nama: k.nama, tugas: k.tugas };
+      });
+    }
+
+    renderKegiatan(data);
+  } catch(e) {
+    renderKegiatan(null);
+  }
+}
+
+function renderKegiatan(data) {
+  const container = document.getElementById("kegiatanList");
+  if (!container) return;
+
+  const items = data ? Object.values(data) : kegiatanDefault;
+  let html = "";
+
+  items.forEach((item, idx) => {
+    html += `
+      <div class="kegiatan-card" id="kCard_${idx}">
+        <div class="kegiatan-header">
+          <span class="kegiatan-icon">🧹</span>
+          <span class="kegiatan-nama">${item.nama}</span>
+          ${isAdmin ? `<button class="kegiatan-edit-btn" onclick="editKegiatan(${idx}, '${item.nama}', \`${item.tugas}\`)">✏️</button>` : ""}
+        </div>
+        <div class="kegiatan-tugas">${item.tugas}</div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function editKegiatan(idx, nama, tugasLama) {
+  const tugasBaru = prompt(`Edit tugas ${nama}:`, tugasLama);
+  if (!tugasBaru || tugasBaru.trim() === tugasLama) return;
+
+  firebaseSet(firebaseRef(db, "kegiatan/k_" + idx), {
+    nama: nama,
+    tugas: tugasBaru.trim()
+  }).then(() => {
+    showToast("✅ Kegiatan berhasil diupdate!");
+    loadKegiatan();
+  }).catch(e => {
+    showToast("❌ Gagal update: " + e.message);
+  });
+}
