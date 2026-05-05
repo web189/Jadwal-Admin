@@ -842,3 +842,318 @@ function editKegiatan(idx, nama, tugasLama) {
     showToast("❌ Gagal update: " + e.message);
   });
 }
+// ========================================================
+// ✨ ENHANCEMENT v.04 — Fitur Canggih Baru
+// ========================================================
+
+// ---- RIPPLE EFFECT ----
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest("button, .cyber-link-btn, .mobile-nav-item");
+  if (!btn) return;
+  const ripple = document.createElement("span");
+  ripple.className = "ripple";
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${e.clientX - rect.left - size/2}px;
+    top:${e.clientY - rect.top - size/2}px;
+  `;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 500);
+});
+
+// ---- SCROLL TO TOP ----
+const scrollBtn = document.getElementById("scrollTopBtn");
+if (scrollBtn) {
+  window.addEventListener("scroll", () => {
+    scrollBtn.classList.toggle("visible", window.scrollY > 300);
+  });
+  scrollBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+// ---- SCROLL TO SECTION (mobile nav) ----
+function scrollToSection(id) {
+  const el = document.getElementById(id) || document.querySelector("header");
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Update active state
+  document.querySelectorAll(".mobile-nav-item").forEach(b => b.classList.remove("active"));
+  const map = { header: 0, scheduleSection: 1, kegiatanSection: 2 };
+  if (map[id] !== undefined) {
+    document.querySelectorAll(".mobile-nav-item")[map[id]]?.classList.add("active");
+  }
+}
+
+// ---- QUICK NAV BUTTONS ----
+document.addEventListener("DOMContentLoaded", () => {
+  const prevBtn = document.getElementById("prevWeekBtn");
+  const nextBtn = document.getElementById("nextWeekBtn");
+
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      const sel = document.getElementById("weekSelect");
+      if (parseInt(sel.value) > 6) {
+        sel.value = parseInt(sel.value) - 1;
+        sel.dispatchEvent(new Event("change"));
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      const sel = document.getElementById("weekSelect");
+      if (parseInt(sel.value) < 52) {
+        sel.value = parseInt(sel.value) + 1;
+        sel.dispatchEvent(new Event("change"));
+      }
+    });
+  }
+
+  // Print button
+  const printBtn = document.getElementById("printBtn");
+  if (printBtn) {
+    printBtn.addEventListener("click", () => window.print());
+  }
+
+  // Update quick nav label on week change
+  document.getElementById("weekSelect").addEventListener("change", (e) => {
+    updateQuickNavLabel(parseInt(e.target.value));
+    updateWeekProgress(parseInt(e.target.value));
+    updateStatsAfterRender();
+  });
+
+  updateQuickNavLabel(getCurrentWeekNumber());
+  updateWeekProgress(getCurrentWeekNumber());
+  setTimeout(updateStatsAfterRender, 800);
+  initOnlineIndicator();
+  updateShiftCountdown();
+  setInterval(updateShiftCountdown, 60000);
+});
+
+// ---- QUICK NAV LABEL ----
+function updateQuickNavLabel(week) {
+  const el = document.getElementById("quickNavLabel");
+  if (el) el.textContent = "WEEK " + week;
+}
+
+// ---- WEEK PROGRESS BAR ----
+function updateWeekProgress(week) {
+  const totalWeeks = 47; // week 6 to 52
+  const pct = Math.min(100, Math.round(((week - 6) / totalWeeks) * 100));
+  const fill = document.getElementById("weekProgressFill");
+  const text = document.getElementById("weekProgressText");
+  if (fill) fill.style.width = pct + "%";
+  if (text) text.textContent = "WEEK " + week + " / 52 (" + pct + "%)";
+}
+
+// ---- STATS DASHBOARD ----
+function updateStatsAfterRender() {
+  const cells = document.querySelectorAll("#scheduleTable td[data-shift]");
+  const counts = { P: 0, S: 0, M: 0, OFF: 0, C: 0 };
+
+  cells.forEach(cell => {
+    const s = cell.dataset.shift;
+    if (counts[s] !== undefined) counts[s]++;
+  });
+
+  const ids = { P: "statP", S: "statS", M: "statM", OFF: "statOFF" };
+  Object.entries(ids).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = counts[key];
+      // Animate number
+      el.style.transform = "scale(1.3)";
+      setTimeout(() => { el.style.transform = ""; el.style.transition = "transform 0.3s"; }, 200);
+    }
+  });
+}
+
+// Patch via MutationObserver to detect table re-render
+const _tableObserver = new MutationObserver(() => {
+  const weekNumber = parseInt(document.getElementById("weekSelect")?.value || 1);
+  setTimeout(() => {
+    updateStatsAfterRender();
+    highlightTodayColumn(weekNumber);
+    addShiftTooltips();
+    applySearchFilter(document.getElementById("staffSearchInput")?.value || "");
+  }, 50);
+});
+
+// Start observing after DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  const tbl = document.getElementById("scheduleTable");
+  if (tbl) {
+    _tableObserver.observe(tbl, { childList: true, subtree: true });
+  }
+});
+
+// ---- HIGHLIGHT TODAY COLUMN ----
+function highlightTodayColumn(weekNumber) {
+  const today = new Date();
+  const monday = new Date(START_DATE);
+  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    if (d.toDateString() === today.toDateString()) {
+      // Column index: 3 + i (No, NIK, Nama = 3 cols)
+      const colIdx = 3 + i;
+      document.querySelectorAll(`#scheduleTable tr`).forEach(row => {
+        const cell = row.cells[colIdx];
+        if (cell) cell.classList.add("today-col");
+      });
+      break;
+    }
+  }
+}
+
+// ---- SHIFT TOOLTIPS ----
+function addShiftTooltips() {
+  const hints = {
+    P:   "Pagi — 07:30 s/d 15:30",
+    S:   "Sore — 15:30 s/d 23:30",
+    M:   "Malam — 23:30 s/d 07:30",
+    OFF: "Hari Libur",
+    C:   "Cuti"
+  };
+  document.querySelectorAll("#scheduleTable td[data-shift]").forEach(cell => {
+    const s = cell.dataset.shift;
+    if (hints[s]) cell.setAttribute("data-hint", hints[s]);
+  });
+}
+
+// ---- STAFF SEARCH / FILTER ----
+const searchInput = document.getElementById("staffSearchInput");
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    applySearchFilter(e.target.value);
+  });
+}
+
+function applySearchFilter(query) {
+  const q = query.toLowerCase().trim();
+  const rows = document.querySelectorAll("#scheduleTable tr");
+
+  rows.forEach((row, idx) => {
+    if (idx === 0) return; // header row
+    const namaCell = row.querySelector(".nama-cell");
+    if (!namaCell) return;
+    const nama = namaCell.textContent.toLowerCase();
+    row.style.display = (!q || nama.includes(q)) ? "" : "none";
+  });
+}
+
+// ---- SHIFT COUNTDOWN ----
+function updateShiftCountdown() {
+  const el = document.getElementById("shiftCountdown");
+  if (!el) return;
+
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const current = getCurrentShift();
+
+  // End times: shift1=15:30, shift2=23:30, shift3=07:30
+  let endH, endM, label;
+  if (current === 1) { endH = 15; endM = 30; label = "SHIFT 1 berakhir"; }
+  else if (current === 2) { endH = 23; endM = 30; label = "SHIFT 2 berakhir"; }
+  else {
+    // Shift 3: ends at 07:30, might be next day
+    endH = 7; endM = 30;
+    label = "SHIFT 3 berakhir";
+  }
+
+  let endTotal = endH * 60 + endM;
+  let nowTotal = h * 60 + m;
+
+  let remaining = endTotal - nowTotal;
+  if (remaining < 0) remaining += 24 * 60; // next day
+  if (remaining > 24 * 60) remaining = 0;
+
+  const rh = Math.floor(remaining / 60);
+  const rm = remaining % 60;
+
+  if (remaining > 0) {
+    el.textContent = `⏱ ${label} dalam ${rh}j ${rm}m`;
+  } else {
+    el.textContent = "";
+  }
+}
+
+// ---- ONLINE INDICATOR (simulasi dengan random) ----
+function initOnlineIndicator() {
+  const el = document.getElementById("onlineCount");
+  if (!el) return;
+
+  // Simulate 1-4 users online using timestamp-based deterministic value
+  const base = Math.floor(Date.now() / 60000) % 4;
+  el.textContent = base + 1;
+
+  setInterval(() => {
+    const n = Math.floor(Date.now() / 60000) % 4;
+    el.textContent = n + 1;
+  }, 30000);
+}
+
+// ---- SWIPE GESTURE (mobile week navigation) ----
+let touchStartX = 0;
+document.addEventListener("touchstart", (e) => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+
+document.addEventListener("touchend", (e) => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) < 60) return; // threshold
+  const sel = document.getElementById("weekSelect");
+  if (!sel) return;
+
+  if (diff > 0 && parseInt(sel.value) < 52) {
+    // Swipe left = next week
+    sel.value = parseInt(sel.value) + 1;
+    sel.dispatchEvent(new Event("change"));
+    showToast("📅 Week " + sel.value);
+  } else if (diff < 0 && parseInt(sel.value) > 6) {
+    // Swipe right = prev week
+    sel.value = parseInt(sel.value) - 1;
+    sel.dispatchEvent(new Event("change"));
+    showToast("📅 Week " + sel.value);
+  }
+}, { passive: true });
+
+// ---- MATRIX RAIN CANVAS ----
+(function() {
+  const canvas = document.getElementById("matrixCanvas");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  const cols = Math.floor(w / 16);
+  const drops = Array(cols).fill(1);
+  const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノ";
+
+  function drawMatrix() {
+    if (document.body.classList.contains("formal-theme")) return;
+    ctx.fillStyle = "rgba(0,4,8,0.05)";
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(0,245,255,0.4)";
+    ctx.font = "13px monospace";
+
+    drops.forEach((y, i) => {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(char, i * 16, y * 16);
+      if (y * 16 > h && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+
+  setInterval(drawMatrix, 60);
+
+  window.addEventListener("resize", () => {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  });
+})();

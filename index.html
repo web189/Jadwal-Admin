@@ -26,12 +26,12 @@
 <!-- ===== LOADING SCREEN ===== -->
 <div id="cyberLoader">
   <div class="loader-content">
-    <h1 class="loader-title">INITIALIZING SYSTEM..... update v.03</h1>
+    <h1 class="loader-title">INITIALIZING SYSTEM..... update v.04</h1>
     <h3 class="loader-title">Website Developer by @benyoriki</h3>
     <div class="loader-bar">
       <div class="loader-progress"></div>
     </div>
-    <p class="loader-text">BOOTING JADWAL ADMIN GUDANG 2026...</p>
+    <p class="loader-text">BOOTING JADWAL ADMIN GUDANG 2026..........</p>
   </div>
 </div>
 
@@ -40,9 +40,13 @@
 
 <!-- ===== HEADER ===== -->
 <header>
-  <h1 class="glitch" data-text="Jadwal Admin Gudang 2026">Jadwal Admin Gudang 2026</h1>
+  <h1 class="glitch" data-text="Jadwal Admin Gudang 2026">Jadwal Admin Gudang 2026 <span class="header-badge">v.04</span></h1>
 
   <div id="liveClock" class="cyber-clock"></div>
+  <div class="online-indicator" id="onlineIndicator">
+    <span class="online-dot"></span>
+    <span id="onlineCount">1</span> pengguna online
+  </div>
 
   <div class="controls">
     <select id="weekSelect"></select>
@@ -51,6 +55,7 @@
     <button id="logoutBtn" class="hidden">↩️ Keluar KA Gudang</button>
     <button id="saveBtn" class="hidden">💾 Simpan Perubahan</button>
     <button id="exportBtn" class="hidden">📊 Export Excel</button>
+    <button id="printBtn" class="print-btn">🖨️ Print</button>
     <a href="https://web189.github.io/UangRitase/" target="_blank" class="cyber-link-btn">
       <i class="fas fa-coins"></i> Uang Ritase
     </a>
@@ -58,6 +63,7 @@
 
   <div id="shiftIndicator" class="shift-indicator">
     SHIFT AKTIF: <span id="shiftAktifBox" class="shift-box">SHIFT 1</span>
+    <span id="shiftCountdown" class="shift-countdown"></span>
   </div>
 
   <div id="serahTerimaTicker" class="news-ticker">
@@ -77,13 +83,79 @@
   </div>
 </header>
 
+<!-- ===== STATS DASHBOARD ===== -->
+<div id="scheduleSection">
+<div class="stats-dashboard" id="statsDashboard">
+  <div class="stat-card stat-p">
+    <span class="stat-icon">☀️</span>
+    <span class="stat-value" id="statP">-</span>
+    <span class="stat-label">Pagi (P)</span>
+  </div>
+  <div class="stat-card stat-s">
+    <span class="stat-icon">🌅</span>
+    <span class="stat-value" id="statS">-</span>
+    <span class="stat-label">Sore (S)</span>
+  </div>
+  <div class="stat-card stat-m">
+    <span class="stat-icon">🌙</span>
+    <span class="stat-value" id="statM">-</span>
+    <span class="stat-label">Malam (M)</span>
+  </div>
+  <div class="stat-card stat-off">
+    <span class="stat-icon">🏖️</span>
+    <span class="stat-value" id="statOFF">-</span>
+    <span class="stat-label">OFF</span>
+  </div>
+  <div class="stat-card stat-total">
+    <span class="stat-icon">👥</span>
+    <span class="stat-value" id="statTotal">6</span>
+    <span class="stat-label">Total Staff</span>
+  </div>
+</div>
+
+<!-- ===== LEGEND BAR ===== -->
+<div class="legend-bar">
+  <span class="legend-title">KETERANGAN:</span>
+  <span class="legend-badge lb-P">P — Pagi 07:30</span>
+  <span class="legend-badge lb-S">S — Sore 15:30</span>
+  <span class="legend-badge lb-M">M — Malam 23:30</span>
+  <span class="legend-badge lb-OFF">OFF — Libur</span>
+  <span class="legend-badge lb-C">C — Cuti</span>
+  <span class="legend-badge lb-LN">LN — Libur Nasional</span>
+  <span class="legend-badge lb-CB">CB — Cuti Bersama</span>
+</div>
+
+<!-- ===== SEARCH & QUICK NAV ===== -->
+<div class="search-bar-wrap">
+  <i class="fas fa-search search-icon"></i>
+  <input type="text" class="staff-search-input" id="staffSearchInput" placeholder="Cari nama staff...">
+</div>
+
+<div class="quick-nav-row">
+  <button class="quick-nav-btn" id="prevWeekBtn" title="Minggu Sebelumnya">‹</button>
+  <div class="quick-nav-label" id="quickNavLabel">WEEK —</div>
+  <button class="quick-nav-btn" id="nextWeekBtn" title="Minggu Berikutnya">›</button>
+</div>
+
+<!-- ===== WEEK PROGRESS ===== -->
+<div class="week-progress-wrap">
+  <div class="week-progress-label">
+    <span>PROGRESS TAHUN 2026</span>
+    <span id="weekProgressText">—</span>
+  </div>
+  <div class="week-progress-bar">
+    <div class="week-progress-fill" id="weekProgressFill" style="width:0%"></div>
+  </div>
+</div>
+
 <!-- ===== SCHEDULE TABLE ===== -->
 <div class="table-wrapper">
   <table id="scheduleTable"></table>
 </div>
 
 <!-- ===== KEGIATAN KEBERSIHAN ===== -->
-<div class="kegiatan-section">
+</div><!-- end scheduleSection -->
+<div class="kegiatan-section" id="kegiatanSection">
   <div class="kegiatan-header-bar" id="kegiatanToggleBtn">
     <div class="kegiatan-title-group">
       <span class="kegiatan-section-icon">🧹</span>
@@ -184,9 +256,32 @@
     ⚡ SYSTEM CORE v2026 ⚡<br>
     Sistem terintegrasi berbasis cyber interface — dirancang dengan presisi algoritma.<br><br>
     Developed &amp; Secured by
-    <a href="https://benyoriki.com/" target="_blank" class="hacker-name">Riki Hermawan,S.Kom</a>
+    <a href="https://benyoriki.com/" target="_blank" class="hacker-name">@benyoriki</a>
   </div>
 </div>
+
+<!-- ===== SCROLL TO TOP ===== -->
+<button id="scrollTopBtn" title="Ke atas">↑</button>
+
+<!-- ===== MOBILE BOTTOM NAV ===== -->
+<nav class="mobile-bottom-nav" id="mobileNav">
+  <button class="mobile-nav-item active" onclick="scrollToSection('header')">
+    <i class="fas fa-home"></i>
+    <span>Beranda</span>
+  </button>
+  <button class="mobile-nav-item" onclick="scrollToSection('scheduleSection')">
+    <i class="fas fa-calendar-alt"></i>
+    <span>Jadwal</span>
+  </button>
+  <button class="mobile-nav-item" onclick="scrollToSection('kegiatanSection')">
+    <i class="fas fa-broom"></i>
+    <span>Kebersihan</span>
+  </button>
+  <button class="mobile-nav-item" onclick="document.getElementById('chatToggleBtn').click()">
+    <i class="fas fa-comments"></i>
+    <span>Chat</span>
+  </button>
+</nav>
 
 <!-- ===== SCRIPTS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
