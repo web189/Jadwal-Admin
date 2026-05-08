@@ -2,36 +2,63 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Jadwal Admin Gudang 2026 - Sistem Manajemen Jadwal</title>
-
-<meta name="title" content="Jadwal Admin Gudang - Sistem Manajemen Jadwal">
-<meta name="description" content="Website manajemen jadwal admin gudang yang memudahkan pengaturan shift, pembagian tugas, dan monitoring jadwal secara efisien.">
-
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://web189.github.io/Jadwal-Admin/">
-<meta property="og:title" content="Jadwal Admin Gudang 2026 - Sistem Manajemen Jadwal">
-<meta property="og:description" content="Website jadwal Admin Gudang - monitoring jadwal dalam satu sistem yang terstruktur.">
+<meta name="description" content="Website manajemen jadwal admin gudang — monitoring shift, pembagian tugas, dan serah terima secara efisien.">
+<meta property="og:title" content="Jadwal Admin Gudang 2026">
+<meta property="og:description" content="Sistem jadwal Admin Gudang terintegrasi berbasis cyber interface.">
 <meta property="og:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg">
-
+<meta name="theme-color" content="#00f5ff">
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <canvas id="matrixCanvas"></canvas>
 </head>
 <body class="formal-theme">
 
 <!-- ===== LOADING SCREEN ===== -->
 <div id="cyberLoader">
+  <canvas id="loaderCanvas"></canvas>
   <div class="loader-content">
-    <h1 class="loader-title">INITIALIZING SYSTEM..... update v.04</h1>
-    <h3 class="loader-title">Website Developer by @benyoriki</h3>
-    <div class="loader-bar">
-      <div class="loader-progress"></div>
+    <div class="loader-hex-ring">
+      <svg viewBox="0 0 120 120" width="120" height="120">
+        <defs>
+          <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00f5ff"/>
+            <stop offset="100%" style="stop-color:#0088ff"/>
+          </linearGradient>
+        </defs>
+        <polygon class="hex-outer" points="60,4 110,32 110,88 60,116 10,88 10,32" fill="none" stroke="url(#hexGrad)" stroke-width="1.5"/>
+        <polygon class="hex-mid"   points="60,14 100,37 100,83 60,106 20,83 20,37" fill="none" stroke="rgba(0,245,255,0.3)" stroke-width="1"/>
+        <polygon class="hex-inner" points="60,26 90,43 90,77 60,94 30,77 30,43"   fill="none" stroke="rgba(0,245,255,0.15)" stroke-width="0.8"/>
+        <text x="60" y="56" text-anchor="middle" class="hex-icon-top" font-size="11" fill="rgba(0,245,255,0.5)" font-family="monospace">ADMIN</text>
+        <text x="60" y="72" text-anchor="middle" class="hex-icon-bot" font-size="22" fill="url(#hexGrad)">⚡</text>
+      </svg>
+      <div class="hex-glow"></div>
     </div>
-    <p class="loader-text">BOOTING JADWAL ADMIN GUDANG 2026..........</p>
+
+    <div class="loader-title-wrap">
+      <h1 class="loader-title">JADWAL ADMIN GUDANG</h1>
+      <div class="loader-year">2026</div>
+    </div>
+
+    <div class="loader-version">v.05 &nbsp;—&nbsp; Enhanced Edition</div>
+
+    <div class="loader-steps">
+      <div class="loader-step active" id="lstep0"><span class="step-dot"></span><span>Booting system</span></div>
+      <div class="loader-step" id="lstep1"><span class="step-dot"></span><span>Connecting Firebase</span></div>
+      <div class="loader-step" id="lstep2"><span class="step-dot"></span><span>Loading schedule data</span></div>
+      <div class="loader-step" id="lstep3"><span class="step-dot"></span><span>Initializing modules</span></div>
+      <div class="loader-step" id="lstep4"><span class="step-dot"></span><span>Ready</span></div>
+    </div>
+
+    <div class="loader-bar-wrap">
+      <div class="loader-bar"><div class="loader-progress" id="loaderProgress"></div></div>
+      <div class="loader-pct" id="loaderPct">0%</div>
+    </div>
+
+    <p class="loader-text" id="loaderText">BOOTING SYSTEM...</p>
+    <div class="loader-dev">Developed by <span>@benyoriki</span></div>
   </div>
 </div>
 
@@ -39,71 +66,84 @@
 <div id="particles-js"></div>
 
 <!-- ===== HEADER ===== -->
-<header>
-  <h1 class="glitch" data-text="Jadwal Admin Gudang 2026">Jadwal Admin Gudang 2026 <span class="header-badge">v.04</span></h1>
-
-  <div id="liveClock" class="cyber-clock"></div>
-  <div class="online-indicator" id="onlineIndicator">
-    <span class="online-dot"></span>
-    <span id="onlineCount">1</span> pengguna online
-  </div>
-
-  <div class="controls">
-    <select id="weekSelect"></select>
-    <button id="themeToggle">🌓 Mode Terang</button>
-    <button id="adminBtn">🔒 Menu KA Gudang</button>
-    <button id="logoutBtn" class="hidden">↩️ Keluar KA Gudang</button>
-    <button id="saveBtn" class="hidden">💾 Simpan Perubahan</button>
-    <button id="exportBtn" class="hidden">📊 Export Excel</button>
-    <button id="printBtn" class="print-btn">🖨️ Print</button>
-    <a href="https://web189.github.io/UangRitase/" target="_blank" class="cyber-link-btn">
-      <i class="fas fa-coins"></i> Uang Ritase
-    </a>
+<header id="header">
+  <div class="header-top">
+    <div class="header-brand">
+      <h1 class="glitch" data-text="Jadwal Admin Gudang 2026">
+        Jadwal Admin Gudang 2026
+        <span class="header-badge">v.05</span>
+      </h1>
+      <div class="online-indicator">
+        <span class="online-dot"></span>
+        <span id="onlineCount">1</span> online
+      </div>
+    </div>
+    <div id="liveClock" class="cyber-clock"></div>
   </div>
 
   <div id="shiftIndicator" class="shift-indicator">
-    SHIFT AKTIF: <span id="shiftAktifBox" class="shift-box">SHIFT 1</span>
+    <span class="shift-label-text">SHIFT AKTIF:</span>
+    <span id="shiftAktifBox" class="shift-box">SHIFT 1</span>
     <span id="shiftCountdown" class="shift-countdown"></span>
   </div>
 
+  <!-- TICKER -->
   <div id="serahTerimaTicker" class="news-ticker">
-    <div class="live-indicator">
-      <span class="live-dot"></span>
-      LIVE
-    </div>
+    <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
     <div class="news-track" id="newsTrack">
       <div id="serahTerimaText">Memuat serah terima...</div>
       <div id="serahTerimaClone"></div>
     </div>
   </div>
 
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="controls-left">
+      <select id="weekSelect"></select>
+      <button id="themeToggle"><i class="fas fa-sun"></i> Mode Terang</button>
+    </div>
+    <div class="controls-right">
+      <button id="adminBtn"><i class="fas fa-lock"></i> KA Gudang</button>
+      <button id="logoutBtn" class="hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+      <button id="saveBtn" class="hidden btn-success"><i class="fas fa-save"></i> Simpan</button>
+      <button id="exportBtn" class="hidden"><i class="fas fa-file-excel"></i> Export</button>
+      <button id="printBtn" class="hidden"><i class="fas fa-print"></i> Print</button>
+      <a href="https://web189.github.io/UangRitase/" target="_blank" class="cyber-link-btn">
+        <i class="fas fa-coins"></i> Uang Ritase
+      </a>
+    </div>
+  </div>
+
   <div class="serahterima-actions">
-    <button id="serahTerimaBtn">📝 Serah Terima Shift</button>
-    <button id="historyBtn" class="history-btn">📜 History</button>
+    <button id="serahTerimaBtn"><i class="fas fa-file-alt"></i> Serah Terima</button>
+    <button id="historyBtn" class="btn-outline"><i class="fas fa-history"></i> History</button>
   </div>
 </header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main>
 
 <!-- ===== STATS DASHBOARD ===== -->
 <div id="scheduleSection">
 <div class="stats-dashboard" id="statsDashboard">
   <div class="stat-card stat-p">
     <span class="stat-icon">☀️</span>
-    <span class="stat-value" id="statP">-</span>
+    <span class="stat-value" id="statP">—</span>
     <span class="stat-label">Pagi (P)</span>
   </div>
   <div class="stat-card stat-s">
     <span class="stat-icon">🌅</span>
-    <span class="stat-value" id="statS">-</span>
+    <span class="stat-value" id="statS">—</span>
     <span class="stat-label">Sore (S)</span>
   </div>
   <div class="stat-card stat-m">
     <span class="stat-icon">🌙</span>
-    <span class="stat-value" id="statM">-</span>
+    <span class="stat-value" id="statM">—</span>
     <span class="stat-label">Malam (M)</span>
   </div>
   <div class="stat-card stat-off">
     <span class="stat-icon">🏖️</span>
-    <span class="stat-value" id="statOFF">-</span>
+    <span class="stat-value" id="statOFF">—</span>
     <span class="stat-label">OFF</span>
   </div>
   <div class="stat-card stat-total">
@@ -121,20 +161,24 @@
   <span class="legend-badge lb-M">M — Malam 23:30</span>
   <span class="legend-badge lb-OFF">OFF — Libur</span>
   <span class="legend-badge lb-C">C — Cuti</span>
-  <span class="legend-badge lb-LN">LN — Libur Nasional</span>
-  <span class="legend-badge lb-CB">CB — Cuti Bersama</span>
+  <span class="legend-badge lb-LN">🔴 Libur Nasional</span>
+  <span class="legend-badge lb-CB">🟡 Cuti Bersama</span>
 </div>
 
-<!-- ===== SEARCH & QUICK NAV ===== -->
-<div class="search-bar-wrap">
-  <i class="fas fa-search search-icon"></i>
-  <input type="text" class="staff-search-input" id="staffSearchInput" placeholder="Cari nama staff...">
-</div>
-
-<div class="quick-nav-row">
-  <button class="quick-nav-btn" id="prevWeekBtn" title="Minggu Sebelumnya">‹</button>
-  <div class="quick-nav-label" id="quickNavLabel">WEEK —</div>
-  <button class="quick-nav-btn" id="nextWeekBtn" title="Minggu Berikutnya">›</button>
+<!-- ===== TOOLBAR ===== -->
+<div class="schedule-toolbar">
+  <div class="search-bar-wrap">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" class="staff-search-input" id="staffSearchInput" placeholder="Cari nama staff...">
+    <button class="search-clear" id="searchClear" onclick="document.getElementById('staffSearchInput').value='';applySearchFilter('')" style="display:none">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="quick-nav-row">
+    <button class="quick-nav-btn" id="prevWeekBtn" title="Minggu Sebelumnya (Alt+←)">‹</button>
+    <div class="quick-nav-label" id="quickNavLabel">WEEK —</div>
+    <button class="quick-nav-btn" id="nextWeekBtn" title="Minggu Berikutnya (Alt+→)">›</button>
+  </div>
 </div>
 
 <!-- ===== WEEK PROGRESS ===== -->
@@ -152,9 +196,9 @@
 <div class="table-wrapper">
   <table id="scheduleTable"></table>
 </div>
+</div><!-- end scheduleSection -->
 
 <!-- ===== KEGIATAN KEBERSIHAN ===== -->
-</div><!-- end scheduleSection -->
 <div class="kegiatan-section" id="kegiatanSection">
   <div class="kegiatan-header-bar" id="kegiatanToggleBtn">
     <div class="kegiatan-title-group">
@@ -165,133 +209,176 @@
   </div>
   <div class="kegiatan-body" id="kegiatanBody">
     <div class="kegiatan-list" id="kegiatanList">
-      <p style="opacity:0.5;text-align:center;padding:20px">Memuat data...</p>
+      <p class="loading-pulse" style="text-align:center;padding:20px">Memuat data...</p>
     </div>
   </div>
 </div>
 
-<!-- ===== CHAT PANEL ===== -->
-<div id="chatToggleBtn" class="chat-fab">
+</main><!-- end main -->
+
+<!-- ===== CHAT FAB ===== -->
+<button id="chatToggleBtn" class="chat-fab" aria-label="Buka Chat Grup">
   <i class="fas fa-comments"></i>
   <span id="chatBadge" class="chat-badge" style="display:none">0</span>
-</div>
+</button>
 
-<div id="chatPanel" class="chat-panel">
+<!-- ===== CHAT PANEL ===== -->
+<div id="chatPanel" class="chat-panel" role="dialog" aria-label="Chat Grup Admin Gudang">
   <div class="chat-panel-header">
-    <span><i class="fas fa-comments"></i> Chat Grup Admin Gudang</span>
-    <button class="chat-close-btn" id="chatToggleBtn2" onclick="document.getElementById('chatPanel').classList.remove('open')">✕</button>
+    <div class="chat-header-info">
+      <div class="chat-header-avatar">AG</div>
+      <div>
+        <div class="chat-header-title"><i class="fas fa-comments"></i> Chat Grup Admin Gudang</div>
+        <div class="chat-header-sub" id="chatOnlineSub">Admin Gudang • Realtime</div>
+      </div>
+    </div>
+    <button class="chat-close-btn" onclick="closeChat()" aria-label="Tutup chat">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
+
+  <!-- Typing indicator -->
+  <div class="typing-indicator" id="typingIndicator" style="display:none">
+    <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+    <span id="typingName" style="font-size:11px;margin-left:6px">mengetik...</span>
+  </div>
+
   <div class="chat-messages" id="chatMessages">
-    <p style="text-align:center;opacity:0.5;padding:20px;font-size:12px">Memuat pesan...</p>
+    <div class="chat-empty">
+      <i class="fas fa-comments" style="font-size:36px;opacity:0.3"></i>
+      <p>Memuat pesan...</p>
+    </div>
   </div>
-  <div class="chat-input-row">
-    <input type="text" id="chatInput" placeholder="Ketik pesan..." maxlength="300" />
-    <button id="chatSendBtn" class="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+
+  <!-- Reply preview -->
+  <div id="replyPreview" class="reply-preview" style="display:none">
+    <div class="reply-preview-inner">
+      <i class="fas fa-reply" style="color:var(--cyan);margin-right:6px"></i>
+      <div>
+        <div id="replyName" class="reply-name"></div>
+        <div id="replyText" class="reply-text"></div>
+      </div>
+    </div>
+    <button id="cancelReply" class="cancel-reply"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div class="chat-input-row" id="chatInputWrap">
+    <button id="emojiBtn" class="chat-tool-btn" title="Emoji"><i class="fas fa-smile"></i></button>
+    <input type="text" id="chatInput" placeholder="Ketik pesan... (Enter kirim)" maxlength="500" autocomplete="off"/>
+    <button id="chatSendBtn" class="chat-send-btn" aria-label="Kirim pesan">
+      <i class="fas fa-paper-plane"></i>
+    </button>
   </div>
 </div>
 
-<!-- ===== LOGIN MODAL ===== -->
-<div id="loginModal" class="modal">
+<!-- ===== MODALS ===== -->
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal" role="dialog" aria-label="Login KA Gudang">
   <div class="modal-box terminal">
-    <div class="terminal-header">firebase-auth@secure-system:~$</div>
+    <div class="terminal-header">
+      <i class="fas fa-terminal"></i> firebase-auth@secure-system:~$
+    </div>
     <div id="fingerprintScanner" class="fingerprint">
       <div class="scan-line"></div>
+      <i class="fas fa-fingerprint fp-icon"></i>
     </div>
     <div id="bootText" class="terminal-body"></div>
-    <input type="email" id="adminEmail" placeholder="Masukkan email..." autocomplete="email">
-    <input type="password" id="adminPassword" placeholder="Masukkan password..." autocomplete="current-password" onkeydown="if(event.key==='Enter') startBiometricScan()">
+    <input type="email" id="adminEmail" placeholder="Email administrator..." autocomplete="email">
+    <input type="password" id="adminPassword" placeholder="Password..." autocomplete="current-password"
+      onkeydown="if(event.key==='Enter') startBiometricScan()">
     <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal()">Batal</button>
-      <button class="btn-primary" onclick="startBiometricScan()">🔐 Login KA</button>
+      <button class="btn-ghost" onclick="closeModal()"><i class="fas fa-times"></i> Batal</button>
+      <button class="btn-primary" onclick="startBiometricScan()"><i class="fas fa-lock-open"></i> Login KA</button>
     </div>
   </div>
 </div>
 
-<!-- ===== SERAH TERIMA MODAL ===== -->
-<div id="serahTerimaModal" class="modal">
+<!-- Serah Terima Modal -->
+<div id="serahTerimaModal" class="modal" role="dialog">
   <div class="modal-box">
-    <span id="serahTerimaShiftLabel"></span>
-    <textarea id="serahTerimaInput" placeholder="Masukkan catatan serah terima..."></textarea>
+    <div class="modal-title"><i class="fas fa-file-alt"></i> <span id="serahTerimaShiftLabel"></span></div>
+    <textarea id="serahTerimaInput" placeholder="Masukkan catatan serah terima shift ini...&#10;Contoh: Semua pekerjaan selesai. Stok aman. Tidak ada kendala."></textarea>
+    <div class="char-count" id="serahTerimaCharCount">0 / 500</div>
     <div class="modal-actions">
-      <button class="btn-ghost" id="serahTerimaCloseBtn">Batal</button>
-      <button class="btn-primary" id="serahTerimaSaveBtn">💾 Simpan</button>
+      <button class="btn-ghost" id="serahTerimaCloseBtn"><i class="fas fa-times"></i> Batal</button>
+      <button class="btn-primary" id="serahTerimaSaveBtn"><i class="fas fa-save"></i> Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- ===== HISTORY MODAL ===== -->
-<div id="historyModal" class="modal">
-  <div class="modal-box">
-    <div class="modal-title">📜 HISTORY SERAH TERIMA — 7 HARI TERAKHIR</div>
-    <div id="historyContent"></div>
+<!-- History Modal -->
+<div id="historyModal" class="modal" role="dialog">
+  <div class="modal-box modal-wide">
+    <div class="modal-title"><i class="fas fa-history"></i> History Serah Terima — 7 Hari Terakhir</div>
+    <div id="historyContent" class="history-content"></div>
     <div class="modal-actions" style="margin-top:16px">
-      <button class="btn-primary" id="historyCloseBtn">Tutup</button>
+      <button class="btn-primary" id="historyCloseBtn"><i class="fas fa-times"></i> Tutup</button>
     </div>
   </div>
 </div>
 
-<!-- ===== BREACH SCREEN ===== -->
-<div id="breachScreen">
-  <h1>⚠ SECURITY BREACH DETECTED ⚠</h1>
-  <p>Unauthorized Access Attempt Logged</p>
-  <p>IP Tracking Initiated...</p>
+<!-- Edit Kegiatan Modal -->
+<div id="editKegiatanModal" class="modal" role="dialog">
+  <div class="modal-box">
+    <div class="modal-title" id="editKegiatanLabel"><i class="fas fa-edit"></i> Edit Tugas</div>
+    <textarea id="editKegiatanInput" placeholder="Masukkan deskripsi tugas..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="editKegiatanCloseBtn"><i class="fas fa-times"></i> Batal</button>
+      <button class="btn-primary" id="editKegiatanSaveBtn"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
 </div>
 
-<!-- ===== FBI LOCK SCREEN ===== -->
-<div id="fbiLock">
+<!-- FBI Lock Screen -->
+<div id="fbiLock" style="display:none">
   <div class="fbi-content">
     <h1>FEDERAL BUREAU OF INVESTIGATION</h1>
     <p>Cyber Crime Division</p>
     <h2>DEVICE LOCKED</h2>
     <p>Unauthorized Network Intrusion Detected</p>
     <p>Case ID: #XJ-291-A7</p>
-    <p>Tracking Location...</p>
     <button onclick="closeFBI()">Release Device</button>
   </div>
 </div>
 
 <!-- ===== SIGNATURE ===== -->
-<div class="cyber-signature">
+<footer class="cyber-signature">
   <div class="signature-text">
-    ⚡ SYSTEM CORE v2026 ⚡<br>
-    Sistem terintegrasi berbasis cyber interface — dirancang dengan presisi algoritma.<br><br>
-    Developed &amp; Secured by
-    <a href="https://benyoriki.com/" target="_blank" class="hacker-name">@benyoriki</a>
+    ⚡ SYSTEM CORE v2026 — Enhanced Edition ⚡<br>
+    Sistem terintegrasi berbasis cyber interface<br>
+    Developed by <a href="https://benyoriki.com/" target="_blank" class="hacker-name">@benyoriki</a>
   </div>
-</div>
+</footer>
 
 <!-- ===== SCROLL TO TOP ===== -->
-<button id="scrollTopBtn" title="Ke atas">↑</button>
+<button id="scrollTopBtn" title="Ke atas" aria-label="Scroll ke atas">↑</button>
 
 <!-- ===== MOBILE BOTTOM NAV ===== -->
-<nav class="mobile-bottom-nav" id="mobileNav">
+<nav class="mobile-bottom-nav" id="mobileNav" aria-label="Navigasi utama">
   <button class="mobile-nav-item active" onclick="scrollToSection('header')">
-    <i class="fas fa-home"></i>
-    <span>Beranda</span>
+    <i class="fas fa-home"></i><span>Beranda</span>
   </button>
   <button class="mobile-nav-item" onclick="scrollToSection('scheduleSection')">
-    <i class="fas fa-calendar-alt"></i>
-    <span>Jadwal</span>
+    <i class="fas fa-calendar-alt"></i><span>Jadwal</span>
   </button>
   <button class="mobile-nav-item" onclick="scrollToSection('kegiatanSection')">
-    <i class="fas fa-broom"></i>
-    <span>Kebersihan</span>
+    <i class="fas fa-broom"></i><span>Kebersihan</span>
   </button>
-  <button class="mobile-nav-item" onclick="document.getElementById('chatToggleBtn').click()">
-    <i class="fas fa-comments"></i>
-    <span>Chat</span>
+  <button class="mobile-nav-item" onclick="toggleChat()">
+    <i class="fas fa-comments"></i><span>Chat</span>
+    <span id="mobileNavBadge" class="mobile-badge" style="display:none"></span>
   </button>
 </nav>
 
 <!-- ===== SCRIPTS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <!-- FIREBASE SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -313,69 +400,126 @@ window.auth = auth;
 window.firebaseRef = ref;
 window.firebaseSet = set;
 window.firebaseGet = get;
+window.firebaseRemove = remove;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.signOutFirebase = signOut;
 window.onAuthStateChangedFirebase = onAuthStateChanged;
 window.firebaseReady = true;
 </script>
 
-<!-- INLINE SCRIPTS -->
+<!-- INLINE BOOT SCRIPT -->
 <script>
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    const loader = document.getElementById("cyberLoader");
-    loader.style.opacity = "0";
-    setTimeout(() => { loader.style.display = "none"; }, 800);
-  }, 2500);
-});
-
-if (typeof particlesJS !== "undefined") {
-  particlesJS("particles-js", {
-    particles: {
-      number: { value: 60 },
-      color: { value: "#00f5ff" },
-      shape: { type: "circle" },
-      opacity: { value: 0.4 },
-      size: { value: 2 },
-      line_linked: { enable: true, distance: 140, color: "#00f5ff", opacity: 0.3, width: 1 },
-      move: { enable: true, speed: 1.5 }
-    },
-    interactivity: { events: { onhover: { enable: true, mode: "repulse" } } }
-  });
-}
-
 (function() {
-  if (typeof THREE === "undefined") return;
-  const scene = new THREE.Scene();
-  const cam = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Animated loader steps
+  const steps = [0, 1, 2, 3, 4];
+  const delays = [0, 700, 1400, 2000, 2600];
+  const pcts   = [0, 25,  55,   80,   100];
+  const msgs   = [
+    "BOOTING SYSTEM...",
+    "CONNECTING FIREBASE...",
+    "LOADING SCHEDULE DATA...",
+    "INITIALIZING MODULES...",
+    "SYSTEM READY ✔"
+  ];
 
-  const canvas = renderer.domElement;
-  canvas.style.cssText = "position:fixed;top:0;left:0;z-index:-3;pointer-events:none;";
-  document.body.appendChild(canvas);
+  steps.forEach((s, i) => {
+    setTimeout(() => {
+      const el = document.getElementById("lstep" + s);
+      if (el) el.classList.add("active", "done");
+      const pctEl = document.getElementById("loaderPct");
+      const progEl = document.getElementById("loaderProgress");
+      const textEl = document.getElementById("loaderText");
+      if (pctEl) pctEl.textContent = pcts[i] + "%";
+      if (progEl) progEl.style.width = pcts[i] + "%";
+      if (textEl) textEl.textContent = msgs[i];
+    }, delays[i]);
+  });
 
-  const geo = new THREE.SphereGeometry(5, 28, 28);
-  const mat = new THREE.MeshBasicMaterial({ color: 0x00f5ff, wireframe: true, opacity: 0.15, transparent: true });
-  const globe = new THREE.Mesh(geo, mat);
-  scene.add(globe);
-  cam.position.z = 15;
+  // FAILSAFE: force-close after 7s
+// Loading screen
+setTimeout(() => {
+  const loader = document.getElementById("cyberLoader");
 
-  function animate() {
-    requestAnimationFrame(animate);
-    globe.rotation.y += 0.002;
-    globe.rotation.x += 0.0008;
-    renderer.render(scene, cam);
+  if (loader) {
+    loader.style.transition = "opacity 1s ease";
+    loader.style.opacity = "0";
+
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 1000);
   }
-  animate();
+}, 35000); // 15 detik
 
-  window.addEventListener("resize", () => {
-    cam.aspect = window.innerWidth / window.innerHeight;
-    cam.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  // Loader canvas particles
+  window.addEventListener("load", function() {
+    const canvas = document.getElementById("loaderCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const dots = Array.from({length: 60}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      o: Math.random() * 0.5 + 0.1
+    }));
+    let raf;
+    function drawLoader() {
+      const loader = document.getElementById("cyberLoader");
+      if (!loader || loader.style.display === "none") { cancelAnimationFrame(raf); return; }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      dots.forEach(d => {
+        d.x += d.vx; d.y += d.vy;
+        if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+        if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,245,255,${d.o})`;
+        ctx.fill();
+      });
+      // Draw connecting lines
+      dots.forEach((a, i) => {
+        dots.slice(i + 1).forEach(b => {
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(0,245,255,${0.15 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+      });
+      raf = requestAnimationFrame(drawLoader);
+    }
+    drawLoader();
   });
 })();
+</script>
+
+<!-- SERAH TERIMA CHAR COUNT -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const ta = document.getElementById("serahTerimaInput");
+  const cc = document.getElementById("serahTerimaCharCount");
+  if (ta && cc) {
+    ta.addEventListener("input", () => {
+      cc.textContent = ta.value.length + " / 500";
+      ta.style.borderColor = ta.value.length > 450 ? "var(--red)" : "";
+    });
+  }
+  // Search clear button
+  const inp = document.getElementById("staffSearchInput");
+  const clr = document.getElementById("searchClear");
+  if (inp && clr) {
+    inp.addEventListener("input", () => {
+      clr.style.display = inp.value ? "flex" : "none";
+    });
+  }
+});
 </script>
 
 <script src="app.js" defer></script>
