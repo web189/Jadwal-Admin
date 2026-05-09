@@ -110,9 +110,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sel) sel.value = currentWeek;
 
   waitForFirebase(() => {
-    setTimeout(() => {
+setTimeout(() => {
   closeLoader();
-}, 55000); // 25 detik // tutup loader begitu Firebase siap
+}, 85000); // 15 detik // tutup loader begitu Firebase siap
     renderSchedule(currentWeek);
     loadSerahTerima();
     initChat();
@@ -151,9 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById("cyberLoader");
     if (loader) {
       loader.style.opacity = "0";
-      setTimeout(() => { loader.style.display = "none"; }, 800);
+      setTimeout(() => { loader.style.display = "none"; }, 3800);
     }
-  }, 12500);
+  }, 7500);
 });
 
 // ================= THEME =================
@@ -276,20 +276,10 @@ function setupEvents() {
     });
   });
 
-  // Swipe gesture
-  let touchStartX = 0, touchStartY = 0;
-  document.addEventListener("touchstart", e => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
-  document.addEventListener("touchend", e => {
-    const dx = touchStartX - e.changedTouches[0].clientX;
-    const dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
-    if (Math.abs(dx) < 60 || dy > 50) return;
-    if (dx > 0) changeWeek(1);
-    else changeWeek(-1);
-    showToast("📅 Week " + document.getElementById("weekSelect").value);
-  }, { passive: true });
+  // Swipe gesture — DINONAKTIFKAN
+  // Fitur swipe untuk pindah week dimatikan karena terlalu sensitif
+  // dan bentrok dengan scroll tabel horizontal di HP.
+  // Gunakan tombol ‹ › atau dropdown weekSelect untuk navigasi week.
 
   // Keyboard shortcuts
   document.addEventListener("keydown", e => {

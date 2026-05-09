@@ -347,7 +347,7 @@ body.formal-theme .quick-nav-label{color:#1565c0;}
 body.formal-theme .week-progress-fill{background:linear-gradient(90deg,#1565c0,#7b1fa2);}
 
 /* ================= TABLE ================= */
-.table-wrapper{overflow-x:auto;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:0 0 40px rgba(0,245,255,0.05);-webkit-overflow-scrolling:touch;}
+.table-wrapper{overflow-x:auto;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:0 0 40px rgba(0,245,255,0.05);-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;}
 table{width:100%;border-collapse:collapse;min-width:760px;}
 th,td{border:1px solid var(--border);padding:9px 7px;text-align:center;font-size:12px;transition:background 0.15s;}
 th{background:var(--surface2);font-family:var(--font-display);font-size:9px;letter-spacing:0.5px;color:var(--cyan);text-shadow:0 0 6px var(--cyan-glow);font-weight:700;padding:11px 7px;position:sticky;top:0;z-index:2;}
