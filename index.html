@@ -42,7 +42,7 @@
       <div class="loader-year">2026</div>
     </div>
 
-    <div class="loader-version">v.05 &nbsp;—&nbsp; Enhanced Edition</div>
+    <div class="loader-version">v.06 &nbsp;—&nbsp; Enhanced Edition</div>
 
     <div class="loader-steps">
       <div class="loader-step active" id="lstep0"><span class="step-dot"></span><span>Booting system</span></div>
@@ -71,7 +71,7 @@
     <div class="header-brand">
       <h1 class="glitch" data-text="Jadwal Admin Gudang 2026">
         Jadwal Admin Gudang 2026
-        <span class="header-badge">v.05</span>
+        <span class="header-badge">v.06</span>
       </h1>
       <div class="online-indicator">
         <span class="online-dot"></span>
@@ -523,5 +523,115 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script src="app.js" defer></script>
+
+<!-- ===== ANIMATION ENHANCEMENTS ===== -->
+<script>
+(function() {
+  // ---- RIPPLE EFFECT ----
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button, .cyber-link-btn, .mobile-nav-item');
+    if (!btn) return;
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;`;
+    btn.appendChild(r);
+    r.addEventListener('animationend', () => r.remove());
+  });
+
+  // ---- MOBILE NAV ACTIVE STATE ----
+  const navBtns = document.querySelectorAll('.mobile-nav-item');
+  const sections = ['header', 'scheduleSection', 'kegiatanSection'];
+  function updateNavActive() {
+    const scroll = window.scrollY + window.innerHeight / 3;
+    sections.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const top = el.offsetTop;
+      const bot = top + el.offsetHeight;
+      if (scroll >= top && scroll < bot) {
+        navBtns.forEach(b => b.classList.remove('active'));
+        if (navBtns[i]) navBtns[i].classList.add('active');
+      }
+    });
+  }
+  window.addEventListener('scroll', updateNavActive, { passive: true });
+
+  // ---- SCROLL REVEAL (Intersection Observer) ----
+  const revealOpts = { threshold: 0.12, rootMargin: '0px 0px -40px 0px' };
+  const revealed = new Set();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !revealed.has(entry.target)) {
+        revealed.add(entry.target);
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, revealOpts);
+
+  // Apply to stat cards and kegiatan cards after load
+  window.addEventListener('load', function() {
+    // Already have CSS animations, just ensure visibility
+    document.querySelectorAll('.stat-card, .kegiatan-card').forEach(el => {
+      observer.observe(el);
+    });
+
+    // ---- COUNTER ANIMATION FOR STAT VALUES ----
+    function animateCounter(el, target) {
+      if (isNaN(target) || target === 0) return;
+      let start = 0;
+      const dur = 800;
+      const step = timestamp => {
+        if (!step.start) step.start = timestamp;
+        const prog = Math.min((timestamp - step.start) / dur, 1);
+        el.textContent = Math.round(prog * target);
+        if (prog < 1) requestAnimationFrame(step);
+        else el.textContent = target;
+      };
+      requestAnimationFrame(step);
+    }
+
+    // Watch stat values
+    const statObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const val = parseInt(el.textContent);
+          if (!isNaN(val) && val > 0) animateCounter(el, val);
+          statObs.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.stat-value').forEach(el => statObs.observe(el));
+
+    // ---- THEME TOGGLE TRANSITION ----
+    const themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function() {
+        document.body.style.transition = 'background-color 0.5s ease, color 0.3s ease';
+        setTimeout(() => { document.body.style.transition = ''; }, 600);
+      });
+    }
+  });
+
+  // ---- SCROLL TO TOP BUTTON ----
+  const scrollBtn = document.getElementById('scrollTopBtn');
+  if (scrollBtn) {
+    scrollBtn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    window.addEventListener('scroll', function() {
+      scrollBtn.classList.toggle('visible', window.scrollY > 300);
+    }, { passive: true });
+  }
+
+})();
+</script>
+  
+  <script src="notif-trading.js" defer></script>
+
 </body>
 </html>

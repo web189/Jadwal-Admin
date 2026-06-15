@@ -32,13 +32,14 @@ const nationalHolidays = {
 };
 
 // ================= DATA STAFF =================
+// Staff aktif (Week 25 ke atas) — Achmad Tahir dikeluarkan
+// Urutan index 0-4 harus sama persis dengan urutan baris basePattern
 const staff = [
-  { nik: "107537", nama: "KAMIL M NUR",   avatar: "KM" },
-  { nik: "103356", nama: "BUDIYANSAH",    avatar: "BY" },
-  { nik: "105855", nama: "RANDHIKA",      avatar: "RD" },
-  { nik: "107271", nama: "RIKI HERMAWAN", avatar: "RH" },
-  { nik: "107317", nama: "ACHMAD TAHIR",  avatar: "AT" },
-  { nik: "108191", nama: "M DAUD",        avatar: "MD" }
+  { nik: "107537", nama: "KAMIL M NUR",   avatar: "KM" },  // index 0 → row 0
+  { nik: "105855", nama: "RANDHIKA",      avatar: "RD" },  // index 1 → row 1
+  { nik: "103356", nama: "BUDIYANSAH",    avatar: "BY" },  // index 2 → row 2
+  { nik: "107271", nama: "RIKI HERMAWAN", avatar: "RH" },  // index 3 → row 3
+  { nik: "108191", nama: "M DAUD",        avatar: "MD" }   // index 4 → row 4
 ];
 
 const staffOld = [
@@ -50,7 +51,8 @@ const staffOld = [
   { nik: "107317", nama: "ACHMAD TAHIR",  avatar: "AT" }
 ];
 
-const basePattern = [
+// Pola jadwal LAMA (sebelum Week 25) — 6 orang
+const basePatternOld = [
   ["P","P","P","OFF","OFF","M","M"],
   ["P","P","OFF","P","P","P","OFF"],
   ["OFF","OFF","P","P","P","P","P"],
@@ -59,12 +61,22 @@ const basePattern = [
   ["M","M","M","M","M","OFF","OFF"]
 ];
 
+// Pola jadwal BARU (Week 25 ke atas) — 5 orang
+// Urutan baris harus sama persis dengan urutan staff[] di atas
+// Kolom: Sen, Sel, Rab, Kam, Jum, Sab, Min
+const basePattern = [
+  ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // KAMIL M NUR
+  ["OFF","OFF","P",  "P",  "P",  "P",  "P"  ],  // RANDHIKA
+  ["P",  "P",  "OFF","P",  "P",  "P",  "S"  ],  // BUDIYANSAH
+  ["S",  "S",  "S",  "S",  "S",  "S",  "OFF"],  // RIKI HERMAWAN
+  ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // M DAUD
+];
+
 const kegiatanDefault = [
   { nama: "KAMIL M NUR",    tugas: "Perapihan arsip, Sawang-sawang, Kebersihan lantai area depan" },
-  { nama: "BUDIYANSAH",     tugas: "Kebersihan toilet, Lap meja, Buang sampah harian" },
   { nama: "RANDHIKA",       tugas: "Kebersihan area loading, Sapu & pel koridor" },
+  { nama: "BUDIYANSAH",     tugas: "Kebersihan toilet, Lap meja, Buang sampah harian" },
   { nama: "RIKI HERMAWAN",  tugas: "Perapihan rak gudang, Cek label barang, Kebersihan area storage" },
-  { nama: "ACHMAD TAHIR",   tugas: "Kebersihan kantin, Lap kaca, Siram tanaman" },
   { nama: "M DAUD",         tugas: "Kebersihan parkir, Rapikan gerobak, Cek kebocoran atap" }
 ];
 
@@ -379,10 +391,22 @@ function renderSchedule(weekNumber) {
       table.innerHTML = "";
 
       let rotation;
-      if (weekNumber < START_ROTATION_WEEK) rotation = (weekNumber - START_WEEK) % 6;
-      else rotation = (weekNumber - START_ROTATION_WEEK) % 6;
+      let activeStaff;
+      let activePattern;
+      const NEW_FORMAT_WEEK = 25;
 
-      const activeStaff = weekNumber < START_ROTATION_WEEK ? staffOld : staff;
+      if (weekNumber < NEW_FORMAT_WEEK) {
+        rotation = weekNumber < START_ROTATION_WEEK
+          ? (weekNumber - START_WEEK) % 6
+          : (weekNumber - START_ROTATION_WEEK) % 6;
+        activeStaff = staffOld;
+        activePattern = basePatternOld;
+      } else {
+        // Week 25+: 5 orang, pola baru, rolling
+        rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
+        activeStaff = staff;
+        activePattern = basePattern;
+      }
       const monday = new Date(START_DATE);
       monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
       const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
@@ -406,8 +430,8 @@ function renderSchedule(weekNumber) {
       header += "</tr>";
       table.innerHTML += header;
 
-      for (let i = 0; i < 6; i++) {
-        const staffIdx = (i + rotation) % 6;
+      for (let i = 0; i < activeStaff.length; i++) {
+        const staffIdx = (i + rotation) % activeStaff.length;
         const person = activeStaff[staffIdx];
         let row = `<tr>
           <td>${i + 1}</td>
@@ -420,7 +444,7 @@ function renderSchedule(weekNumber) {
           </td>`;
 
         for (let j = 0; j < 7; j++) {
-          let shift = basePattern[i][j];
+          let shift = activePattern[i][j];
           if (overrides[i] && overrides[i][j]) shift = overrides[i][j];
           row += `<td class="shift-${shift}" onclick="editShift(this)" data-row="${i}" data-col="${j}" data-shift="${shift}"><span class="shift-label">${shift}</span></td>`;
         }
@@ -490,8 +514,19 @@ function saveChanges() {
 // ================= EXPORT =================
 function exportToExcel() {
   const weekNumber = parseInt(document.getElementById("weekSelect").value);
-  let rotation = weekNumber < START_ROTATION_WEEK ? (weekNumber - START_WEEK) % 6 : (weekNumber - START_ROTATION_WEEK) % 6;
-  const activeStaff = weekNumber < START_ROTATION_WEEK ? staffOld : staff;
+  const NEW_FORMAT_WEEK = 25;
+  let rotation;
+  let activeStaff;
+  let activePattern;
+  if (weekNumber < NEW_FORMAT_WEEK) {
+    rotation = weekNumber < START_ROTATION_WEEK ? (weekNumber - START_WEEK) % 6 : (weekNumber - START_ROTATION_WEEK) % 6;
+    activeStaff = staffOld;
+    activePattern = basePatternOld;
+  } else {
+    rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
+    activeStaff = staff;
+    activePattern = basePattern;
+  }
   const monday = new Date(START_DATE);
   monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
@@ -511,11 +546,11 @@ function exportToExcel() {
     data[0].push(formatDate(d) + " " + days[i]);
   }
 
-  for (let i = 0; i < 6; i++) {
-    const p = activeStaff[(i + rotation) % 6];
+  for (let i = 0; i < activeStaff.length; i++) {
+    const p = activeStaff[(i + rotation) % activeStaff.length];
     const row = [i + 1, p.nik, p.nama];
     for (let j = 0; j < 7; j++) {
-      row.push((overrides[i] && overrides[i][j]) ? overrides[i][j] : basePattern[i][j]);
+      row.push((overrides[i] && overrides[i][j]) ? overrides[i][j] : activePattern[i][j]);
     }
     data.push(row);
   }
@@ -523,7 +558,7 @@ function exportToExcel() {
   if (typeof XLSX === "undefined") { showToast("❌ Library XLSX tidak tersedia"); return; }
   const ws = XLSX.utils.aoa_to_sheet(data);
   const colorMap = { P:"26DE3C", S:"FF9066", M:"5A54B8", OFF:"A60000", C:"FFFF26" };
-  for (let r = 1; r <= 6; r++) {
+  for (let r = 1; r <= activeStaff.length; r++) {
     for (let c = 3; c <= 9; c++) {
       const ref = XLSX.utils.encode_cell({ r, c });
       const cell = ws[ref];
