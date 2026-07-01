@@ -42,7 +42,7 @@
       el.style.cssText =
         'width:' + o.w + 'px;height:' + o.h + 'px;' +
         'left:' + o.x + ';top:' + o.y + ';' +
-        'background:' + o.c + ';' +
+        'background:radial-gradient(circle, ' + o.c + ' 0%, transparent 70%);' +
         '--dur:' + o.dur + 's;' +
         '--tx1:' + o.tx1 + ';--ty1:' + o.ty1 + ';' +
         '--tx2:' + o.tx2 + ';--ty2:' + o.ty2 + ';' +
@@ -158,21 +158,29 @@
     if (REDUCE || isMobile) return;
 
     document.querySelectorAll('.stat-card').forEach(function (card) {
+      var ticking = false;
+      var lastEvent = null;
       card.addEventListener('mousemove', function (e) {
-        var rect = card.getBoundingClientRect();
-        var cx   = rect.left + rect.width  / 2;
-        var cy   = rect.top  + rect.height / 2;
-        var dx   = (e.clientX - cx) / (rect.width  / 2);
-        var dy   = (e.clientY - cy) / (rect.height / 2);
-        card.style.transform =
-          'translateY(-8px) scale(1.03) ' +
-          'perspective(600px) ' +
-          'rotateY(' + (dx * 12) + 'deg) ' +
-          'rotateX(' + (-dy * 8) + 'deg)';
-        card.style.boxShadow =
-          isDark()
-          ? '0 16px 48px rgba(0,0,0,0.35), 0 0 30px rgba(0,245,255,0.15)'
-          : '0 14px 40px rgba(21,101,192,0.18)';
+        lastEvent = e;
+        if (ticking) return;
+        ticking = true;
+        raf(function () {
+          var rect = card.getBoundingClientRect();
+          var cx   = rect.left + rect.width  / 2;
+          var cy   = rect.top  + rect.height / 2;
+          var dx   = (lastEvent.clientX - cx) / (rect.width  / 2);
+          var dy   = (lastEvent.clientY - cy) / (rect.height / 2);
+          card.style.transform =
+            'translateY(-8px) scale(1.03) ' +
+            'perspective(600px) ' +
+            'rotateY(' + (dx * 12) + 'deg) ' +
+            'rotateX(' + (-dy * 8) + 'deg)';
+          card.style.boxShadow =
+            isDark()
+            ? '0 16px 48px rgba(0,0,0,0.35), 0 0 30px rgba(0,245,255,0.15)'
+            : '0 14px 40px rgba(21,101,192,0.18)';
+          ticking = false;
+        });
       });
       card.addEventListener('mouseleave', function () {
         card.style.transform = '';

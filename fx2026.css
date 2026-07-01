@@ -15,11 +15,10 @@
 }
 .fx-orb {
   position: absolute; border-radius: 50%;
-  filter: blur(56px);
   animation: orbDrift var(--dur, 18s) ease-in-out infinite alternate;
-  will-change: transform, opacity;
+  will-change: transform;
 }
-body.formal-theme .fx-orb { filter: blur(70px); opacity: 0.4; }
+body.formal-theme .fx-orb { opacity: 0.4; }
 
 @keyframes orbDrift {
   0%   { transform: translate(0px, 0px) scale(1); }
@@ -61,8 +60,10 @@ body.formal-theme #fx-stars { display: none; }
   pointer-events: none; z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpolygon points='28,2 54,16 54,44 28,58 2,44 2,16' fill='none' stroke='rgba(0,245,255,0.028)' stroke-width='0.8'/%3E%3Cpolygon points='28,52 54,66 54,94 28,108 2,94 2,66' fill='none' stroke='rgba(0,245,255,0.028)' stroke-width='0.8'/%3E%3C/svg%3E");
   background-size: 56px 100px;
-  animation: hexGridDrift 60s linear infinite;
   opacity: 1;
+  /* animasi drift dihapus: pola ini menutupi seluruh layar, jadi
+     animasi background-position-nya memicu repaint full-screen
+     terus-menerus — sangat berat di GPU/driver lama */
 }
 body.formal-theme #fx-hexgrid { opacity: 0.15; }
 @keyframes hexGridDrift {
@@ -518,7 +519,8 @@ body:not(.formal-theme) {
     radial-gradient(ellipse 70% 40% at 80% 100%, rgba(0,200,150,0.06) 0%, transparent 55%),
     radial-gradient(ellipse 50% 60% at 50% 50%, rgba(120,0,255,0.04) 0%, transparent 70%),
     linear-gradient(#020408, #020408);
-  animation: bodyAmbient 22s ease-in-out infinite alternate;
+  /* animasi background-position full-halaman dihapus (dobel dengan
+     style.css) — ini penyumbang repaint terbesar di seluruh situs */
 }
 @keyframes bodyAmbient {
   0%   { background-position: 0% 0%, 100% 100%, 50% 50%; }
@@ -679,7 +681,6 @@ body.theme-switching * {
    34. MOBILE OPTIMIZATIONS
    ================================================================ */
 @media (max-width: 600px) {
-  #fx-orbs { filter: blur(80px); }
   .stat-card:hover { transform: translateY(-3px) scale(1.02) !important; }
   .kegiatan-card:hover { transform: translateY(-3px) !important; }
   button:hover { transform: translateY(-2px) !important; }
