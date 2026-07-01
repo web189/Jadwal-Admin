@@ -15,11 +15,11 @@
 }
 .fx-orb {
   position: absolute; border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(56px);
   animation: orbDrift var(--dur, 18s) ease-in-out infinite alternate;
   will-change: transform, opacity;
 }
-body.formal-theme .fx-orb { filter: blur(100px); opacity: 0.4; }
+body.formal-theme .fx-orb { filter: blur(70px); opacity: 0.4; }
 
 @keyframes orbDrift {
   0%   { transform: translate(0px, 0px) scale(1); }
@@ -679,7 +679,7 @@ body.theme-switching * {
    34. MOBILE OPTIMIZATIONS
    ================================================================ */
 @media (max-width: 600px) {
-  #fx-orbs { filter: blur(120px); }
+  #fx-orbs { filter: blur(80px); }
   .stat-card:hover { transform: translateY(-3px) scale(1.02) !important; }
   .kegiatan-card:hover { transform: translateY(-3px) !important; }
   button:hover { transform: translateY(-2px) !important; }

@@ -28,13 +28,10 @@
 
     var darkOrbs = [
       { w:380, h:320, x:'-10%', y:'-8%', c:'rgba(0,245,255,0.07)',  dur:20, tx1:'40px', ty1:'-25px', tx2:'-20px', ty2:'40px', tx3:'20px', ty3:'10px' },
-      { w:300, h:280, x:'70%',  y:'5%',  c:'rgba(120,0,255,0.06)',  dur:25, tx1:'-30px', ty1:'20px',  tx2:'25px', ty2:'-30px', tx3:'-10px', ty3:'20px' },
       { w:260, h:240, x:'20%',  y:'60%', c:'rgba(0,200,150,0.05)',  dur:18, tx1:'20px', ty1:'30px',   tx2:'-30px', ty2:'-15px', tx3:'10px', ty3:'25px' },
-      { w:200, h:180, x:'80%',  y:'70%', c:'rgba(255,0,200,0.045)', dur:22, tx1:'-15px', ty1:'-20px', tx2:'20px', ty2:'15px',  tx3:'-8px', ty3:'-12px' },
     ];
     var lightOrbs = [
       { w:420, h:360, x:'-5%',  y:'-10%', c:'rgba(100,160,255,0.1)',  dur:22, tx1:'30px', ty1:'-20px', tx2:'-15px', ty2:'30px', tx3:'10px', ty3:'10px' },
-      { w:300, h:260, x:'65%',  y:'0%',   c:'rgba(100,220,180,0.07)', dur:28, tx1:'-20px', ty1:'25px', tx2:'20px', ty2:'-20px', tx3:'-8px', ty3:'15px' },
       { w:220, h:200, x:'40%',  y:'65%',  c:'rgba(150,100,255,0.05)', dur:19, tx1:'15px', ty1:'20px',  tx2:'-20px', ty2:'-10px', tx3:'8px', ty3:'15px' },
     ];
 
@@ -65,11 +62,8 @@
 
     var starDefs = [
       { w:200, top:'8%',  left:'0',   ang:'-10deg', sd:'4s',  delay:'0s'   },
-      { w:160, top:'22%', left:'10%', ang:'12deg',  sd:'6s',  delay:'1.5s' },
       { w:280, top:'5%',  left:'30%', ang:'-8deg',  sd:'8s',  delay:'3s'   },
-      { w:120, top:'35%', left:'5%',  ang:'15deg',  sd:'5s',  delay:'2s'   },
       { w:200, top:'15%', left:'50%', ang:'-12deg', sd:'7s',  delay:'4s'   },
-      { w:180, top:'45%', left:'20%', ang:'10deg',  sd:'9s',  delay:'0.8s' },
     ];
 
     starDefs.forEach(function (s) {
@@ -93,142 +87,21 @@
   }
 
   /* ─────────────────────────────────────────
-     4. CANVAS PARTICLE SYSTEM
+     4. CANVAS PARTICLE SYSTEM — DIMATIKAN
+     (loop rAF terus-menerus + shadowBlur per
+     partikel + O(n²) connection lines adalah
+     penyumbang "berat" terbesar; dihapus demi
+     performa. Ambient look tetap ada lewat
+     orbs + shooting stars + hex grid.)
   ───────────────────────────────────────── */
-  function initCanvas() {
-    if (REDUCE) return;
-
-    var canvas = document.createElement('canvas');
-    canvas.id = 'fx-canvas';
-    document.body.insertBefore(canvas, document.body.firstChild);
-    var ctx = canvas.getContext('2d');
-
-    var W, H;
-    function resize() {
-      W = canvas.width  = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
-
-    /* Particle constructor */
-    function Particle() { this.reset(true); }
-    Particle.prototype.reset = function (init) {
-      this.x  = r(0, W);
-      this.y  = init ? r(0, H) : H + 10;
-      this.vx = r(-0.3, 0.3);
-      this.vy = r(-0.6, -0.15);
-      this.size  = r(1, isMobile ? 1.8 : 2.5);
-      this.alpha = r(0.1, 0.45);
-      this.life  = 1;
-      this.decay = r(0.003, 0.008);
-      var darkCols  = ['#00f5ff','#ffffff','#ff00c8','#00ff8c','#a78bfa'];
-      var lightCols = ['#1565c0','#7b1fa2','#2e7d32','#0288d1','#9c27b0'];
-      this.col = pick(isDark() ? darkCols : lightCols);
-      /* Connection dot */
-      this.connected = false;
-    };
-    Particle.prototype.update = function () {
-      this.x += this.vx;
-      this.y += this.vy;
-      this.life -= this.decay;
-      if (this.life <= 0 || this.y < -10) this.reset(false);
-    };
-    Particle.prototype.draw = function () {
-      ctx.save();
-      ctx.globalAlpha = this.life * this.alpha;
-      ctx.fillStyle = this.col;
-      ctx.shadowColor = this.col;
-      ctx.shadowBlur = 6;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    var COUNT = isMobile ? 30 : 60;
-    var particles = [];
-    for (var i = 0; i < COUNT; i++) particles.push(new Particle());
-
-    /* Connection lines between nearby particles */
-    function drawConnections() {
-      if (isMobile) return;
-      var maxDist = 120;
-      for (var a = 0; a < particles.length; a++) {
-        for (var b = a + 1; b < particles.length; b++) {
-          var dx = particles[a].x - particles[b].x;
-          var dy = particles[a].y - particles[b].y;
-          var dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < maxDist) {
-            var opacity = (1 - dist / maxDist) * 0.12 * particles[a].life;
-            ctx.save();
-            ctx.strokeStyle = isDark()
-              ? 'rgba(0,245,255,' + opacity + ')'
-              : 'rgba(21,101,192,' + opacity + ')';
-            ctx.lineWidth = 0.6;
-            ctx.beginPath();
-            ctx.moveTo(particles[a].x, particles[a].y);
-            ctx.lineTo(particles[b].x, particles[b].y);
-            ctx.stroke();
-            ctx.restore();
-          }
-        }
-      }
-    }
-
-    var frameCount = 0;
-    function loop() {
-      raf(loop);
-      if (!isDark() && frameCount % 2 !== 0) { frameCount++; return; } // slower in light
-      frameCount++;
-      ctx.clearRect(0, 0, W, H);
-      drawConnections();
-      particles.forEach(function (p) { p.update(); p.draw(); });
-    }
-    loop();
-
-    /* Expose for click burst */
-    window._fxParticles = particles;
-    window._fxParticleFactory = Particle;
-    window._fxCtx = ctx;
-  }
+  function initCanvas() { /* disabled for performance */ }
 
   /* ─────────────────────────────────────────
-     5. MOUSE TRAIL
+     5. MOUSE TRAIL — DIMATIKAN
+     (membuat elemen DOM baru di setiap gerakan
+     mouse; berat untuk reflow/paint terus-menerus)
   ───────────────────────────────────────── */
-  function initMouseTrail() {
-    if (REDUCE || isMobile) return;
-
-    var trailColors = isDark()
-      ? ['#00f5ff','#ff00c8','#00ff8c','#a78bfa','#ffffff']
-      : ['#1565c0','#7b1fa2','#0288d1','#2e7d32','#9c27b0'];
-
-    var lastX = 0, lastY = 0, throttle = 0;
-
-    document.addEventListener('mousemove', function (e) {
-      var now = Date.now();
-      if (now - throttle < 35) return; // ~28fps trail
-      throttle = now;
-
-      var dx = Math.abs(e.clientX - lastX);
-      var dy = Math.abs(e.clientY - lastY);
-      if (dx < 3 && dy < 3) return;
-      lastX = e.clientX; lastY = e.clientY;
-
-      var dot = document.createElement('div');
-      dot.className = 'fx-trail';
-      var col = trailColors[Math.floor(Math.random() * trailColors.length)];
-      var sz  = r(4, 8);
-      dot.style.cssText =
-        'left:' + (e.clientX - sz / 2) + 'px;' +
-        'top:' + (e.clientY - sz / 2) + 'px;' +
-        'width:' + sz + 'px;height:' + sz + 'px;' +
-        'background:' + col + ';' +
-        'box-shadow:0 0 ' + (sz * 2) + 'px ' + col + ';';
-      document.body.appendChild(dot);
-      dot.addEventListener('animationend', function () { dot.remove(); });
-    }, { passive: true });
-  }
+  function initMouseTrail() { /* disabled for performance */ }
 
   /* ─────────────────────────────────────────
      6. CLICK BURST — particles on every click
@@ -240,10 +113,10 @@
       /* Skip if clicking a button or link */
       if (e.target.closest('button, a, select, input, textarea')) {
         /* Still do a small burst on button clicks */
-        burstAt(e.clientX, e.clientY, 6, true);
+        burstAt(e.clientX, e.clientY, 4, true);
         return;
       }
-      burstAt(e.clientX, e.clientY, 12, false);
+      burstAt(e.clientX, e.clientY, 7, false);
     });
 
     function burstAt(x, y, count, small) {
@@ -268,7 +141,7 @@
           'width:' + sz + 'px;height:' + sz + 'px;' +
           'margin-left:' + (-sz / 2) + 'px;margin-top:' + (-sz / 2) + 'px;' +
           'background:' + col + ';' +
-          'box-shadow:0 0 ' + (sz * 3) + 'px ' + col + ';' +
+          'box-shadow:0 0 ' + (sz * 1.5) + 'px ' + col + ';' +
           '--bx:' + (Math.cos(ang * Math.PI / 180) * d) + 'px;' +
           '--by:' + (Math.sin(ang * Math.PI / 180) * d) + 'px;' +
           'animation-duration:' + r(0.5, 0.9) + 's;';
@@ -467,25 +340,12 @@
   }
 
   /* ─────────────────────────────────────────
-     15. DYNAMIC GLOW CURSOR (desktop dark only)
+     15. DYNAMIC GLOW CURSOR — DIMATIKAN
+     (mengubah left/top di setiap mousemove =
+     memicu layout/reflow terus-menerus, sangat
+     mahal dibanding manfaat visualnya)
   ───────────────────────────────────────── */
-  function initGlowCursor() {
-    if (REDUCE || isMobile || !isDark()) return;
-    var glow = document.createElement('div');
-    glow.id = 'fx-cursor-glow';
-    glow.style.cssText =
-      'position:fixed;width:300px;height:300px;border-radius:50%;' +
-      'pointer-events:none;z-index:-1;' +
-      'background:radial-gradient(circle,rgba(0,245,255,0.04) 0%,transparent 70%);' +
-      'transform:translate(-50%,-50%);transition:left 0.08s,top 0.08s;';
-    document.body.appendChild(glow);
-    document.addEventListener('mousemove', function (e) {
-      if (!isDark()) { glow.style.display = 'none'; return; }
-      glow.style.display = '';
-      glow.style.left = e.clientX + 'px';
-      glow.style.top  = e.clientY + 'px';
-    }, { passive: true });
-  }
+  function initGlowCursor() { /* disabled for performance */ }
 
   /* ─────────────────────────────────────────
      16. FLOATING CSS DOTS in background
@@ -498,7 +358,7 @@
       ? ['rgba(0,245,255,0.25)','rgba(255,0,200,0.2)','rgba(0,255,140,0.2)','rgba(167,139,250,0.2)']
       : ['rgba(21,101,192,0.2)','rgba(123,31,162,0.15)','rgba(46,125,50,0.15)','rgba(2,136,209,0.15)'];
 
-    for (var i = 0; i < (isMobile ? 0 : 12); i++) {
+    for (var i = 0; i < (isMobile ? 0 : 6); i++) {
       var dot = document.createElement('div');
       var sz  = r(3, 8);
       var col = pick(colors);
@@ -509,7 +369,6 @@
         'width:' + sz + 'px;height:' + sz + 'px;' +
         'border-radius:50%;' +
         'background:' + col + ';' +
-        'box-shadow:0 0 ' + (sz * 3) + 'px ' + col + ';' +
         'left:' + r(5, 95) + '%;top:' + r(5, 95) + '%;' +
         'animation:floatDot ' + duration + 's ease-in-out ' + delay + 's infinite;';
       wrap.appendChild(dot);
@@ -524,8 +383,6 @@
     initOrbs();
     initStars();
     initHexGrid();
-    initCanvas();
-    initMouseTrail();
     initClickBurst();
     initRipple();
     initCounters();
@@ -534,7 +391,6 @@
     initScrollTop();
     initThemeSwitch();
     initTableGlow();
-    initGlowCursor();
     initFloatingDots();
 
     /* Tilt waits for stat cards to exist */
