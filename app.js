@@ -110,7 +110,7 @@ function closeLoader() {
   const loader = document.getElementById("cyberLoader");
   if (loader) {
     loader.style.opacity = "0";
-    setTimeout(() => { loader.style.display = "none"; }, 9600);
+    setTimeout(() => { loader.style.display = "none"; }, 400);
   }
 }
 
@@ -122,14 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sel) sel.value = currentWeek;
 
   waitForFirebase(() => {
-setTimeout(() => {
-  closeLoader();
-}, 85000); // 15 detik // tutup loader begitu Firebase siap
     renderSchedule(currentWeek);
     loadSerahTerima();
     initChat();
     loadKegiatan();
     initPresence();
+    closeLoader(); // tutup loader begitu data siap
   });
 
   setupEvents();
@@ -155,17 +153,8 @@ setTimeout(() => {
   const saved = localStorage.getItem("theme") || "dark";
   applyTheme(saved);
 
-  // Init particles after short delay
-  setTimeout(initParticles, 300);
-
-  // Loading screen
-  setTimeout(() => {
-    const loader = document.getElementById("cyberLoader");
-    if (loader) {
-      loader.style.opacity = "0";
-      setTimeout(() => { loader.style.display = "none"; }, 3800);
-    }
-  }, 7500);
+  // Failsafe: force-close loader even if Firebase/data never resolves
+  setTimeout(closeLoader, 4000);
 });
 
 // ================= THEME =================
@@ -1192,60 +1181,6 @@ function applySearchFilter(query) {
   });
 }
 
-// ================= PARTICLES =================
-function initParticles() {
-  if (typeof particlesJS !== "undefined") {
-    particlesJS("particles-js", {
-      particles: {
-        number: { value: 50, density: { enable: true, value_area: 900 } },
-        color: { value: "#00f5ff" },
-        shape: { type: "circle" },
-        opacity: { value: 0.3, random: true },
-        size: { value: 2, random: true },
-        line_linked: { enable: true, distance: 130, color: "#00f5ff", opacity: 0.2, width: 1 },
-        move: { enable: true, speed: 1.2, direction: "none", random: false, out_mode: "out" }
-      },
-      interactivity: {
-        detect_on: "canvas",
-        events: { onhover: { enable: true, mode: "repulse" }, onclick: { enable: true, mode: "push" } },
-        modes: { repulse: { distance: 80 }, push: { particles_nb: 3 } }
-      },
-      retina_detect: true
-    });
-  }
-}
-
-// ================= MATRIX RAIN =================
-(function() {
-  const canvas = document.getElementById("matrixCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  let w = canvas.width = window.innerWidth;
-  let h = canvas.height = window.innerHeight;
-  const chars = "01アイウエオカキクケコサシスセソ";
-  let drops = Array(Math.floor(w / 16)).fill(1);
-
-  function draw() {
-    if (document.body.classList.contains("formal-theme")) return;
-    ctx.fillStyle = "rgba(0,4,8,0.05)";
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "rgba(0,245,255,0.35)";
-    ctx.font = "13px monospace";
-    drops.forEach((y, i) => {
-      ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 16, y * 16);
-      if (y * 16 > h && Math.random() > 0.975) drops[i] = 0;
-      drops[i]++;
-    });
-  }
-
-  setInterval(draw, 60);
-  window.addEventListener("resize", () => {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-    drops = Array(Math.floor(w / 16)).fill(1);
-  });
-})();
-
 // ================= SCROLL TO SECTION (mobile nav) =================
 function scrollToSection(id) {
   const el = id === "header" ? document.querySelector("header") : document.getElementById(id);
@@ -1255,5 +1190,3 @@ function scrollToSection(id) {
   if (map[id] !== undefined) document.querySelectorAll(".mobile-nav-item")[map[id]]?.classList.add("active");
 }
 
-function closeFBI() { document.getElementById("fbiLock").style.display = "none"; }
-function triggerFBI() { document.getElementById("fbiLock").style.display = "flex"; }
