@@ -18,8 +18,10 @@
 <!-- ===== LOADING SCREEN ===== -->
 <div id="cyberLoader">
   <div class="loader-content">
-    <div class="loader-hex-ring">
-      <div class="hex-glow"></div>
+    <div class="loader-emblem">
+      <div class="loader-ring"></div>
+      <div class="loader-ring loader-ring-2"></div>
+      <div class="loader-mark">JG</div>
     </div>
 
     <div class="loader-title-wrap">
@@ -29,10 +31,9 @@
 
     <div class="loader-bar-wrap">
       <div class="loader-bar"><div class="loader-progress" id="loaderProgress"></div></div>
-      <div class="loader-pct" id="loaderPct">0%</div>
     </div>
 
-    <p class="loader-text" id="loaderText">Memuat sistem...</p>
+    <p class="loader-text" id="loaderText">Menghubungkan sistem…</p>
   </div>
 </div>
 
@@ -247,9 +248,7 @@
 <!-- Login Modal -->
 <div id="loginModal" class="modal" role="dialog" aria-label="Login KA Gudang">
   <div class="modal-box terminal">
-    <div class="terminal-header">
-      <i class="fas fa-terminal"></i> firebase-auth@secure-system:~$
-    </div>
+    <div class="modal-title"><i class="fas fa-shield-halved"></i> Login KA Gudang</div>
     <div id="fingerprintScanner" class="fingerprint">
       <div class="scan-line"></div>
       <i class="fas fa-fingerprint fp-icon"></i>
@@ -365,27 +364,42 @@ window.onAuthStateChangedFirebase = onAuthStateChanged;
 window.firebaseReady = true;
 </script>
 
-<!-- INLINE BOOT SCRIPT — simple, fast, no canvas particles -->
+<!-- INLINE BOOT SCRIPT — 5s polished intro, lightweight (CSS-driven, no canvas) -->
 <script>
+window.__loaderStart = Date.now();
 (function() {
+  const MIN_MS = 5000;
+  const FAILSAFE_MS = 6500;
   const progEl = document.getElementById("loaderProgress");
-  const pctEl  = document.getElementById("loaderPct");
   const textEl = document.getElementById("loaderText");
-  if (progEl) progEl.style.width = "70%";
-  if (pctEl) pctEl.textContent = "70%";
+  const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data terbaru…", "Hampir siap…"];
 
-  // Loader closes as soon as the app signals ready (see closeLoader() in app.js),
-  // with a short hard failsafe so it never gets stuck.
-  setTimeout(() => {
+  if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "94%"; });
+
+  let mi = 0;
+  const msgInterval = setInterval(() => {
+    mi = (mi + 1) % msgs.length;
+    if (textEl) {
+      textEl.style.opacity = "0";
+      setTimeout(() => { textEl.textContent = msgs[mi]; textEl.style.opacity = "1"; }, 180);
+    }
+  }, 1250);
+
+  window.__finishLoader = function() {
+    clearInterval(msgInterval);
     const loader = document.getElementById("cyberLoader");
-    if (loader && loader.style.display !== "none") {
-      if (progEl) progEl.style.width = "100%";
-      if (pctEl) pctEl.textContent = "100%";
-      if (textEl) textEl.textContent = "Siap.";
+    if (!loader || loader.dataset.closed) return;
+    loader.dataset.closed = "1";
+    if (progEl) { progEl.style.transitionDuration = "300ms"; progEl.style.width = "100%"; }
+    if (textEl) { textEl.style.opacity = "1"; textEl.textContent = "Siap ✓"; }
+    setTimeout(() => {
       loader.style.opacity = "0";
       setTimeout(() => { loader.style.display = "none"; }, 400);
-    }
-  }, 3000);
+    }, 250);
+  };
+
+  // Hard failsafe so the intro never blocks the app for long
+  setTimeout(() => { if (window.__finishLoader) window.__finishLoader(); }, FAILSAFE_MS);
 })();
 </script>
 
@@ -438,6 +452,8 @@ window.firebaseReady = true;
   }
 })();
 </script>
+
+<script src="notif-promo.js" defer></script>
 
 </body>
 </html>

@@ -107,11 +107,12 @@ function waitForFirebase(cb, attempts = 0) {
 
 // ================= CLOSE LOADER =================
 function closeLoader() {
-  const loader = document.getElementById("cyberLoader");
-  if (loader) {
-    loader.style.opacity = "0";
-    setTimeout(() => { loader.style.display = "none"; }, 400);
-  }
+  const MIN_MS = 5000;
+  const elapsed = Date.now() - (window.__loaderStart || Date.now());
+  const remaining = Math.max(0, MIN_MS - elapsed);
+  setTimeout(() => {
+    if (window.__finishLoader) window.__finishLoader();
+  }, remaining);
 }
 
 // ================= INIT =================
@@ -152,9 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Theme restore
   const saved = localStorage.getItem("theme") || "dark";
   applyTheme(saved);
-
-  // Failsafe: force-close loader even if Firebase/data never resolves
-  setTimeout(closeLoader, 4000);
 });
 
 // ================= THEME =================
