@@ -458,6 +458,8 @@ function renderSchedule(weekNumber) {
 }
 
 // ================= EDIT SHIFT =================
+const SHIFT_HINTS = { P:"Pagi — 07:30 s/d 15:30", S:"Sore — 15:30 s/d 23:30", M:"Malam — 23:30 s/d 07:30", OFF:"Hari Libur", C:"Cuti" };
+
 function editShift(cell) {
   if (!isAdmin) return;
   const options = ["P","S","M","OFF","C"];
@@ -467,9 +469,14 @@ function editShift(cell) {
   cell.className = "shift-" + next;
   cell.innerHTML = `<span class="shift-label">${next}</span>`;
   cell.setAttribute("onclick", "editShift(this)");
-  // Visual feedback
-  cell.style.transform = "scale(1.15)";
-  setTimeout(() => { cell.style.transform = ""; }, 200);
+  if (SHIFT_HINTS[next]) cell.setAttribute("data-hint", SHIFT_HINTS[next]);
+  // Visual feedback — scale the chip only, never the <td> itself
+  // (transforming the cell can visually spill into the sticky name column)
+  const label = cell.querySelector(".shift-label");
+  if (label) {
+    label.style.transform = "scale(1.22)";
+    setTimeout(() => { label.style.transform = ""; }, 200);
+  }
 }
 
 // ================= SAVE =================
@@ -1163,9 +1170,8 @@ function highlightTodayColumn(weekNumber) {
 }
 
 function addShiftTooltips() {
-  const hints = { P:"Pagi — 07:30 s/d 15:30", S:"Sore — 15:30 s/d 23:30", M:"Malam — 23:30 s/d 07:30", OFF:"Hari Libur", C:"Cuti" };
   document.querySelectorAll("#scheduleTable td[data-shift]").forEach(cell => {
-    const h = hints[cell.dataset.shift];
+    const h = SHIFT_HINTS[cell.dataset.shift];
     if (h) cell.setAttribute("data-hint", h);
   });
 }

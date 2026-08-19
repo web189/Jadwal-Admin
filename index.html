@@ -19,14 +19,27 @@
 <div id="cyberLoader">
   <div class="loader-content">
     <div class="loader-emblem">
-      <div class="loader-ring"></div>
-      <div class="loader-ring loader-ring-2"></div>
-      <div class="loader-mark">JG</div>
+      <div class="loader-glow"></div>
+      <div class="loader-bottle" aria-hidden="true">
+        <div class="bottle-cap"></div>
+        <div class="bottle-body">
+          <div class="bottle-liquid" id="loaderLiquid">
+            <span class="liquid-wave"></span>
+          </div>
+          <span class="bottle-bubble b1"></span>
+          <span class="bottle-bubble b2"></span>
+          <span class="bottle-bubble b3"></span>
+          <div class="bottle-shine"></div>
+        </div>
+      </div>
     </div>
 
     <div class="loader-title-wrap">
       <h1 class="loader-title">JADWAL ADMIN GUDANG</h1>
-      <div class="loader-year">2026</div>
+      <div class="loader-sub-row">
+        <span class="loader-year">2026</span>
+        <span class="loader-aqua-chip">💧 AQUA</span>
+      </div>
     </div>
 
     <div class="loader-bar-wrap">
@@ -62,9 +75,11 @@
   <!-- TICKER -->
   <div id="serahTerimaTicker" class="news-ticker">
     <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
-    <div class="news-track" id="newsTrack">
-      <div id="serahTerimaText">Memuat serah terima...</div>
-      <div id="serahTerimaClone"></div>
+    <div class="ticker-viewport">
+      <div class="news-track" id="newsTrack">
+        <div id="serahTerimaText">Memuat serah terima...</div>
+        <div id="serahTerimaClone"></div>
+      </div>
     </div>
   </div>
 
@@ -372,9 +387,11 @@ window.__loaderStart = Date.now();
   const FAILSAFE_MS = 6500;
   const progEl = document.getElementById("loaderProgress");
   const textEl = document.getElementById("loaderText");
+  const liquidEl = document.getElementById("loaderLiquid");
   const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data terbaru…", "Hampir siap…"];
 
   if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "94%"; });
+  if (liquidEl) requestAnimationFrame(() => { liquidEl.style.transitionDuration = MIN_MS + "ms"; liquidEl.style.height = "88%"; });
 
   let mi = 0;
   const msgInterval = setInterval(() => {
@@ -391,6 +408,7 @@ window.__loaderStart = Date.now();
     if (!loader || loader.dataset.closed) return;
     loader.dataset.closed = "1";
     if (progEl) { progEl.style.transitionDuration = "300ms"; progEl.style.width = "100%"; }
+    if (liquidEl) { liquidEl.style.transitionDuration = "300ms"; liquidEl.style.height = "100%"; }
     if (textEl) { textEl.style.opacity = "1"; textEl.textContent = "Siap ✓"; }
     setTimeout(() => {
       loader.style.opacity = "0";
