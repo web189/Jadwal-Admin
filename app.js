@@ -72,6 +72,29 @@ const basePattern = [
   ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // M DAUD
 ];
 
+// ================= ADMIN BARU: RIAN ARSYANSYAH (mulai Week 35) =================
+// RIAN ARSYANSYAH bergabung sebagai admin ke-6. Jadwalnya TETAP setiap minggu
+// (tidak ikut rotasi): Senin-Sabtu masuk Pagi (P), Minggu OFF.
+// Posisinya SELALU di baris index 2 (posisi ke-3) pada tabel setiap minggunya.
+const NEW_ADMIN_WEEK = 35;
+
+const staffRian = { nik: "109639", nama: "RIAN ARSYANSYAH", avatar: "RA" };
+
+// Pola jadwal Week 35 dst — 6 baris.
+// Baris index 2 (RIAN ARSYANSYAH) TETAP setiap minggu, tidak dirotasi.
+// 5 admin lain (staff[]) tetap rotasi seperti biasa mengisi 5 baris sisanya,
+// urutan baris sisanya: 0, 1, 3, 4, 5 (index 2 dilewati karena punya RIAN).
+const basePatternWithRian = [
+  ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // baris 0
+  ["S",  "OFF","OFF","P",  "P",  "P",  "P"  ],  // baris 1
+  ["P",  "P",  "P",  "P",  "P",  "P",  "OFF"],  // baris 2 — RIAN ARSYANSYAH (TETAP)
+  ["S",  "S",  "OFF","OFF","S",  "S",  "S"  ],  // baris 3
+  ["OFF","S",  "S",  "S",  "S",  "S",  "OFF"],  // baris 4
+  ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // baris 5
+];
+const RIAN_ROW_INDEX = 2;
+const ROTATING_ROW_INDEXES = [0, 1, 3, 4, 5]; // baris untuk 5 admin yang rotasi
+
 const kegiatanDefault = [
   { nama: "KAMIL M NUR",    tugas: "Perapihan arsip, Sawang-sawang, Kebersihan lantai area depan" },
   { nama: "RANDHIKA",       tugas: "Kebersihan area loading, Sapu & pel koridor" },
@@ -341,6 +364,45 @@ function setupEvents() {
   }
 }
 
+// ================= WEEK ROW BUILDER =================
+// Mengembalikan array baris { person, pattern } sesuai urutan tampil di tabel
+// untuk minggu tertentu. Menyatukan logika lama (staffOld/basePatternOld),
+// logika Week 25-34 (staff/basePattern, 5 orang rotasi), dan logika baru
+// Week 35+ (6 orang, RIAN ARSYANSYAH jadwal tetap tidak ikut rotasi).
+function getWeekRows(weekNumber) {
+  const NEW_FORMAT_WEEK = 25;
+  const rows = [];
+
+  if (weekNumber < NEW_FORMAT_WEEK) {
+    const rotation = weekNumber < START_ROTATION_WEEK
+      ? (weekNumber - START_WEEK) % 6
+      : (weekNumber - START_ROTATION_WEEK) % 6;
+    for (let i = 0; i < staffOld.length; i++) {
+      const idx = (i + rotation) % staffOld.length;
+      rows.push({ person: staffOld[idx], pattern: basePatternOld[i] });
+    }
+  } else if (weekNumber < NEW_ADMIN_WEEK) {
+    const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
+    for (let i = 0; i < staff.length; i++) {
+      const idx = (i + rotation) % staff.length;
+      rows.push({ person: staff[idx], pattern: basePattern[i] });
+    }
+  } else {
+    // Week 35+: 6 baris. RIAN ARSYANSYAH selalu di RIAN_ROW_INDEX dengan
+    // pattern tetap. 5 admin lain rotasi mengisi ROTATING_ROW_INDEXES.
+    const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
+    const tempRows = new Array(6);
+    for (let j = 0; j < staff.length; j++) {
+      const idx = (j + rotation) % staff.length;
+      const rowIdx = ROTATING_ROW_INDEXES[j];
+      tempRows[rowIdx] = { person: staff[idx], pattern: basePatternWithRian[rowIdx] };
+    }
+    tempRows[RIAN_ROW_INDEX] = { person: staffRian, pattern: basePatternWithRian[RIAN_ROW_INDEX] };
+    for (let k = 0; k < 6; k++) rows.push(tempRows[k]);
+  }
+  return rows;
+}
+
 // ================= WEEK NAVIGATION =================
 function changeWeek(delta) {
   const sel = document.getElementById("weekSelect");
@@ -377,23 +439,7 @@ function renderSchedule(weekNumber) {
       const overrides = snapshot.exists() ? snapshot.val() : {};
       table.innerHTML = "";
 
-      let rotation;
-      let activeStaff;
-      let activePattern;
-      const NEW_FORMAT_WEEK = 25;
-
-      if (weekNumber < NEW_FORMAT_WEEK) {
-        rotation = weekNumber < START_ROTATION_WEEK
-          ? (weekNumber - START_WEEK) % 6
-          : (weekNumber - START_ROTATION_WEEK) % 6;
-        activeStaff = staffOld;
-        activePattern = basePatternOld;
-      } else {
-        // Week 25+: 5 orang, pola baru, rolling
-        rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
-        activeStaff = staff;
-        activePattern = basePattern;
-      }
+      const weekRows = getWeekRows(weekNumber);
       const monday = new Date(START_DATE);
       monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
       const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
@@ -417,9 +463,9 @@ function renderSchedule(weekNumber) {
       header += "</tr>";
       table.innerHTML += header;
 
-      for (let i = 0; i < activeStaff.length; i++) {
-        const staffIdx = (i + rotation) % activeStaff.length;
-        const person = activeStaff[staffIdx];
+      for (let i = 0; i < weekRows.length; i++) {
+        const person = weekRows[i].person;
+        const pattern = weekRows[i].pattern;
         let row = `<tr>
           <td>${i + 1}</td>
           <td class="nik-cell">${person.nik}</td>
@@ -431,7 +477,7 @@ function renderSchedule(weekNumber) {
           </td>`;
 
         for (let j = 0; j < 7; j++) {
-          let shift = activePattern[i][j];
+          let shift = pattern[j];
           if (overrides[i] && overrides[i][j]) shift = overrides[i][j];
           row += `<td class="shift-${shift}" onclick="editShift(this)" data-row="${i}" data-col="${j}" data-shift="${shift}"><span class="shift-label">${shift}</span></td>`;
         }
@@ -508,19 +554,7 @@ function saveChanges() {
 // ================= EXPORT =================
 function exportToExcel() {
   const weekNumber = parseInt(document.getElementById("weekSelect").value);
-  const NEW_FORMAT_WEEK = 25;
-  let rotation;
-  let activeStaff;
-  let activePattern;
-  if (weekNumber < NEW_FORMAT_WEEK) {
-    rotation = weekNumber < START_ROTATION_WEEK ? (weekNumber - START_WEEK) % 6 : (weekNumber - START_ROTATION_WEEK) % 6;
-    activeStaff = staffOld;
-    activePattern = basePatternOld;
-  } else {
-    rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
-    activeStaff = staff;
-    activePattern = basePattern;
-  }
+  const weekRows = getWeekRows(weekNumber);
   const monday = new Date(START_DATE);
   monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
 
@@ -540,11 +574,12 @@ function exportToExcel() {
     data[0].push(formatDate(d) + " " + days[i]);
   }
 
-  for (let i = 0; i < activeStaff.length; i++) {
-    const p = activeStaff[(i + rotation) % activeStaff.length];
+  for (let i = 0; i < weekRows.length; i++) {
+    const p = weekRows[i].person;
+    const pattern = weekRows[i].pattern;
     const row = [i + 1, p.nik, p.nama];
     for (let j = 0; j < 7; j++) {
-      row.push((overrides[i] && overrides[i][j]) ? overrides[i][j] : activePattern[i][j]);
+      row.push((overrides[i] && overrides[i][j]) ? overrides[i][j] : pattern[j]);
     }
     data.push(row);
   }
@@ -552,7 +587,7 @@ function exportToExcel() {
   if (typeof XLSX === "undefined") { showToast("❌ Library XLSX tidak tersedia"); return; }
   const ws = XLSX.utils.aoa_to_sheet(data);
   const colorMap = { P:"26DE3C", S:"FF9066", M:"5A54B8", OFF:"A60000", C:"FFFF26" };
-  for (let r = 1; r <= activeStaff.length; r++) {
+  for (let r = 1; r <= weekRows.length; r++) {
     for (let c = 3; c <= 9; c++) {
       const ref = XLSX.utils.encode_cell({ r, c });
       const cell = ws[ref];
