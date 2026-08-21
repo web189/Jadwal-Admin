@@ -684,9 +684,21 @@ function getCurrentShift() {
 function updateShiftIndicator() {
   const shift = getCurrentShift();
   const box = document.getElementById("shiftAktifBox");
-  if (!box) return;
-  box.className = "shift-box shift" + shift + "-box";
-  box.innerText = "SHIFT " + shift;
+  if (box) {
+    box.className = "shift-box gauge-shift-num shift" + shift + "-box";
+    box.innerText = shift;
+  }
+
+  const gaugeWrap = document.getElementById("shiftGauge");
+  if (gaugeWrap) gaugeWrap.setAttribute("data-active-shift", shift);
+
+  const marker = document.getElementById("gaugeMarker");
+  if (marker) {
+    const now = new Date();
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    const angle = (minutes / 1440) * 360;
+    marker.style.transform = "rotate(" + angle + "deg)";
+  }
 }
 
 function updateShiftCountdown() {

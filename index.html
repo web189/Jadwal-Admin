@@ -67,9 +67,17 @@
   </div>
 
   <div id="shiftIndicator" class="shift-indicator">
-    <span class="shift-label-text">SHIFT AKTIF:</span>
-    <span id="shiftAktifBox" class="shift-box">SHIFT 1</span>
-    <span id="shiftCountdown" class="shift-countdown"></span>
+    <div class="shift-gauge" id="shiftGauge">
+      <div class="shift-gauge-ring"></div>
+      <div class="gauge-marker" id="gaugeMarker"></div>
+      <div class="gauge-center">
+        <span id="shiftAktifBox" class="shift-box gauge-shift-num">SHIFT 1</span>
+      </div>
+    </div>
+    <div class="shift-meta">
+      <span class="shift-label-text">SHIFT AKTIF SEKARANG</span>
+      <span id="shiftCountdown" class="shift-countdown"></span>
+    </div>
   </div>
 
   <!-- TICKER -->
