@@ -105,7 +105,7 @@ const kegiatanDefault = [
 
 // ================= STATE =================
 let isAdmin = false;
-let currentDateKey = new Date().toISOString().split("T")[0];
+let currentDateKey = todayISO();
 let chatLastCount = 0;
 let chatPollingInterval = null;
 let isTyping = false;
@@ -457,7 +457,7 @@ function renderSchedule(weekNumber) {
           holidayClass = h.type === "LN" ? "holiday-ln" : "holiday-cb";
           holidayInfo.push({ date: formatDate(d), name: h.name, type: h.type === "LN" ? "Libur Nasional" : "Cuti Bersama" });
         }
-        const isToday = formatISO(d) === new Date().toISOString().split("T")[0];
+        const isToday = formatISO(d) === todayISO();
         header += `<th class="${holidayClass}${isToday ? " today-col" : ""}">${formatDate(d)}<br>${days[i]}${isToday ? '<br><span class="today-tag">HARI INI</span>' : ""}</th>`;
       }
       header += "</tr>";
@@ -654,6 +654,13 @@ function formatISO(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
 }
 
+// Local-timezone "today" key (WIB). IMPORTANT: never use `new Date().toISOString()`
+// for this — toISOString() converts to UTC, so before 07:00 WIB the UTC date is
+// still "yesterday", which caused the "HARI INI" tag to land on the wrong day.
+function todayISO() {
+  return formatISO(new Date());
+}
+
 function getCurrentWeekNumber() {
   const today = new Date();
   if (today < START_DATE) return START_WEEK;
@@ -719,7 +726,7 @@ function updateShiftCountdown() {
 // ================= SERAH TERIMA =================
 function loadSerahTerima() {
   if (!window.db) return;
-  const dateKey = new Date().toISOString().split("T")[0];
+  const dateKey = todayISO();
   window.firebaseGet(window.firebaseRef(window.db, "serahTerima/" + dateKey))
     .then(snapshot => {
       const data = snapshot.exists() ? snapshot.val() : {};
@@ -735,7 +742,7 @@ function loadSerahTerima() {
 }
 
 function checkDateChange() {
-  const newKey = new Date().toISOString().split("T")[0];
+  const newKey = todayISO();
   if (newKey !== currentDateKey) { currentDateKey = newKey; loadSerahTerima(); }
 }
 
@@ -749,7 +756,7 @@ function openSerahTerimaModal() {
   if (modal) modal.classList.add("active");
 
   // Load existing note
-  const dateKey = new Date().toISOString().split("T")[0];
+  const dateKey = todayISO();
   window.firebaseGet(window.firebaseRef(window.db, "serahTerima/" + dateKey + "/shift" + shift))
     .then(snap => { if (snap.exists() && input) input.value = snap.val(); })
     .catch(() => {});
