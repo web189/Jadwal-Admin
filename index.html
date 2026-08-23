@@ -47,21 +47,32 @@
     </div>
 
     <p class="loader-text" id="loaderText">Menghubungkan sistem…</p>
+
+    <div class="loader-dev-credit">
+      <span class="dev-divider"></span>
+      <span>Website Developer</span>
+      <span class="dev-name-shine">benyoriki.com</span>
+      <span class="dev-divider"></span>
+    </div>
   </div>
 </div>
 
 <!-- ===== HEADER ===== -->
 <header id="header">
-  <div class="header-top">
-    <div class="header-brand">
-      <h1 class="glitch">
-        Jadwal Admin Gudang
-        <span class="header-badge">2026</span>
-      </h1>
-      <div class="online-indicator">
-        <span class="online-dot"></span>
-        <span id="onlineCount">1</span> online
-      </div>
+  <div class="header-row-1">
+    <button id="hamburgerBtn" class="hamburger-btn" aria-label="Buka menu" aria-expanded="false" aria-controls="hamburgerMenu">
+      <span class="hamburger-icon"><span></span><span></span><span></span></span>
+    </button>
+    <h1 class="glitch">
+      Jadwal Admin Gudang
+      <span class="header-badge">2026</span>
+    </h1>
+  </div>
+
+  <div class="header-row-2">
+    <div class="online-indicator">
+      <span class="online-dot"></span>
+      <span id="onlineCount">1</span> online
     </div>
     <div id="liveClock" class="cyber-clock"></div>
   </div>
@@ -79,47 +90,55 @@
       <span id="shiftCountdown" class="shift-countdown"></span>
     </div>
   </div>
-
-  <!-- TICKER -->
-  <div id="serahTerimaTicker" class="news-ticker">
-    <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
-    <div class="ticker-viewport">
-      <div class="news-track" id="newsTrack">
-        <div id="serahTerimaText">Memuat serah terima...</div>
-        <div id="serahTerimaClone"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="controls">
-    <div class="controls-left">
-      <select id="weekSelect"></select>
-      <button id="themeToggle"><i class="fas fa-sun"></i> Mode Terang</button>
-    </div>
-    <div class="controls-right">
-      <button id="adminBtn"><i class="fas fa-lock"></i> KA Gudang</button>
-      <button id="logoutBtn" class="hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
-      <button id="saveBtn" class="hidden btn-success"><i class="fas fa-save"></i> Simpan</button>
-      <button id="exportBtn" class="hidden"><i class="fas fa-file-excel"></i> Export</button>
-      <button id="printBtn" class="hidden"><i class="fas fa-print"></i> Print</button>
-      <a href="https://web189.github.io/UangRitase/" target="_blank" class="cyber-link-btn">
-        <i class="fas fa-coins"></i> Uang Ritase
-      </a>
-    </div>
-  </div>
-
-  <div class="serahterima-actions">
-    <button id="serahTerimaBtn"><i class="fas fa-file-alt"></i> Serah Terima</button>
-    <button id="historyBtn" class="btn-outline"><i class="fas fa-history"></i> History</button>
-  </div>
 </header>
+
+<!-- ===== HAMBURGER SLIDE-OUT MENU ===== -->
+<div id="hamburgerOverlay" class="hamburger-overlay"></div>
+<nav id="hamburgerMenu" class="hamburger-menu" aria-label="Menu utama">
+  <div class="hmenu-header">
+    <span class="hmenu-title"><i class="fas fa-sliders-h"></i> Menu</span>
+    <button id="hamburgerCloseBtn" class="hmenu-close" aria-label="Tutup menu"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="hmenu-body">
+    <div class="hmenu-group">
+      <label class="hmenu-label"><i class="fas fa-calendar-week"></i> Pilih Minggu</label>
+      <select id="weekSelect"></select>
+    </div>
+
+    <button id="themeToggle" class="hmenu-btn"><i class="fas fa-sun"></i> Mode Terang</button>
+
+    <div class="hmenu-divider"></div>
+
+    <button id="adminBtn" class="hmenu-btn"><i class="fas fa-lock"></i> KA Gudang</button>
+    <button id="logoutBtn" class="hmenu-btn hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+    <button id="saveBtn" class="hmenu-btn hidden btn-success"><i class="fas fa-save"></i> Simpan</button>
+    <button id="exportBtn" class="hmenu-btn hidden"><i class="fas fa-file-excel"></i> Export</button>
+    <button id="printBtn" class="hmenu-btn hidden"><i class="fas fa-print"></i> Print</button>
+
+    <div class="hmenu-divider"></div>
+
+    <button id="serahTerimaBtn" class="hmenu-btn"><i class="fas fa-file-alt"></i> Serah Terima</button>
+    <button id="historyBtn" class="hmenu-btn btn-outline"><i class="fas fa-history"></i> History</button>
+
+    <div class="hmenu-divider"></div>
+
+    <a href="https://web189.github.io/UangRitase/" target="_blank" class="hmenu-btn cyber-link-btn">
+      <i class="fas fa-coins"></i> Uang Ritase
+    </a>
+  </div>
+</nav>
 
 <!-- ===== MAIN CONTENT ===== -->
 <main>
 
-<!-- ===== STATS DASHBOARD ===== -->
 <div id="scheduleSection">
+
+<!-- ===== SCHEDULE TABLE — right after the shift animation ===== -->
+<div class="table-wrapper">
+  <table id="scheduleTable"></table>
+</div>
+
+<!-- ===== STATS DASHBOARD ===== -->
 <div class="stats-dashboard" id="statsDashboard">
   <div class="stat-card stat-p">
     <span class="stat-icon">☀️</span>
@@ -160,6 +179,17 @@
   <span class="legend-badge lb-CB">🟡 Cuti Bersama</span>
 </div>
 
+<!-- TICKER -->
+<div id="serahTerimaTicker" class="news-ticker">
+  <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+  <div class="ticker-viewport">
+    <div class="news-track" id="newsTrack">
+      <div id="serahTerimaText">Memuat serah terima...</div>
+      <div id="serahTerimaClone"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== TOOLBAR ===== -->
 <div class="schedule-toolbar">
   <div class="search-bar-wrap">
@@ -187,10 +217,6 @@
   </div>
 </div>
 
-<!-- ===== SCHEDULE TABLE ===== -->
-<div class="table-wrapper">
-  <table id="scheduleTable"></table>
-</div>
 </div><!-- end scheduleSection -->
 
 <!-- ===== KEGIATAN KEBERSIHAN ===== -->
@@ -387,16 +413,16 @@ window.onAuthStateChangedFirebase = onAuthStateChanged;
 window.firebaseReady = true;
 </script>
 
-<!-- INLINE BOOT SCRIPT — 5s polished intro, lightweight (CSS-driven, no canvas) -->
+<!-- INLINE BOOT SCRIPT — 7s polished intro, lightweight (CSS-driven, no canvas) -->
 <script>
 window.__loaderStart = Date.now();
 (function() {
-  const MIN_MS = 5000;
-  const FAILSAFE_MS = 6500;
+  const MIN_MS = 7000;
+  const FAILSAFE_MS = 8500;
   const progEl = document.getElementById("loaderProgress");
   const textEl = document.getElementById("loaderText");
   const liquidEl = document.getElementById("loaderLiquid");
-  const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data terbaru…", "Hampir siap…"];
+  const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data terbaru…", "Menyinkronkan server…", "Hampir siap…"];
 
   if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "94%"; });
   if (liquidEl) requestAnimationFrame(() => { liquidEl.style.transitionDuration = MIN_MS + "ms"; liquidEl.style.height = "88%"; });
@@ -476,6 +502,41 @@ window.__loaderStart = Date.now();
   if (scrollBtn) {
     scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
+
+  // ===== Hamburger slide-out menu =====
+  const hbBtn = document.getElementById('hamburgerBtn');
+  const hbMenu = document.getElementById('hamburgerMenu');
+  const hbOverlay = document.getElementById('hamburgerOverlay');
+  const hbClose = document.getElementById('hamburgerCloseBtn');
+
+  function openHamburger() {
+    if (!hbMenu || !hbOverlay) return;
+    hbMenu.classList.add('open');
+    hbOverlay.classList.add('open');
+    hbBtn?.classList.add('active');
+    hbBtn?.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('hmenu-lock');
+  }
+  function closeHamburger() {
+    if (!hbMenu || !hbOverlay) return;
+    hbMenu.classList.remove('open');
+    hbOverlay.classList.remove('open');
+    hbBtn?.classList.remove('active');
+    hbBtn?.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('hmenu-lock');
+  }
+  hbBtn?.addEventListener('click', () => {
+    hbMenu?.classList.contains('open') ? closeHamburger() : openHamburger();
+  });
+  hbClose?.addEventListener('click', closeHamburger);
+  hbOverlay?.addEventListener('click', closeHamburger);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHamburger(); });
+
+  // Auto-close the menu after picking an action inside it (keeps flow snappy on mobile)
+  hbMenu?.addEventListener('click', e => {
+    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect');
+    if (el && el.tagName !== 'SELECT') setTimeout(closeHamburger, 150);
+  });
 })();
 </script>
 
