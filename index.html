@@ -133,9 +133,49 @@
 
 <div id="scheduleSection">
 
-<!-- ===== SCHEDULE TABLE — right after the shift animation ===== -->
+<!-- TICKER — live serah terima -->
+<div id="serahTerimaTicker" class="news-ticker">
+  <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
+  <div class="ticker-viewport">
+    <div class="news-track" id="newsTrack">
+      <div id="serahTerimaText">Memuat serah terima...</div>
+      <div id="serahTerimaClone"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOOLBAR — cari nama & pilih week ===== -->
+<div class="schedule-toolbar">
+  <div class="search-bar-wrap">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" class="staff-search-input" id="staffSearchInput" placeholder="Cari nama staff...">
+    <button class="search-clear" id="searchClear" onclick="document.getElementById('staffSearchInput').value='';applySearchFilter('')" style="display:none">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="quick-nav-row">
+    <button class="quick-nav-btn" id="prevWeekBtn" title="Minggu Sebelumnya (Alt+←)">‹</button>
+    <div class="quick-nav-label" id="quickNavLabel">WEEK —</div>
+    <button class="quick-nav-btn" id="nextWeekBtn" title="Minggu Berikutnya (Alt+→)">›</button>
+  </div>
+</div>
+
+<!-- ===== SCHEDULE TABLE ===== -->
 <div class="table-wrapper">
   <table id="scheduleTable"></table>
+</div>
+<!-- (Kotak "Hari Libur Minggu Ini" otomatis disisipkan tepat setelah tabel oleh app.js) -->
+
+<!-- ===== LEGEND BAR — keterangan shift ===== -->
+<div class="legend-bar">
+  <span class="legend-title">KETERANGAN:</span>
+  <span class="legend-badge lb-P">P — Pagi 07:30</span>
+  <span class="legend-badge lb-S">S — Sore 15:30</span>
+  <span class="legend-badge lb-M">M — Malam 23:30</span>
+  <span class="legend-badge lb-OFF">OFF — Libur</span>
+  <span class="legend-badge lb-C">C — Cuti</span>
+  <span class="legend-badge lb-LN">🔴 Libur Nasional</span>
+  <span class="legend-badge lb-CB">🟡 Cuti Bersama</span>
 </div>
 
 <!-- ===== STATS DASHBOARD ===== -->
@@ -164,45 +204,6 @@
     <span class="stat-icon">👥</span>
     <span class="stat-value" id="statTotal">6</span>
     <span class="stat-label">Total Staff</span>
-  </div>
-</div>
-
-<!-- ===== LEGEND BAR ===== -->
-<div class="legend-bar">
-  <span class="legend-title">KETERANGAN:</span>
-  <span class="legend-badge lb-P">P — Pagi 07:30</span>
-  <span class="legend-badge lb-S">S — Sore 15:30</span>
-  <span class="legend-badge lb-M">M — Malam 23:30</span>
-  <span class="legend-badge lb-OFF">OFF — Libur</span>
-  <span class="legend-badge lb-C">C — Cuti</span>
-  <span class="legend-badge lb-LN">🔴 Libur Nasional</span>
-  <span class="legend-badge lb-CB">🟡 Cuti Bersama</span>
-</div>
-
-<!-- TICKER -->
-<div id="serahTerimaTicker" class="news-ticker">
-  <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
-  <div class="ticker-viewport">
-    <div class="news-track" id="newsTrack">
-      <div id="serahTerimaText">Memuat serah terima...</div>
-      <div id="serahTerimaClone"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== TOOLBAR ===== -->
-<div class="schedule-toolbar">
-  <div class="search-bar-wrap">
-    <i class="fas fa-search search-icon"></i>
-    <input type="text" class="staff-search-input" id="staffSearchInput" placeholder="Cari nama staff...">
-    <button class="search-clear" id="searchClear" onclick="document.getElementById('staffSearchInput').value='';applySearchFilter('')" style="display:none">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-  <div class="quick-nav-row">
-    <button class="quick-nav-btn" id="prevWeekBtn" title="Minggu Sebelumnya (Alt+←)">‹</button>
-    <div class="quick-nav-label" id="quickNavLabel">WEEK —</div>
-    <button class="quick-nav-btn" id="nextWeekBtn" title="Minggu Berikutnya (Alt+→)">›</button>
   </div>
 </div>
 

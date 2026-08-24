@@ -207,16 +207,18 @@ body > header, body > main, body > footer.cyber-signature{
 .loader-dev-credit .dev-divider{width:14px;height:1px;background:var(--border-strong);}
 .loader-dev-credit .dev-name-shine{
   font-weight:800;letter-spacing:1px;text-transform:none;
-  background:linear-gradient(90deg,var(--accent) 0%,var(--teal) 20%,#FFFFFF 40%,var(--teal) 60%,var(--accent) 100%);
-  background-size:250% auto;-webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent;
-  animation:devShine 3.4s linear infinite;
-  display:inline-block;
+  color:var(--accent);
+  text-shadow:0 0 12px var(--accent-dim),0 0 2px rgba(255,255,255,0.4);
+  position:relative;display:inline-block;
 }
-@supports not ((-webkit-background-clip:text) or (background-clip:text)){
-  .loader-dev-credit .dev-name-shine{-webkit-text-fill-color:initial;color:var(--accent);background:none;}
+/* Decorative light sweep overlay — text itself stays solid & always visible */
+.loader-dev-credit .dev-name-shine::after{
+  content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.85),transparent);
+  transform:skewX(-20deg);mix-blend-mode:overlay;
+  animation:devSweep 2.6s ease-in-out infinite;
 }
-@keyframes devShine{0%{background-position:220% center;}100%{background-position:-30% center;}}
+@keyframes devSweep{0%{left:-60%;}100%{left:140%;}}
 
 /* Light-mode loader contrast fix — bottle & text were nearly invisible on white */
 body.formal-theme #cyberLoader{
@@ -238,8 +240,8 @@ body.formal-theme .loader-glow{background:radial-gradient(circle,rgba(24,87,214,
 body.formal-theme .loader-text{color:var(--text-dim);}
 body.formal-theme .loader-dev-credit{color:var(--text-dim);}
 body.formal-theme .loader-dev-credit .dev-name-shine{
-  background:linear-gradient(90deg,var(--accent) 0%,var(--teal) 20%,#1857D6 40%,var(--teal) 60%,var(--accent) 100%);
-  background-size:250% auto;
+  color:#1857D6;
+  text-shadow:0 0 10px rgba(24,87,214,0.25),0 0 1px rgba(24,87,214,0.4);
 }
 
 /* =========================================================
