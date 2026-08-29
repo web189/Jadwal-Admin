@@ -112,6 +112,7 @@
     <button id="adminBtn" class="hmenu-btn"><i class="fas fa-lock"></i> KA Gudang</button>
     <button id="logoutBtn" class="hmenu-btn hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
     <button id="saveBtn" class="hmenu-btn hidden btn-success"><i class="fas fa-save"></i> Simpan</button>
+    <button id="rotationOrderBtn" class="hmenu-btn hidden"><i class="fas fa-random"></i> Urutan Rotasi</button>
     <button id="exportBtn" class="hmenu-btn hidden"><i class="fas fa-file-excel"></i> Export</button>
     <button id="printBtn" class="hmenu-btn hidden"><i class="fas fa-print"></i> Print</button>
 
@@ -350,6 +351,33 @@
   </div>
 </div>
 
+<!-- Rotation Order Modal (KA Gudang only) -->
+<div id="rotationOrderModal" class="modal" role="dialog" aria-label="Atur Urutan Rotasi">
+  <div class="modal-box modal-wide">
+    <div class="modal-title"><i class="fas fa-random"></i> Atur Urutan Rotasi Admin</div>
+    <p class="rotation-order-hint">
+      Ubah posisi admin dalam urutan rotasi (contoh: pindahkan RANDHIKA ke posisi BUDIYANSAH). Perubahan berlaku mulai minggu yang dipilih dan <strong>otomatis berlanjut ke minggu-minggu berikutnya</strong> mengikuti pola rotasi normal, sampai ada perubahan urutan baru. <strong>RIAN ARSYANSYAH</strong> tidak ikut diatur di sini karena jadwalnya tetap setiap minggu.
+    </p>
+
+    <div class="hmenu-group rotation-week-group">
+      <label class="hmenu-label"><i class="fas fa-calendar-week"></i> Berlaku Mulai Minggu</label>
+      <select id="rotationWeekSelect"></select>
+    </div>
+
+    <div id="rotationOrderList" class="rotation-order-list"></div>
+
+    <div id="rotationOverrideHistory" class="rotation-override-history"></div>
+
+    <div class="modal-actions rotation-modal-actions">
+      <button class="btn-ghost btn-danger" id="rotationOrderResetBtn"><i class="fas fa-undo"></i> Hapus Override</button>
+      <div class="rotation-modal-actions-right">
+        <button class="btn-ghost" id="rotationOrderCloseBtn"><i class="fas fa-times"></i> Batal</button>
+        <button class="btn-primary" id="rotationOrderSaveBtn"><i class="fas fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== SIGNATURE ===== -->
 <footer class="cyber-signature">
   <div class="signature-text">
@@ -535,7 +563,7 @@ window.__loaderStart = Date.now();
 
   // Auto-close the menu after picking an action inside it (keeps flow snappy on mobile)
   hbMenu?.addEventListener('click', e => {
-    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect');
+    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect, #rotationOrderBtn');
     if (el && el.tagName !== 'SELECT') setTimeout(closeHamburger, 150);
   });
 })();

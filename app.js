@@ -105,6 +105,11 @@ const kegiatanDefault = [
 
 // ================= STATE =================
 let isAdmin = false;
+// Urutan rotasi kustom (KA Gudang). Key: "week_<n>" → array NIK 5 admin rotasi
+// dalam urutan baru, berlaku mulai minggu <n> dan seterusnya sampai ada
+// perubahan baru. Dimuat dari Firebase path "rotationOverrides".
+let rotationOverrides = {};
+let rotationOrderDraft = [];
 let currentDateKey = todayISO();
 let chatLastCount = 0;
 let chatPollingInterval = null;
@@ -146,12 +151,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sel) sel.value = currentWeek;
 
   waitForFirebase(() => {
-    renderSchedule(currentWeek);
-    loadSerahTerima();
-    initChat();
-    loadKegiatan();
-    initPresence();
-    closeLoader(); // tutup loader begitu data siap
+    loadRotationOverrides().finally(() => {
+      renderSchedule(currentWeek);
+      loadSerahTerima();
+      initChat();
+      loadKegiatan();
+      initPresence();
+      closeLoader(); // tutup loader begitu data siap
+    });
   });
 
   setupEvents();
@@ -229,6 +236,18 @@ function setupEvents() {
   document.getElementById("saveBtn")?.addEventListener("click", saveChanges);
   document.getElementById("exportBtn")?.addEventListener("click", exportToExcel);
   document.getElementById("printBtn")?.addEventListener("click", () => window.print());
+
+  // Atur urutan rotasi (KA Gudang)
+  document.getElementById("rotationOrderBtn")?.addEventListener("click", openRotationOrderModal);
+  document.getElementById("rotationOrderCloseBtn")?.addEventListener("click", closeRotationOrderModal);
+  document.getElementById("rotationOrderSaveBtn")?.addEventListener("click", saveRotationOrder);
+  document.getElementById("rotationOrderResetBtn")?.addEventListener("click", () => {
+    const week = parseInt(document.getElementById("rotationWeekSelect")?.value);
+    if (week) deleteRotationOverride(week);
+  });
+  document.getElementById("rotationWeekSelect")?.addEventListener("change", e => {
+    loadRotationDraftForWeek(parseInt(e.target.value));
+  });
 
   // Theme toggle
   document.getElementById("themeToggle")?.addEventListener("click", () => {
@@ -364,6 +383,37 @@ function setupEvents() {
   }
 }
 
+// ================= ROTATION ORDER OVERRIDES (KA Gudang) =================
+// Memuat seluruh override urutan rotasi dari Firebase satu kali di awal.
+function loadRotationOverrides() {
+  if (!window.db) { rotationOverrides = {}; return Promise.resolve(); }
+  return window.firebaseGet(window.firebaseRef(window.db, "rotationOverrides"))
+    .then(snapshot => { rotationOverrides = snapshot.exists() ? snapshot.val() : {}; })
+    .catch(err => { console.error("Gagal memuat rotationOverrides:", err); rotationOverrides = {}; });
+}
+
+// Mengembalikan urutan array staff[] (5 admin rotasi) yang berlaku untuk
+// minggu tertentu. Mencari override terdekat yang mulai berlaku pada minggu
+// <= weekNumber; jika tidak ada, kembalikan urutan asli staff[].
+// Sekali diubah pada suatu minggu, urutan baru ini otomatis terus berlanjut
+// ke minggu-minggu berikutnya (mengikuti rumus rotasi normal) sampai ada
+// override baru yang lebih baru.
+function getEffectiveStaffOrder(weekNumber) {
+  const weeks = Object.keys(rotationOverrides)
+    .map(k => parseInt(String(k).replace("week_", "")))
+    .filter(w => !isNaN(w) && w <= weekNumber)
+    .sort((a, b) => b - a);
+  if (weeks.length === 0) return staff;
+
+  const niks = rotationOverrides["week_" + weeks[0]];
+  if (!Array.isArray(niks) || niks.length !== staff.length) return staff;
+
+  const byNik = {};
+  staff.forEach(s => { byNik[s.nik] = s; });
+  const reordered = niks.map(nik => byNik[nik]).filter(Boolean);
+  return reordered.length === staff.length ? reordered : staff;
+}
+
 // ================= WEEK ROW BUILDER =================
 // Mengembalikan array baris { person, pattern } sesuai urutan tampil di tabel
 // untuk minggu tertentu. Menyatukan logika lama (staffOld/basePatternOld),
@@ -382,20 +432,23 @@ function getWeekRows(weekNumber) {
       rows.push({ person: staffOld[idx], pattern: basePatternOld[i] });
     }
   } else if (weekNumber < NEW_ADMIN_WEEK) {
+    const staffOrder = getEffectiveStaffOrder(weekNumber);
     const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
-    for (let i = 0; i < staff.length; i++) {
-      const idx = (i + rotation) % staff.length;
-      rows.push({ person: staff[idx], pattern: basePattern[i] });
+    for (let i = 0; i < staffOrder.length; i++) {
+      const idx = (i + rotation) % staffOrder.length;
+      rows.push({ person: staffOrder[idx], pattern: basePattern[i] });
     }
   } else {
     // Week 35+: 6 baris. RIAN ARSYANSYAH selalu di RIAN_ROW_INDEX dengan
-    // pattern tetap. 5 admin lain rotasi mengisi ROTATING_ROW_INDEXES.
+    // pattern tetap. 5 admin lain rotasi mengisi ROTATING_ROW_INDEXES,
+    // memakai urutan efektif (asli atau hasil override KA Gudang).
+    const staffOrder = getEffectiveStaffOrder(weekNumber);
     const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
     const tempRows = new Array(6);
-    for (let j = 0; j < staff.length; j++) {
-      const idx = (j + rotation) % staff.length;
+    for (let j = 0; j < staffOrder.length; j++) {
+      const idx = (j + rotation) % staffOrder.length;
       const rowIdx = ROTATING_ROW_INDEXES[j];
-      tempRows[rowIdx] = { person: staff[idx], pattern: basePatternWithRian[rowIdx] };
+      tempRows[rowIdx] = { person: staffOrder[idx], pattern: basePatternWithRian[rowIdx] };
     }
     tempRows[RIAN_ROW_INDEX] = { person: staffRian, pattern: basePatternWithRian[RIAN_ROW_INDEX] };
     for (let k = 0; k < 6; k++) rows.push(tempRows[k]);
@@ -640,9 +693,128 @@ function closeModal() {
 function toggleAdminButtons(state) {
   isAdmin = state;
   ["adminBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", state));
-  ["logoutBtn","saveBtn","exportBtn","printBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", !state));
+  ["logoutBtn","saveBtn","exportBtn","printBtn","rotationOrderBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", !state));
   document.body.classList.toggle("admin-active", state);
   renderSchedule(parseInt(document.getElementById("weekSelect").value));
+}
+
+// ================= ATUR URUTAN ROTASI (KA Gudang) =================
+// Menampilkan 5 admin rotasi (di luar RIAN ARSYANSYAH) sesuai urutan yang
+// berlaku pada minggu terpilih, dan mengizinkan KA Gudang menukar posisi
+// mereka. Urutan baru disimpan sebagai override yang berlaku mulai minggu
+// tersebut dan otomatis berlanjut ke minggu-minggu berikutnya.
+
+function renderRotationOrderList() {
+  const wrap = document.getElementById("rotationOrderList");
+  if (!wrap) return;
+  wrap.innerHTML = rotationOrderDraft.map((s, idx) => `
+    <div class="rotation-order-item" data-nik="${s.nik}">
+      <span class="rotation-order-num">${idx + 1}</span>
+      <div class="staff-avatar" data-initial="${s.avatar}">${s.avatar}</div>
+      <span class="rotation-order-name">${s.nama}</span>
+      <div class="rotation-order-actions">
+        <button type="button" class="rot-move-btn" onclick="moveRotationItem(${idx},-1)" ${idx === 0 ? "disabled" : ""} aria-label="Naik"><i class="fas fa-chevron-up"></i></button>
+        <button type="button" class="rot-move-btn" onclick="moveRotationItem(${idx},1)" ${idx === rotationOrderDraft.length - 1 ? "disabled" : ""} aria-label="Turun"><i class="fas fa-chevron-down"></i></button>
+      </div>
+    </div>`).join("");
+}
+
+function moveRotationItem(idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= rotationOrderDraft.length) return;
+  const tmp = rotationOrderDraft[idx];
+  rotationOrderDraft[idx] = rotationOrderDraft[j];
+  rotationOrderDraft[j] = tmp;
+  renderRotationOrderList();
+}
+
+function loadRotationDraftForWeek(week) {
+  rotationOrderDraft = getEffectiveStaffOrder(week).slice();
+  renderRotationOrderList();
+}
+
+function renderRotationOverrideHistory() {
+  const el = document.getElementById("rotationOverrideHistory");
+  if (!el) return;
+  const weeks = Object.keys(rotationOverrides)
+    .map(k => parseInt(String(k).replace("week_", "")))
+    .filter(w => !isNaN(w))
+    .sort((a, b) => a - b);
+
+  if (weeks.length === 0) {
+    el.innerHTML = `<p class="rotation-history-empty">Belum ada perubahan urutan rotasi.</p>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="rotation-history-title">Riwayat Perubahan Urutan</div>` +
+    weeks.map(w => {
+      const niks = rotationOverrides["week_" + w] || [];
+      const names = niks.map(nik => (staff.find(s => s.nik === nik) || {}).nama || nik).join(" → ");
+      return `<div class="rotation-history-item">
+        <span>Week ${w}: ${names}</span>
+        <button type="button" class="rot-history-del" onclick="deleteRotationOverride(${w})" aria-label="Hapus override"><i class="fas fa-trash"></i></button>
+      </div>`;
+    }).join("");
+}
+
+function buildRotationWeekOptions() {
+  const sel = document.getElementById("rotationWeekSelect");
+  if (!sel || sel.dataset.built) return;
+  for (let i = 25; i <= 52; i++) {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = "Week " + i;
+    sel.appendChild(opt);
+  }
+  sel.dataset.built = "1";
+}
+
+function openRotationOrderModal() {
+  buildRotationWeekOptions();
+  const sel = document.getElementById("rotationWeekSelect");
+  const activeWeek = parseInt(document.getElementById("weekSelect")?.value) || 25;
+  const startWeek = Math.min(52, Math.max(25, activeWeek));
+  if (sel) sel.value = startWeek;
+  loadRotationDraftForWeek(startWeek);
+  renderRotationOverrideHistory();
+  document.getElementById("rotationOrderModal")?.classList.add("active");
+}
+
+function closeRotationOrderModal() {
+  document.getElementById("rotationOrderModal")?.classList.remove("active");
+}
+
+function saveRotationOrder() {
+  const week = parseInt(document.getElementById("rotationWeekSelect")?.value);
+  if (!week) return;
+  const niks = rotationOrderDraft.map(s => s.nik);
+  const btn = document.getElementById("rotationOrderSaveBtn");
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; }
+
+  window.firebaseSet(window.firebaseRef(window.db, "rotationOverrides/week_" + week), niks)
+    .then(() => {
+      rotationOverrides["week_" + week] = niks;
+      showToast("✅ Urutan rotasi diperbarui mulai Week " + week);
+      renderRotationOverrideHistory();
+      renderSchedule(parseInt(document.getElementById("weekSelect").value));
+    })
+    .catch(err => showToast("❌ Gagal menyimpan: " + err.message))
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Simpan'; }
+    });
+}
+
+function deleteRotationOverride(week) {
+  window.firebaseSet(window.firebaseRef(window.db, "rotationOverrides/week_" + week), null)
+    .then(() => {
+      delete rotationOverrides["week_" + week];
+      showToast("🗑️ Override Week " + week + " dihapus");
+      renderRotationOverrideHistory();
+      const selWeek = parseInt(document.getElementById("rotationWeekSelect")?.value) || week;
+      loadRotationDraftForWeek(selWeek);
+      renderSchedule(parseInt(document.getElementById("weekSelect").value));
+    })
+    .catch(err => showToast("❌ Gagal menghapus: " + err.message));
 }
 
 // ================= FORMAT =================
