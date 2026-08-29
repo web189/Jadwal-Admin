@@ -370,15 +370,15 @@ function setupEvents() {
   // Auth state listener
   if (window.onAuthStateChangedFirebase && window.auth) {
     window.onAuthStateChangedFirebase(window.auth, (user) => {
-      if (user) {
-        isAdmin = true;
-        toggleAdminButtons(true);
-        document.body.classList.add("admin-active");
-      } else {
-        isAdmin = false;
-        toggleAdminButtons(false);
-        document.body.classList.remove("admin-active");
-      }
+      const nextState = !!user;
+      // Lewati jika status tidak benar-benar berubah (mis. listener ini
+      // terpicu belakangan setelah startBiometricScan sudah mengatur status
+      // yang sama). Mencegah proses redundan yang bisa menimpa editan admin
+      // yang sedang berlangsung.
+      if (isAdmin === nextState) return;
+      isAdmin = nextState;
+      toggleAdminButtons(nextState);
+      document.body.classList.toggle("admin-active", nextState);
     });
   }
 }
@@ -691,11 +691,18 @@ function closeModal() {
 }
 
 function toggleAdminButtons(state) {
+  // PENTING: jangan panggil renderSchedule() di sini.
+  // toggleAdminButtons dipanggil dari 2 tempat untuk event login yang sama
+  // (startBiometricScan DAN listener onAuthStateChanged), dan onAuthStateChanged
+  // bisa terpicu belakangan (delay). Jika renderSchedule() dipanggil ulang saat
+  // KA Gudang sudah mulai mengedit shift, tabel akan di-render ulang dari data
+  // lama di Firebase dan menimpa/menghapus semua editan yang belum disimpan.
+  // Tampilan tabel sendiri tidak bergantung pada status admin, jadi re-render
+  // di sini tidak diperlukan sama sekali.
   isAdmin = state;
   ["adminBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", state));
   ["logoutBtn","saveBtn","exportBtn","printBtn","rotationOrderBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", !state));
   document.body.classList.toggle("admin-active", state);
-  renderSchedule(parseInt(document.getElementById("weekSelect").value));
 }
 
 // ================= ATUR URUTAN ROTASI (KA Gudang) =================
