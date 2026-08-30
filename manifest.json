@@ -1,0 +1,38 @@
+{
+  "name": "Jadwal Admin Gudang 2026 — Sistem Manajemen Jadwal",
+  "short_name": "Jadwal Admin",
+  "description": "Website manajemen jadwal admin gudang — monitoring shift, pembagian tugas, dan serah terima secara efisien.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#070B18",
+  "theme_color": "#2F7DFF",
+  "lang": "id-ID",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
