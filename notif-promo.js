@@ -12,6 +12,20 @@
   const ICON_ABS = (function () {
     try { return new URL("favicon.png", document.baseURI).href; } catch (e) { return "favicon.png"; }
   })();
+  // Ikon resolusi lebih tinggi khusus notif native, biar tidak pecah/blur
+  // saat di-render besar oleh Windows/Chrome (icon-192 sudah ada di project, 0 request tambahan berat).
+  const ICON_NATIVE = (function () {
+    try { return new URL("icon-192.png", document.baseURI).href; } catch (e) { return ICON_ABS; }
+  })();
+
+  // Beberapa variasi copywriting promo, dirotasi tiap kali muncul biar tidak monoton/spam.
+  const PROMO_VARIANTS = [
+    { title: "Website Bisnis Siap dalam 7 Hari", body: "Desain modern & cepat, SEO-friendly. Konsultasi awal 100% gratis." },
+    { title: "Belum Punya Website Profesional?", body: "Naikkan kelas bisnismu ke digital. Ngobrol dulu, gratis tanpa komitmen." },
+    { title: "Toko Online Impian, Jadi Nyata", body: "Dari ide sampai online — kami temani dari nol sampai siap jualan." },
+    { title: "Website Kekinian 2026 Untukmu", body: "Loading kilat, tampilan modern, gampang diurus sendiri. Yuk tanya-tanya." },
+  ];
+  let promoVariantIdx = 0;
 
   // ---------- Native OS/browser notification ----------
   function canUseNative() {
@@ -31,7 +45,7 @@
     try {
       const n = new Notification(title, {
         body: body,
-        icon: ICON_ABS,
+        icon: (opts && opts.icon) || ICON_NATIVE,
         badge: ICON_ABS,
         tag: (opts && opts.tag) || undefined,
         renotify: !!(opts && opts.tag),
@@ -92,12 +106,15 @@
       duration = kind === "promo" ? 0 : 6000,
       onClick = null,
       nativeTag = null,
+      nativeBody = null, // teks body khusus utk notif native, biar tidak duplikat sama title
     } = opts || {};
 
     // 1) Coba tembak notifikasi ASLI (kalau user sudah kasih izin)
-    const plainBody = lines.length
+    const plainBody = nativeBody
+      ? nativeBody
+      : lines.length
       ? lines.map((l) => l.replace(/<[^>]+>/g, "")).join(" • ")
-      : title.replace(/<[^>]+>/g, "");
+      : "";
     fireNative(title || site, plainBody, { tag: nativeTag || kind, onClick });
 
     // 2) Tetap tampilkan kartu in-page (branding + tombol custom)
@@ -114,6 +131,7 @@
     let bodyHtml = "";
     if (kind === "promo") {
       bodyHtml = `
+        <span class="os-notif-promo-badge">PROMO</span>
         <div class="os-notif-promo-row">
           <div class="os-notif-promo-icon">🚀</div>
           <div class="os-notif-promo-title">${title}</div>
@@ -190,9 +208,12 @@
   document.addEventListener("DOMContentLoaded", () => {
     function fireBenyorikiPromo() {
       if (typeof window.showOSNotification !== "function") return;
+      const variant = PROMO_VARIANTS[promoVariantIdx % PROMO_VARIANTS.length];
+      promoVariantIdx++;
       window.showOSNotification({
         kind: "promo",
-        title: "Website Bisnis Siap dalam 7 Hari",
+        title: variant.title,
+        nativeBody: variant.body,
         cta: { label: "🎯 Konsultasi Gratis Sekarang →", url: "https://benyoriki.com/" },
         secondaryLabel: "Nanti",
         nativeTag: "promo-" + Date.now(), // tag unik supaya tiap notif native baru tetap muncul, tidak ke-replace diam2
