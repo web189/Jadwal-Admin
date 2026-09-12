@@ -896,6 +896,9 @@ function updateShiftCountdown() {
 }
 
 // ================= SERAH TERIMA =================
+let serahTerimaLastSnapshot = null; // dateKey|s1|s2|s3 sebelumnya, buat deteksi perubahan
+let serahTerimaFirstLoad = true;    // supaya tidak notif saat load pertama kali buka web
+
 function loadSerahTerima() {
   if (!window.db) return;
   const dateKey = todayISO();
@@ -910,6 +913,30 @@ function loadSerahTerima() {
       const clone = document.getElementById("serahTerimaClone");
       if (el) el.innerHTML = text;
       if (clone) clone.innerHTML = text;
+
+      // Deteksi ada serah terima baru/berubah -> tampilkan notif OS-style
+      const sig = dateKey + "|" + s1 + "|" + s2 + "|" + s3;
+      if (!serahTerimaFirstLoad && sig !== serahTerimaLastSnapshot && window.showOSNotification) {
+        const changedShift = !serahTerimaLastSnapshot || !serahTerimaLastSnapshot.startsWith(dateKey)
+          ? null
+          : (() => {
+              const prev = serahTerimaLastSnapshot.split("|");
+              if (prev[1] !== s1) return { shift: 1, isi: s1 };
+              if (prev[2] !== s2) return { shift: 2, isi: s2 };
+              if (prev[3] !== s3) return { shift: 3, isi: s3 };
+              return null;
+            })();
+        if (changedShift) {
+          window.showOSNotification({
+            kind: "serahterima",
+            title: "Serah Terima Shift " + changedShift.shift,
+            lines: [escapeHtml(changedShift.isi).substring(0, 90)],
+            onClick: () => scrollToSection("serahTerimaTicker")
+          });
+        }
+      }
+      serahTerimaLastSnapshot = sig;
+      serahTerimaFirstLoad = false;
     });
 }
 
@@ -1029,6 +1056,20 @@ async function loadChatMessages() {
         updateChatBadge(unreadMessages);
         // Play notification sound
         playNotifSound();
+        // OS-style popup notification (mirip notif WhatsApp Web)
+        if (window.showOSNotification) {
+          const newKeys = last100.slice(-unreadMessages);
+          const lines = newKeys.map(k => {
+            const m = data[k];
+            return `<b>${escapeHtml(m.nama)}</b>: ${escapeHtml(m.pesan).substring(0, 60)}`;
+          });
+          window.showOSNotification({
+            kind: "chat",
+            title: "Team Operasional",
+            lines: lines,
+            onClick: () => toggleChat()
+          });
+        }
       }
     }
     chatLastCount = last100.length;
