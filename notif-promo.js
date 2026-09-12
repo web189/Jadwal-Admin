@@ -1,17 +1,78 @@
 /* =====================================================================
-   OS-STYLE NOTIFICATION (mirip notif Windows/Chrome ala WhatsApp Web)
-   =====================================================================
-   Ini elemen HTML/CSS custom yang meniru tampilan notifikasi sistem —
-   bukan Notification API asli — jadi tampilannya bisa 100% dikontrol
-   (nama pengirim/situs, ikon, pesan) dan tetap konsisten di semua browser.
-
-   Dipakai untuk 3 jenis notif, semua pakai header yang sama persis
-   (ikon + nama situs + "sekarang" + gear + close), body-nya beda:
-     1. kind: "promo"       -> promosi benyoriki.com (dengan tombol CTA)
-     2. kind: "chat"        -> pesan grup/chat baru
-     3. kind: "serahterima" -> catatan serah terima baru/berubah
+   NOTIFIKASI GANDA:
+   1) Native Notification API -> notif ASLI dari browser/Windows/Mac,
+      muncul di pojok layar (seperti WhatsApp Web) walau tab di-minimize,
+      SELAMA browser masih berjalan. Perlu izin user (klik tombol
+      "Aktifkan Notifikasi Desktop" di menu, atau prompt otomatis).
+   2) Kartu di dalam halaman (in-page) -> tetap tampil sebagai fallback
+      kalau user belum kasih izin / browser tidak mendukung, sekaligus
+      jadi elemen visual branded yang bisa didesain bebas.
    ===================================================================== */
 (function () {
+  const ICON_ABS = (function () {
+    try { return new URL("favicon.png", document.baseURI).href; } catch (e) { return "favicon.png"; }
+  })();
+
+  // ---------- Native OS/browser notification ----------
+  function canUseNative() {
+    return "Notification" in window;
+  }
+
+  function requestNotifPermission() {
+    if (!canUseNative()) return Promise.resolve("unsupported");
+    if (Notification.permission === "granted" || Notification.permission === "denied") {
+      return Promise.resolve(Notification.permission);
+    }
+    return Notification.requestPermission();
+  }
+
+  function fireNative(title, body, opts) {
+    if (!canUseNative() || Notification.permission !== "granted") return null;
+    try {
+      const n = new Notification(title, {
+        body: body,
+        icon: ICON_ABS,
+        badge: ICON_ABS,
+        tag: (opts && opts.tag) || undefined,
+        renotify: !!(opts && opts.tag),
+        silent: false,
+      });
+      n.onclick = () => {
+        window.focus();
+        if (opts && typeof opts.onClick === "function") opts.onClick();
+        n.close();
+      };
+      setTimeout(() => n.close(), 8000);
+      return n;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  window.requestNotifPermission = requestNotifPermission;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("enableNotifBtn");
+    if (!btn) return;
+    const setLabel = () => {
+      if (!canUseNative()) { btn.innerHTML = '<i class="fas fa-bell-slash"></i> Notifikasi Tidak Didukung'; btn.disabled = true; return; }
+      if (Notification.permission === "granted") btn.innerHTML = '<i class="fas fa-check"></i> Notifikasi Desktop Aktif';
+      else if (Notification.permission === "denied") btn.innerHTML = '<i class="fas fa-bell-slash"></i> Notifikasi Diblokir Browser';
+      else btn.innerHTML = '<i class="fas fa-bell"></i> Aktifkan Notifikasi Desktop';
+    };
+    setLabel();
+    btn.addEventListener("click", () => {
+      requestNotifPermission().then(() => {
+        setLabel();
+        if (Notification.permission === "granted") {
+          fireNative("BENYORIKI.COM", "Notifikasi desktop aktif ✅", {});
+          if (window.showToast) window.showToast("🔔 Notifikasi desktop diaktifkan!");
+        }
+      });
+    });
+  });
+
+  // ---------- In-page styled card ----------
   function dismiss(el) {
     if (!el || el.dataset.closing) return;
     el.dataset.closing = "1";
@@ -26,12 +87,20 @@
       icon = "favicon.png",
       title = "",
       lines = [],
-      cta = null,           // { label, url }
-      secondaryLabel = null, // contoh: "Nanti"
-      duration = kind === "promo" ? 0 : 6000, // 0 = tidak auto-hilang
+      cta = null,
+      secondaryLabel = null,
+      duration = kind === "promo" ? 0 : 6000,
       onClick = null,
+      nativeTag = null,
     } = opts || {};
 
+    // 1) Coba tembak notifikasi ASLI (kalau user sudah kasih izin)
+    const plainBody = lines.length
+      ? lines.map((l) => l.replace(/<[^>]+>/g, "")).join(" • ")
+      : title.replace(/<[^>]+>/g, "");
+    fireNative(title || site, plainBody, { tag: nativeTag || kind, onClick });
+
+    // 2) Tetap tampilkan kartu in-page (branding + tombol custom)
     const old = document.getElementById("osNotifPopup");
     if (old) old.remove();
 
@@ -86,7 +155,10 @@
       if (timer) clearTimeout(timer);
       dismiss(el);
     });
-    el.querySelector(".os-notif-gear").addEventListener("click", (e) => e.stopPropagation());
+    el.querySelector(".os-notif-gear").addEventListener("click", (e) => {
+      e.stopPropagation();
+      requestNotifPermission();
+    });
 
     const ctaBtn = el.querySelector(".os-notif-cta");
     if (ctaBtn && cta) {
@@ -114,7 +186,7 @@
     return el;
   };
 
-  // ================= AUTO PROMO — sekali per sesi, muncul beberapa detik setelah load =================
+  // ================= AUTO PROMO — sekali per sesi =================
   document.addEventListener("DOMContentLoaded", () => {
     if (sessionStorage.getItem("benyorikiPromoShown")) return;
     setTimeout(() => {
@@ -124,6 +196,7 @@
         title: "Website Bisnis Siap dalam 7 Hari",
         cta: { label: "🎯 Konsultasi Gratis Sekarang →", url: "https://benyoriki.com/" },
         secondaryLabel: "Nanti",
+        nativeTag: "promo",
       });
       sessionStorage.setItem("benyorikiPromoShown", "1");
     }, 12000);
