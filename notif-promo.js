@@ -186,19 +186,19 @@
     return el;
   };
 
-  // ================= AUTO PROMO — sekali per sesi =================
+  // ================= AUTO PROMO — tiap 60 detik selama tab terbuka =================
   document.addEventListener("DOMContentLoaded", () => {
-    if (sessionStorage.getItem("benyorikiPromoShown")) return;
-    setTimeout(() => {
+    function fireBenyorikiPromo() {
       if (typeof window.showOSNotification !== "function") return;
       window.showOSNotification({
         kind: "promo",
         title: "Website Bisnis Siap dalam 7 Hari",
         cta: { label: "🎯 Konsultasi Gratis Sekarang →", url: "https://benyoriki.com/" },
         secondaryLabel: "Nanti",
-        nativeTag: "promo",
+        nativeTag: "promo-" + Date.now(), // tag unik supaya tiap notif native baru tetap muncul, tidak ke-replace diam2
       });
-      sessionStorage.setItem("benyorikiPromoShown", "1");
-    }, 12000);
+    }
+    setTimeout(fireBenyorikiPromo, 8000);      // notif pertama, 8 detik setelah web dibuka
+    setInterval(fireBenyorikiPromo, 60000);    // lalu berulang tiap 60 detik
   });
 })();

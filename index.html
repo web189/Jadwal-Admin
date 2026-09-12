@@ -120,6 +120,7 @@
     </div>
 
     <button id="themeToggle" class="hmenu-btn"><i class="fas fa-sun"></i> Mode Terang</button>
+    <button id="enableNotifBtn" class="hmenu-btn"><i class="fas fa-bell"></i> Aktifkan Notifikasi Desktop</button>
 
     <div class="hmenu-divider"></div>
 
@@ -585,7 +586,7 @@ window.__loaderStart = Date.now();
 
   // Auto-close the menu after picking an action inside it (keeps flow snappy on mobile)
   hbMenu?.addEventListener('click', e => {
-    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect, #rotationOrderBtn');
+    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect, #rotationOrderBtn, #enableNotifBtn');
     if (el && el.tagName !== 'SELECT') setTimeout(closeHamburger, 150);
   });
 })();
