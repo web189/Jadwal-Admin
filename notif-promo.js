@@ -204,7 +204,7 @@
     return el;
   };
 
-  // ================= AUTO PROMO — tiap 60 detik selama tab terbuka =================
+  // ================= AUTO PROMO — tiap 5 menit selama tab terbuka =================
   document.addEventListener("DOMContentLoaded", () => {
     function fireBenyorikiPromo() {
       if (typeof window.showOSNotification !== "function") return;
@@ -219,7 +219,8 @@
         nativeTag: "promo-" + Date.now(), // tag unik supaya tiap notif native baru tetap muncul, tidak ke-replace diam2
       });
     }
-    setTimeout(fireBenyorikiPromo, 8000);      // notif pertama, 8 detik setelah web dibuka
-    setInterval(fireBenyorikiPromo, 60000);    // lalu berulang tiap 60 detik
+    const PROMO_INTERVAL_MS = 5 * 60 * 1000; // 5 menit
+    setTimeout(fireBenyorikiPromo, 8000);           // notif pertama, 8 detik setelah web dibuka
+    setInterval(fireBenyorikiPromo, PROMO_INTERVAL_MS); // lalu berulang tiap 5 menit
   });
 })();
