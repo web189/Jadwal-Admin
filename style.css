@@ -431,6 +431,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 .cyber-link-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--accent-dim);}
 .cyber-link-btn-amber{background:linear-gradient(135deg,var(--amber),#ffcf6b);box-shadow:0 4px 16px rgba(253,186,59,0.28);color:#3a2600;position:relative;}
 .cyber-link-btn-amber:hover{box-shadow:0 6px 22px rgba(253,186,59,0.4);}
+.cyber-link-btn-green{background:linear-gradient(135deg,var(--green),#7be8bd);box-shadow:0 4px 16px rgba(51,209,139,0.28);color:#03301c;position:relative;}
+.cyber-link-btn-green:hover{box-shadow:0 6px 22px rgba(51,209,139,0.4);}
 .link-ext-icon{margin-left:auto;font-size:10px;opacity:0.75;}
 
 /* =========================================================
@@ -840,6 +842,9 @@ footer.cyber-signature{margin-top:28px;padding:22px 18px;text-align:center;backg
 /* Arisan quick-link (mobile bottom nav) — amber accent to stand out as an external shortcut */
 .mobile-nav-item.nav-arisan i:first-child{color:var(--amber);}
 .mobile-nav-item.nav-arisan:hover,.mobile-nav-item.nav-arisan:hover i:first-child{color:var(--amber);filter:drop-shadow(0 0 6px rgba(253,186,59,0.55));}
+.mobile-nav-item.nav-dms i:first-child{color:var(--green);}
+.mobile-nav-item.nav-dms:hover,.mobile-nav-item.nav-dms:hover i:first-child{color:var(--green);filter:drop-shadow(0 0 6px rgba(51,209,139,0.55));}
+.mobile-nav-item.nav-dms .nav-ext-icon{color:var(--green)!important;}
 .nav-ext-icon{position:absolute;top:3px;right:calc(50% - 17px);font-size:7px!important;color:var(--amber)!important;opacity:0.85;filter:none!important;}
 
 /* Scrollbar */
