@@ -1,630 +1,270 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="is-loading">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Jadwal Admin Gudang 2026 - Sistem Manajemen Jadwal</title>
-<meta name="description" content="Website manajemen jadwal admin gudang — monitoring shift, pembagian tugas, dan serah terima secara efisien.">
-<meta property="og:title" content="Jadwal Admin Gudang 2026">
-<meta property="og:description" content="Sistem jadwal Admin Gudang terintegrasi berbasis cyber interface.">
-<meta property="og:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg">
-<meta name="theme-color" content="#00f5ff">
-<link rel="icon" href="favicon.png">
+  
+  <!-- Open Graph / Social Media Preview -->
+<meta property="og:title" content="LP-MODUL 2026 - Sistem Modul v.07">
 
-<!-- PWA Manifest & Icons -->
-<link rel="manifest" href="manifest.json">
+<meta property="og:description" content="Dokumen terkini, keputusan lebih cepat. Modul pelatihan admin GDNG PRG kini jadi pintu masuk menuju sistem gudang digital yang lebih canggih: data real-time, proses lebih cepat, kerja lebih efisien — akses mudah kapan saja, di mana saja.">
 
-<!-- iOS Safari (Add to Home Screen) -->
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta property="og:image" content="https://web189.github.io/E-Book/preview.jpg">
+<meta property="og:image:secure_url" content="https://web189.github.io/E-Book/preview.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<meta property="og:url" content="https://web189.github.io/E-Book/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LP-MODUL 2026">
+  
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LP-MODUL 2026 - Sistem Modul v.07</title>
+<meta name="description" content="Dokumen terkini, keputusan lebih cepat. Platform digital admin GDNG PRG: materi pelatihan lengkap sekaligus arah menuju sistem gudang real-time yang lebih canggih, aman, dan efisien.">
+<meta name="theme-color" content="#071A44">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Jadwal Admin">
-<meta name="mobile-web-app-capable" content="yes">
-
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<script>
-/* Deteksi PC lama (Windows XP/Vista/7/8) atau spesifikasi rendah -> MODE RINGAN.
-   Paksa: tambah ?lite=1 di alamat.  Matikan: ?lite=0 */
-(function(){
-  var ua = navigator.userAgent, h = document.documentElement, q = location.search;
-  var oldWin = /Windows NT (5\.|6\.[0-2])/.test(ua);
-  var weak = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory && navigator.deviceMemory <= 2);
-  var lite = /[?&]lite=1/.test(q) || (!/[?&]lite=0/.test(q) && (oldWin || weak));
-  if (lite) h.className += ' lite';
-  window.__LITE = lite;
-  window.__NOEMOJI = oldWin;   /* Windows <= 8.0 tidak punya font emoji berwarna */
-  if (!lite) {                 /* font web hanya di PC yang mampu, dimuat tanpa memblokir tampilan */
-    var f = document.createElement('link'); f.rel = 'stylesheet';
-    f.href = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap';
-    document.head.appendChild(f);
-  }
-})();
-</script>
+<meta name="apple-mobile-web-app-title" content="LP-MODUL">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="assets/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link rel="stylesheet" href="pc.css" media="(min-width:961px)">
 </head>
-<body class="formal-theme">
+<body>
 
-<!-- ===== LOADING SCREEN ===== -->
-<div id="cyberLoader">
-  <div class="loader-content">
-    <div class="loader-emblem">
-      <div class="loader-glow"></div>
-      <div class="loader-bottle" aria-hidden="true">
-        <div class="bottle-cap"></div>
-        <div class="bottle-body">
-          <div class="bottle-liquid" id="loaderLiquid">
-            <span class="liquid-wave"></span>
+<!-- ============ LOADING SCREEN (splash, ~5s) ============ -->
+<div id="loadingScreen" class="loading-screen" role="status" aria-label="Memuat situs">
+  <span class="loading-glow" aria-hidden="true"></span>
+  <span class="loading-grid" aria-hidden="true"></span>
+  <div class="loading-inner">
+    <div class="loading-logo-ring">
+      <span class="loading-logo-ping" aria-hidden="true"></span>
+      <img src="assets/icons/logo-dms-splash.webp" alt="" class="loading-logo">
+    </div>
+    <p class="loading-brand">DEPO PARUNG</p>
+    <p class="loading-tagline">Modul Sistem Database Centralized Real-Time</p>
+    <p class="loading-status" id="loadingStatus" aria-live="polite"></p>
+    <div class="loading-bar"><span></span></div>
+  </div>
+</div>
+
+<!-- ============ TOAST CONTAINER ============ -->
+<div id="toastRoot" class="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ============ CONFIRM DIALOG ============ -->
+<div id="confirmOverlay" class="overlay" hidden>
+  <div class="confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <p id="confirmTitle" class="confirm-title"></p>
+    <p id="confirmBody" class="confirm-body"></p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn-ghost" id="confirmCancel">Batal</button>
+      <button type="button" class="btn btn-danger" id="confirmOk">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADMIN LOGIN MODAL ============ -->
+<div id="loginOverlay" class="overlay" hidden>
+  <div class="login-box" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <button type="button" class="icon-btn login-close" id="loginClose" aria-label="Tutup">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <div class="login-mark"><img src="assets/icons/logo-dms.webp" alt="Logo"></div>
+    <h2 id="loginTitle" class="login-title">Admin Login</h2>
+    <p class="login-sub">Masuk untuk mengelola modul materi.</p>
+    <form id="loginForm" class="login-form" novalidate>
+      <label class="field">
+        <span class="field-label">Username</span>
+        <input type="text" id="loginUsername" name="username" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-label="Tampilkan password">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+          </button>
+        </div>
+      </label>
+      <p class="login-error" id="loginError" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primary btn-block" id="loginSubmit">
+        <span class="btn-label">Masuk</span>
+        <span class="spinner" hidden></span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ VISITOR HEADER ============ -->
+<header class="site-header" id="siteHeader">
+  <div class="header-inner">
+    <div class="header-brand">
+      <button type="button" class="logo-trigger" id="logoTrigger" aria-label="GDNG PRG 2026">
+        <span class="logo-mark"><img src="assets/icons/logo-dms.webp" alt="Logo GDNG PRG"></span>
+        <span class="logo-text">
+          <strong>Depo Parung</strong>
+          <em>Database Centralized Real-Time</em>
+        </span>
+      </button>
+    </div>
+
+    <nav class="main-nav" id="mainNav" aria-label="Navigasi utama">
+      <a href="#/" class="nav-link nav-icon-link" data-route="/" aria-label="Beranda" title="Beranda">
+        <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-5.5h4V20h3a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+      </a>
+
+      <div class="nav-dropdown" data-dropdown>
+        <button type="button" class="nav-link nav-dropdown-btn">Materi <svg class="nav-caret" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="nav-dropdown-panel">
+          <div class="nav-dropdown-panel-inner" id="navMateriPanel"></div>
+        </div>
+      </div>
+
+      <div class="nav-dropdown" data-dropdown>
+        <button type="button" class="nav-link nav-dropdown-btn">Mati Listrik / Internet Down <svg class="nav-caret" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="nav-dropdown-panel">
+          <div class="nav-dropdown-panel-inner">
+            <button type="button" class="nav-dropdown-item" data-dev-notice>DMS Manual</button>
+            <button type="button" class="nav-dropdown-item" data-dev-notice>Stock Pagi/Sore Manual</button>
           </div>
-          <span class="bottle-bubble b1"></span>
-          <span class="bottle-bubble b2"></span>
-          <span class="bottle-bubble b3"></span>
-          <div class="bottle-shine"></div>
+        </div>
+      </div>
+
+      <div class="nav-dropdown" data-dropdown>
+        <button type="button" class="nav-link nav-dropdown-btn">Stock Buku PO PRG <svg class="nav-caret" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="nav-dropdown-panel">
+          <div class="nav-dropdown-panel-inner">
+            <button type="button" class="nav-dropdown-item" data-dev-notice>Buku PO PRG</button>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://web189.github.io/UangRitase/" target="_blank" rel="noopener noreferrer" class="nav-link">Uang Ritase TUA</a>
+
+      <button type="button" class="nav-link nav-icon-link nav-search-btn" id="openSearchBtn" aria-label="Pencarian" title="Pencarian">
+        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M20 20l-3.4-3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" class="icon-btn" id="installAppBtn" aria-label="Instal aplikasi" title="Instal Aplikasi" hidden>
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="themeToggle" aria-label="Ganti mode gelap/terang" title="Mode gelap/terang">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="19" height="19"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7" fill="none"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></g></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="19" height="19"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>
+      </button>
+      <button type="button" class="hamburger" id="hamburgerBtn" aria-label="Buka menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- mobile drawer: accordion-style menu -->
+  <div class="mobile-drawer" id="mobileDrawer">
+  <div class="mobile-drawer-inner">
+    <!-- Beranda / Pencarian / Tema now live only here on mobile, so the
+         header row itself stays down to a single hamburger button. -->
+    <div class="drawer-quick-row">
+      <a href="#/" class="drawer-quick-btn" data-route="/" aria-label="Beranda">
+        <svg viewBox="0 0 24 24" width="19" height="19"><path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-5.5h4V20h3a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+        <span>Beranda</span>
+      </a>
+      <button type="button" class="drawer-quick-btn" id="openSearchBtnMobile" aria-label="Pencarian">
+        <svg viewBox="0 0 24 24" width="19" height="19"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M20 20l-3.4-3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Cari</span>
+      </button>
+      <button type="button" class="drawer-quick-btn" id="themeToggleMobile" aria-label="Ganti mode gelap/terang">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="19" height="19"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.7" fill="none"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></g></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="19" height="19"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 1 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>
+        <span>Tema</span>
+      </button>
+    </div>
+
+    <div class="drawer-acc" data-drawer-acc>
+      <button type="button" class="drawer-acc-btn" aria-expanded="false" aria-controls="drawerMateriPanel">
+        <span>Materi</span>
+        <svg class="drawer-acc-chevron" viewBox="0 0 24 24" width="17" height="17"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="drawer-acc-panel" id="drawerMateriPanel"></div>
+    </div>
+
+    <div class="drawer-acc" data-drawer-acc>
+      <button type="button" class="drawer-acc-btn" aria-expanded="false" aria-controls="drawerListrikPanel">
+        <span>Mati Listrik / Internet Down</span>
+        <svg class="drawer-acc-chevron" viewBox="0 0 24 24" width="17" height="17"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="drawer-acc-panel" id="drawerListrikPanel">
+        <div class="drawer-acc-panel-inner">
+          <button type="button" class="drawer-acc-item" data-dev-notice>DMS Manual</button>
+          <button type="button" class="drawer-acc-item" data-dev-notice>Stock Pagi/Sore Manual</button>
         </div>
       </div>
     </div>
 
-    <div class="loader-title-wrap">
-      <h1 class="loader-title">JADWAL ADMIN GUDANG</h1>
-      <div class="loader-sub-row">
-        <span class="loader-year">2026</span>
-        <span class="loader-aqua-chip"><i class="fas fa-tint"></i> AQUA</span>
+    <div class="drawer-acc" data-drawer-acc>
+      <button type="button" class="drawer-acc-btn" aria-expanded="false" aria-controls="drawerBukuPanel">
+        <span>Stock Buku PO PRG</span>
+        <svg class="drawer-acc-chevron" viewBox="0 0 24 24" width="17" height="17"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="drawer-acc-panel" id="drawerBukuPanel">
+        <div class="drawer-acc-panel-inner">
+          <button type="button" class="drawer-acc-item" data-dev-notice>Buku PO PRG</button>
+        </div>
       </div>
     </div>
 
-    <div class="loader-bar-wrap">
-      <div class="loader-bar"><div class="loader-progress" id="loaderProgress"></div></div>
-    </div>
-
-    <p class="loader-text" id="loaderText">Menghubungkan sistem…</p>
-
-    <div class="loader-dev-credit">
-      <span class="dev-divider"></span>
-      <span>Website Developer</span>
-      <span class="dev-name-shine">benyoriki.com</span>
-      <span class="dev-divider"></span>
-    </div>
+    <a href="https://web189.github.io/UangRitase/" target="_blank" rel="noopener noreferrer" class="drawer-link drawer-link-external">
+      <span>Uang Ritase TUA</span>
+      <svg viewBox="0 0 24 24" width="15" height="15"><path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
   </div>
-</div>
-
-<!-- ===== HEADER ===== -->
-<header id="header">
-  <div class="header-row-1">
-    <button id="hamburgerBtn" class="hamburger-btn" aria-label="Buka menu" aria-expanded="false" aria-controls="hamburgerMenu">
-      <span class="hamburger-icon"><span></span><span></span><span></span></span>
-    </button>
-    <h1 class="glitch">
-      Jadwal Admin Gudang
-      <span class="header-badge">2026</span>
-    </h1>
-  </div>
-
-  <div class="header-row-2">
-    <div class="online-indicator">
-      <span class="online-dot"></span>
-      <span id="onlineCount">1</span> online
-    </div>
-    <div id="liveClock" class="cyber-clock"></div>
-  </div>
-
-  <div id="shiftIndicator" class="shift-indicator">
-    <div class="shift-gauge" id="shiftGauge">
-      <div class="shift-gauge-ring"></div>
-      <div class="gauge-marker" id="gaugeMarker"></div>
-      <div class="gauge-center">
-        <span id="shiftAktifBox" class="shift-box gauge-shift-num">SHIFT 1</span>
-      </div>
-    </div>
-    <div class="shift-meta">
-      <span class="shift-label-text">SHIFT AKTIF SEKARANG</span>
-      <span id="shiftCountdown" class="shift-countdown"></span>
-    </div>
   </div>
 </header>
 
-<!-- ===== HAMBURGER SLIDE-OUT MENU ===== -->
-<div id="hamburgerOverlay" class="hamburger-overlay"></div>
-<nav id="hamburgerMenu" class="hamburger-menu" aria-label="Menu utama">
-  <div class="hmenu-header">
-    <span class="hmenu-title"><i class="fas fa-sliders-h"></i> Menu</span>
-    <button id="hamburgerCloseBtn" class="hmenu-close" aria-label="Tutup menu"><i class="fas fa-times"></i></button>
-  </div>
-  <div class="hmenu-body">
-    <div class="hmenu-group">
-      <label class="hmenu-label"><i class="fas fa-calendar-week"></i> Pilih Minggu</label>
-      <select id="weekSelect"></select>
+<!-- ============ SEARCH PANEL ============ -->
+<div class="search-overlay" id="searchOverlay" hidden>
+  <div class="search-panel">
+    <div class="search-input-row">
+      <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M20 20l-3.4-3.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="Cari materi, mis. Login DMS, Laporan Excel..." autocomplete="off">
+      <button type="button" class="icon-btn" id="closeSearchBtn" aria-label="Tutup pencarian">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
     </div>
-
-    <button id="themeToggle" class="hmenu-btn"><i class="fas fa-sun"></i> Mode Terang</button>
-    <button id="enableNotifBtn" class="hmenu-btn"><i class="fas fa-bell"></i> Aktifkan Notifikasi Desktop</button>
-
-    <div class="hmenu-divider"></div>
-
-    <button id="adminBtn" class="hmenu-btn"><i class="fas fa-lock"></i> KA Gudang</button>
-    <button id="logoutBtn" class="hmenu-btn hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
-    <button id="saveBtn" class="hmenu-btn hidden btn-success"><i class="fas fa-save"></i> Simpan</button>
-    <button id="rotationOrderBtn" class="hmenu-btn hidden"><i class="fas fa-random"></i> Urutan Rotasi</button>
-    <button id="exportBtn" class="hmenu-btn hidden"><i class="fas fa-file-excel"></i> Export</button>
-    <button id="printBtn" class="hmenu-btn hidden"><i class="fas fa-print"></i> Print</button>
-
-    <div class="hmenu-divider"></div>
-
-    <button id="serahTerimaBtn" class="hmenu-btn"><i class="fas fa-file-alt"></i> Serah Terima</button>
-    <button id="historyBtn" class="hmenu-btn btn-outline"><i class="fas fa-history"></i> History</button>
-
-    <div class="hmenu-divider"></div>
-
-    <a href="https://web189.github.io/UangRitase/" target="_blank" class="hmenu-btn cyber-link-btn">
-      <i class="fas fa-coins"></i> Uang Ritase
-    </a>
-    <a href="https://arisan69.netlify.app/" target="_blank" rel="noopener" class="hmenu-btn cyber-link-btn cyber-link-btn-amber">
-      <i class="fas fa-piggy-bank"></i> Arisan ADM GDNG
-      <i class="fas fa-arrow-up-right-from-square link-ext-icon" aria-hidden="true"></i>
-    </a>
-    <a href="https://web189.github.io/E-Book/#/" target="_blank" rel="noopener" class="hmenu-btn cyber-link-btn cyber-link-btn-green">
-      <i class="fas fa-clipboard-list"></i> Sistem DMS/Laporan
-      <i class="fas fa-arrow-up-right-from-square link-ext-icon" aria-hidden="true"></i>
-    </a>
-  </div>
-</nav>
-
-<!-- ===== MAIN CONTENT ===== -->
-<main>
-
-<div id="scheduleSection">
-
-<!-- TICKER — live serah terima -->
-<div id="serahTerimaTicker" class="news-ticker">
-  <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
-  <div class="ticker-viewport">
-    <div class="news-track" id="newsTrack">
-      <div id="serahTerimaText">Memuat serah terima...</div>
-      <div id="serahTerimaClone"></div>
-    </div>
+    <div class="search-results" id="searchResults"></div>
   </div>
 </div>
 
-<!-- ===== TOOLBAR — cari nama & pilih week ===== -->
-<div class="schedule-toolbar">
-  <div class="search-bar-wrap">
-    <i class="fas fa-search search-icon"></i>
-    <input type="text" class="staff-search-input" id="staffSearchInput" placeholder="Cari nama staff...">
-    <button class="search-clear" id="searchClear" onclick="document.getElementById('staffSearchInput').value='';applySearchFilter('')" style="display:none">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-  <div class="quick-nav-row">
-    <button class="quick-nav-btn" id="prevWeekBtn" title="Minggu Sebelumnya (Alt+←)">‹</button>
-    <div class="quick-nav-label" id="quickNavLabel">WEEK —</div>
-    <button class="quick-nav-btn" id="nextWeekBtn" title="Minggu Berikutnya (Alt+→)">›</button>
-  </div>
+<!-- ============ IMAGE LIGHTBOX (klik gambar untuk memperbesar) ============ -->
+<div class="lightbox-overlay" id="lightboxOverlay" hidden>
+  <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Tutup gambar">
+    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+  </button>
+  <figure class="lightbox-figure">
+    <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    <figcaption class="lightbox-caption" id="lightboxCaption"></figcaption>
+  </figure>
 </div>
 
-<!-- ===== SCHEDULE TABLE ===== -->
-<div class="table-wrapper">
-  <table id="scheduleTable"></table>
-</div>
-<!-- (Kotak "Hari Libur Minggu Ini" otomatis disisipkan tepat setelah tabel oleh app.js) -->
+<!-- ============ APP ROOT (routed views) ============ -->
+<main id="app" class="app-root"></main>
 
-<!-- ===== LEGEND BAR — keterangan shift ===== -->
-<div class="legend-bar">
-  <span class="legend-title">KETERANGAN:</span>
-  <span class="legend-badge lb-P">P — Pagi 07:30</span>
-  <span class="legend-badge lb-S">S — Sore 15:30</span>
-  <span class="legend-badge lb-M">M — Malam 23:30</span>
-  <span class="legend-badge lb-OFF">OFF — Libur</span>
-  <span class="legend-badge lb-C">C — Cuti</span>
-  <span class="legend-badge lb-LN"><span style="color:#ff3d66">●</span> Libur Nasional</span>
-  <span class="legend-badge lb-CB"><span style="color:#f5d93a">●</span> Cuti Bersama</span>
-</div>
-
-<!-- ===== STATS DASHBOARD ===== -->
-<div class="stats-dashboard" id="statsDashboard">
-  <div class="stat-card stat-p">
-    <span class="stat-icon"><i class="fas fa-sun"></i></span>
-    <span class="stat-value" id="statP">—</span>
-    <span class="stat-label">Pagi (P)</span>
+<!-- ============ FOOTER (visitor) ============ -->
+<footer class="site-footer" id="siteFooter">
+  <div class="footer-brand">
+    <img src="assets/icons/logo-dms.webp" alt="" class="footer-logo">
+    <span>Depo Parung</span>
   </div>
-  <div class="stat-card stat-s">
-    <span class="stat-icon"><i class="fas fa-cloud-sun"></i></span>
-    <span class="stat-value" id="statS">—</span>
-    <span class="stat-label">Sore (S)</span>
-  </div>
-  <div class="stat-card stat-m">
-    <span class="stat-icon"><i class="fas fa-moon"></i></span>
-    <span class="stat-value" id="statM">—</span>
-    <span class="stat-label">Malam (M)</span>
-  </div>
-  <div class="stat-card stat-off">
-    <span class="stat-icon"><i class="fas fa-umbrella-beach"></i></span>
-    <span class="stat-value" id="statOFF">—</span>
-    <span class="stat-label">OFF</span>
-  </div>
-  <div class="stat-card stat-total">
-    <span class="stat-icon"><i class="fas fa-users"></i></span>
-    <span class="stat-value" id="statTotal">6</span>
-    <span class="stat-label">Total Staff</span>
-  </div>
-</div>
-
-<!-- ===== WEEK PROGRESS ===== -->
-<div class="week-progress-wrap">
-  <div class="week-progress-label">
-    <span>PROGRESS TAHUN 2026</span>
-    <span id="weekProgressText">—</span>
-  </div>
-  <div class="week-progress-bar">
-    <div class="week-progress-fill" id="weekProgressFill" style="width:0%"></div>
-  </div>
-</div>
-
-</div><!-- end scheduleSection -->
-
-<!-- ===== KEGIATAN KEBERSIHAN ===== -->
-<div class="kegiatan-section" id="kegiatanSection">
-  <div class="kegiatan-header-bar" id="kegiatanToggleBtn">
-    <div class="kegiatan-title-group">
-      <span class="kegiatan-section-icon"><i class="fas fa-broom"></i></span>
-      <span class="kegiatan-section-title">Kegiatan Kebersihan &amp; Kerapihan</span>
-    </div>
-    <span id="kegiatanArrow">▼</span>
-  </div>
-  <div class="kegiatan-body" id="kegiatanBody">
-    <div class="kegiatan-list" id="kegiatanList">
-      <p class="loading-pulse" style="text-align:center;padding:20px">Memuat data...</p>
-    </div>
-  </div>
-</div>
-
-</main><!-- end main -->
-
-<!-- ===== CHAT FAB ===== -->
-<button id="chatToggleBtn" class="chat-fab" aria-label="Buka Chat Grup">
-  <i class="fas fa-comments"></i>
-  <span id="chatBadge" class="chat-badge" style="display:none">0</span>
-</button>
-
-<!-- ===== CHAT PANEL ===== -->
-<div id="chatPanel" class="chat-panel" role="dialog" aria-label="Chat Grup Admin Gudang">
-  <div class="chat-panel-header">
-    <div class="chat-header-info">
-      <div class="chat-header-avatar">AG</div>
-      <div>
-        <div class="chat-header-title"><i class="fas fa-comments"></i> Chat Grup Admin Gudang</div>
-        <div class="chat-header-sub" id="chatOnlineSub">Admin Gudang • Realtime</div>
-      </div>
-    </div>
-    <button class="chat-close-btn" onclick="closeChat()" aria-label="Tutup chat">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-
-  <!-- Typing indicator -->
-  <div class="typing-indicator" id="typingIndicator" style="display:none">
-    <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
-    <span id="typingName" style="font-size:11px;margin-left:6px">mengetik...</span>
-  </div>
-
-  <div class="chat-messages" id="chatMessages">
-    <div class="chat-empty">
-      <i class="fas fa-comments" style="font-size:36px;opacity:0.3"></i>
-      <p>Memuat pesan...</p>
-    </div>
-  </div>
-
-  <!-- Reply preview -->
-  <div id="replyPreview" class="reply-preview" style="display:none">
-    <div class="reply-preview-inner">
-      <i class="fas fa-reply" style="color:var(--cyan);margin-right:6px"></i>
-      <div>
-        <div id="replyName" class="reply-name"></div>
-        <div id="replyText" class="reply-text"></div>
-      </div>
-    </div>
-    <button id="cancelReply" class="cancel-reply"><i class="fas fa-times"></i></button>
-  </div>
-
-  <div class="chat-input-row" id="chatInputWrap">
-    <button id="emojiBtn" class="chat-tool-btn" title="Emoji"><i class="fas fa-smile"></i></button>
-    <input type="text" id="chatInput" placeholder="Ketik pesan... (Enter kirim)" maxlength="500" autocomplete="off"/>
-    <button id="chatSendBtn" class="chat-send-btn" aria-label="Kirim pesan">
-      <i class="fas fa-paper-plane"></i>
-    </button>
-  </div>
-</div>
-
-<!-- ===== MODALS ===== -->
-
-<!-- Login Modal -->
-<div id="loginModal" class="modal" role="dialog" aria-label="Login KA Gudang">
-  <div class="modal-box terminal">
-    <div class="modal-title"><i class="fas fa-shield-halved"></i> Login KA Gudang</div>
-    <div id="fingerprintScanner" class="fingerprint">
-      <div class="scan-line"></div>
-      <i class="fas fa-fingerprint fp-icon"></i>
-    </div>
-    <div id="bootText" class="terminal-body"></div>
-    <input type="email" id="adminEmail" placeholder="Email administrator..." autocomplete="email">
-    <input type="password" id="adminPassword" placeholder="Password..." autocomplete="current-password"
-      onkeydown="if(event.key==='Enter') startBiometricScan()">
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal()"><i class="fas fa-times"></i> Batal</button>
-      <button class="btn-primary" onclick="startBiometricScan()"><i class="fas fa-lock-open"></i> Login KA</button>
-    </div>
-  </div>
-</div>
-
-<!-- Serah Terima Modal -->
-<div id="serahTerimaModal" class="modal" role="dialog">
-  <div class="modal-box">
-    <div class="modal-title"><i class="fas fa-file-alt"></i> <span id="serahTerimaShiftLabel"></span></div>
-    <textarea id="serahTerimaInput" placeholder="Masukkan catatan serah terima shift ini...&#10;Contoh: Semua pekerjaan selesai. Stok aman. Tidak ada kendala."></textarea>
-    <div class="char-count" id="serahTerimaCharCount">0 / 500</div>
-    <div class="modal-actions">
-      <button class="btn-ghost" id="serahTerimaCloseBtn"><i class="fas fa-times"></i> Batal</button>
-      <button class="btn-primary" id="serahTerimaSaveBtn"><i class="fas fa-save"></i> Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- History Modal -->
-<div id="historyModal" class="modal" role="dialog">
-  <div class="modal-box modal-wide">
-    <div class="modal-title"><i class="fas fa-history"></i> History Serah Terima — 7 Hari Terakhir</div>
-    <div id="historyContent" class="history-content"></div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="btn-primary" id="historyCloseBtn"><i class="fas fa-times"></i> Tutup</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Kegiatan Modal -->
-<div id="editKegiatanModal" class="modal" role="dialog">
-  <div class="modal-box">
-    <div class="modal-title" id="editKegiatanLabel"><i class="fas fa-edit"></i> Edit Tugas</div>
-    <textarea id="editKegiatanInput" placeholder="Masukkan deskripsi tugas..."></textarea>
-    <div class="modal-actions">
-      <button class="btn-ghost" id="editKegiatanCloseBtn"><i class="fas fa-times"></i> Batal</button>
-      <button class="btn-primary" id="editKegiatanSaveBtn"><i class="fas fa-save"></i> Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Rotation Order Modal (KA Gudang only) -->
-<div id="rotationOrderModal" class="modal" role="dialog" aria-label="Atur Urutan Rotasi">
-  <div class="modal-box modal-wide">
-    <div class="modal-title"><i class="fas fa-random"></i> Atur Urutan Rotasi Admin</div>
-    <p class="rotation-order-hint">
-      Ubah posisi admin dalam urutan rotasi (contoh: pindahkan RANDHIKA ke posisi BUDIYANSAH). Perubahan berlaku mulai minggu yang dipilih dan <strong>otomatis berlanjut ke minggu-minggu berikutnya</strong> mengikuti pola rotasi normal, sampai ada perubahan urutan baru. <strong>RIAN ARSYANSYAH</strong> tidak ikut diatur di sini karena jadwalnya tetap setiap minggu.
-    </p>
-
-    <div class="hmenu-group rotation-week-group">
-      <label class="hmenu-label"><i class="fas fa-calendar-week"></i> Berlaku Mulai Minggu</label>
-      <select id="rotationWeekSelect"></select>
-    </div>
-
-    <div id="rotationOrderList" class="rotation-order-list"></div>
-
-    <div id="rotationOverrideHistory" class="rotation-override-history"></div>
-
-    <div class="modal-actions rotation-modal-actions">
-      <button class="btn-ghost btn-danger" id="rotationOrderResetBtn"><i class="fas fa-undo"></i> Hapus Override</button>
-      <div class="rotation-modal-actions-right">
-        <button class="btn-ghost" id="rotationOrderCloseBtn"><i class="fas fa-times"></i> Batal</button>
-        <button class="btn-primary" id="rotationOrderSaveBtn"><i class="fas fa-save"></i> Simpan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== SIGNATURE ===== -->
-<footer class="cyber-signature">
-  <div class="signature-text">
-    SYSTEM CORE v2026 — Enhanced Edition<br>
-    Sistem terintegrasi berbasis cyber interface<br>
-    Website Developer by <a href="https://benyoriki.com/" target="_blank" class="hacker-name">@benyoriki</a>
-  </div>
+  <p class="footer-title">Tim Developer <a href="https://benyoriki.com/" target="_blank" rel="noopener noreferrer" class="footer-link">benyoriki.com</a></p>
+  <p class="footer-sub">Digital Module Centralized Real-Time Sistem &middot; &copy; 2026</p>
 </footer>
 
-<!-- ===== SCROLL TO TOP ===== -->
-<button id="scrollTopBtn" title="Ke atas" aria-label="Scroll ke atas">↑</button>
-
-<!-- ===== MOBILE BOTTOM NAV ===== -->
-<nav class="mobile-bottom-nav" id="mobileNav" aria-label="Navigasi utama">
-  <button class="mobile-nav-item active" onclick="scrollToSection('header')">
-    <i class="fas fa-home"></i><span>Beranda</span>
-  </button>
-  <button class="mobile-nav-item nav-arisan" title="Arisan ADM GDNG" onclick="window.open('https://arisan69.netlify.app/','_blank','noopener')">
-    <i class="fas fa-piggy-bank"></i><span>Arisan</span>
-    <i class="fas fa-arrow-up-right-from-square nav-ext-icon" aria-hidden="true"></i>
-  </button>
-  <button class="mobile-nav-item" onclick="scrollToSection('scheduleSection')">
-    <i class="fas fa-calendar-alt"></i><span>Jadwal</span>
-  </button>
-  <button class="mobile-nav-item" onclick="scrollToSection('kegiatanSection')">
-    <i class="fas fa-broom"></i><span>Kebersihan</span>
-  </button>
-  <button class="mobile-nav-item nav-dms" title="Sistem DMS/Laporan" onclick="window.open('https://web189.github.io/E-Book/#/','_blank','noopener')">
-    <i class="fas fa-clipboard-list"></i><span>DMS</span>
-    <i class="fas fa-arrow-up-right-from-square nav-ext-icon" aria-hidden="true"></i>
-  </button>
-  <button class="mobile-nav-item" onclick="toggleChat()">
-    <i class="fas fa-comments"></i><span>Chat</span>
-    <span id="mobileNavBadge" class="mobile-badge" style="display:none"></span>
-  </button>
-</nav>
-
-<!-- ===== SCRIPTS ===== -->
-
-<!-- FIREBASE SDK -->
-<script type="module">
-const firebaseConfig = {
-  apiKey: "AIzaSyAvJun21jAsquw8htCSBHK1N56T6Ld6jNY",
-  authDomain: "jadwal-admin-2026.firebaseapp.com",
-  databaseURL: "https://jadwal-admin-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "jadwal-admin-2026",
-  storageBucket: "jadwal-admin-2026.firebasestorage.app",
-  messagingSenderId: "638335464309",
-  appId: "1:638335464309:web:5094ebcd6bd082003c193c"
-};
-
-const V = "https://www.gstatic.com/firebasejs/10.12.0/";
-(async () => {
-  try {
-    const [appMod, dbMod] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-database.js")]);
-    const app = appMod.initializeApp(firebaseConfig);
-    window.db = dbMod.getDatabase(app);
-    window.firebaseRef = dbMod.ref;
-    window.firebaseSet = dbMod.set;
-    window.firebaseGet = dbMod.get;
-    window.firebaseRemove = dbMod.remove;
-    window.firebaseReady = true;
-
-    // Firebase Auth (berat) hanya dimuat setelah halaman tampil / saat login
-    let authP = null;
-    window.ensureAuth = () => authP || (authP = import(V + "firebase-auth.js").then(m => {
-      window.auth = m.getAuth(app);
-      window.signInWithEmailAndPassword = m.signInWithEmailAndPassword;
-      window.signOutFirebase = m.signOut;
-      window.onAuthStateChangedFirebase = m.onAuthStateChanged;
-      window.dispatchEvent(new Event("firebase-auth-ready"));
-    }));
-  } catch (err) { console.error("Firebase gagal dimuat:", err); }
-})();
-</script>
-
-<!-- INLINE BOOT SCRIPT — 7s polished intro, lightweight (CSS-driven, no canvas) -->
-<script>
-window.__loaderStart = Date.now();
-(function() {
-  const MIN_MS = 800;
-  const FAILSAFE_MS = 3500;
-  const progEl = document.getElementById("loaderProgress");
-  const textEl = document.getElementById("loaderText");
-  const liquidEl = document.getElementById("loaderLiquid");
-  const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data terbaru…", "Menyinkronkan server…", "Hampir siap…"];
-
-  if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "94%"; });
-  if (liquidEl) requestAnimationFrame(() => { liquidEl.style.transitionDuration = MIN_MS + "ms"; liquidEl.style.height = "88%"; });
-
-  let mi = 0;
-  const msgInterval = setInterval(() => {
-    mi = (mi + 1) % msgs.length;
-    if (textEl) {
-      textEl.style.opacity = "0";
-      setTimeout(() => { textEl.textContent = msgs[mi]; textEl.style.opacity = "1"; }, 180);
-    }
-  }, 1250);
-
-  window.__finishLoader = function() {
-    clearInterval(msgInterval);
-    const loader = document.getElementById("cyberLoader");
-    if (!loader || loader.dataset.closed) return;
-    loader.dataset.closed = "1";
-    if (progEl) { progEl.style.transitionDuration = "300ms"; progEl.style.width = "100%"; }
-    if (liquidEl) { liquidEl.style.transitionDuration = "300ms"; liquidEl.style.height = "100%"; }
-    if (textEl) { textEl.style.opacity = "1"; textEl.textContent = "Siap"; }
-    setTimeout(() => {
-      loader.style.opacity = "0";
-      setTimeout(() => { loader.style.display = "none"; }, 400);
-    }, 250);
-  };
-
-  // Hard failsafe so the intro never blocks the app for long
-  setTimeout(() => { if (window.__finishLoader) window.__finishLoader(); }, FAILSAFE_MS);
-})();
-</script>
-
-<script src="app.js" defer></script>
-
-<!-- ===== LIGHTWEIGHT UI ENHANCEMENTS ===== -->
-<script>
-(function() {
-  // Char counter for serah terima textarea
-  document.addEventListener("DOMContentLoaded", () => {
-    const ta = document.getElementById("serahTerimaInput");
-    const cc = document.getElementById("serahTerimaCharCount");
-    if (ta && cc) {
-      ta.addEventListener("input", () => {
-        cc.textContent = ta.value.length + " / 500";
-        ta.style.borderColor = ta.value.length > 450 ? "var(--red)" : "";
-      });
-    }
-    const inp = document.getElementById("staffSearchInput");
-    const clr = document.getElementById("searchClear");
-    if (inp && clr) {
-      inp.addEventListener("input", () => {
-        clr.style.display = inp.value ? "flex" : "none";
-      });
-    }
-  });
-
-  // Mobile bottom-nav active section (single scroll listener)
-  const navBtns = document.querySelectorAll('.mobile-nav-item');
-  const sections = ['header', 'scheduleSection', 'kegiatanSection'];
-  const scrollBtn = document.getElementById('scrollTopBtn');
-
-  function onScroll() {
-    const scroll = window.scrollY + window.innerHeight / 3;
-    sections.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const top = el.offsetTop, bot = top + el.offsetHeight;
-      if (scroll >= top && scroll < bot) {
-        navBtns.forEach(b => b.classList.remove('active'));
-        if (navBtns[i]) navBtns[i].classList.add('active');
-      }
-    });
-    if (scrollBtn) scrollBtn.classList.toggle('visible', window.scrollY > 300);
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  if (scrollBtn) {
-    scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  }
-
-  // ===== Hamburger slide-out menu =====
-  const hbBtn = document.getElementById('hamburgerBtn');
-  const hbMenu = document.getElementById('hamburgerMenu');
-  const hbOverlay = document.getElementById('hamburgerOverlay');
-  const hbClose = document.getElementById('hamburgerCloseBtn');
-
-  function openHamburger() {
-    if (!hbMenu || !hbOverlay) return;
-    hbMenu.classList.add('open');
-    hbOverlay.classList.add('open');
-    hbBtn?.classList.add('active');
-    hbBtn?.setAttribute('aria-expanded', 'true');
-    document.body.classList.add('hmenu-lock');
-  }
-  function closeHamburger() {
-    if (!hbMenu || !hbOverlay) return;
-    hbMenu.classList.remove('open');
-    hbOverlay.classList.remove('open');
-    hbBtn?.classList.remove('active');
-    hbBtn?.setAttribute('aria-expanded', 'false');
-    document.body.classList.remove('hmenu-lock');
-  }
-  hbBtn?.addEventListener('click', () => {
-    hbMenu?.classList.contains('open') ? closeHamburger() : openHamburger();
-  });
-  hbClose?.addEventListener('click', closeHamburger);
-  hbOverlay?.addEventListener('click', closeHamburger);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHamburger(); });
-
-  // Auto-close the menu after picking an action inside it (keeps flow snappy on mobile)
-  hbMenu?.addEventListener('click', e => {
-    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect, #rotationOrderBtn, #enableNotifBtn');
-    if (el && el.tagName !== 'SELECT') setTimeout(closeHamburger, 150);
-  });
-})();
-</script>
-
-<script src="notif-promo.js" defer></script>
-
-<script src="pwa.js" data-app-name="Jadwal Admin Gudang" data-accent="#00f5ff" defer></script>
+<script src="app.js"></script>
 </body>
 </html>

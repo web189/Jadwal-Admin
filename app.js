@@ -1,1495 +1,2020 @@
-// ================= CONFIG =================
-const START_WEEK = 6;
-const START_DATE = new Date("2026-02-02");
-const START_ROTATION_WEEK = 19;
+/* ==========================================================================
+   MODUL MATERI PELATIHAN ADMIN GDNG PRG 2026
+   Vanilla JS application
+   Architecture: Service layer (DataService/AuthService/ThemeService) is kept
+   separate from UI rendering so that DataService can later be swapped for a
+   Firebase-backed implementation without touching the render functions.
+   ========================================================================== */
+(function () {
+  "use strict";
 
-const nationalHolidays = {
-  "2026-01-01": { type: "LN", name: "Tahun Baru 2026 Masehi" },
-  "2026-01-16": { type: "LN", name: "Isra Mi'raj Nabi Muhammad SAW" },
-  "2026-02-17": { type: "LN", name: "Tahun Baru Imlek 2577 Kongzili" },
-  "2026-03-19": { type: "LN", name: "Hari Suci Nyepi (Tahun Baru Saka 1948)" },
-  "2026-03-21": { type: "LN", name: "Hari Raya Idul Fitri 1447 H" },
-  "2026-03-22": { type: "LN", name: "Hari Raya Idul Fitri 1447 H" },
-  "2026-04-03": { type: "LN", name: "Wafat Yesus Kristus / Jumat Agung" },
-  "2026-04-05": { type: "LN", name: "Kebangkitan Yesus Kristus (Paskah)" },
-  "2026-05-01": { type: "LN", name: "Hari Buruh Internasional" },
-  "2026-05-14": { type: "LN", name: "Kenaikan Yesus Kristus" },
-  "2026-05-27": { type: "LN", name: "Hari Raya Idul Adha 1447 H" },
-  "2026-05-31": { type: "LN", name: "Hari Raya Waisak 2570 BE" },
-  "2026-06-01": { type: "LN", name: "Hari Lahir Pancasila" },
-  "2026-06-16": { type: "LN", name: "Tahun Baru Islam 1448 H" },
-  "2026-08-17": { type: "LN", name: "Hari Kemerdekaan RI" },
-  "2026-08-25": { type: "LN", name: "Maulid Nabi Muhammad SAW" },
-  "2026-12-25": { type: "LN", name: "Hari Raya Natal" },
-  "2026-02-16": { type: "CB", name: "Cuti Bersama Tahun Baru Imlek" },
-  "2026-03-18": { type: "CB", name: "Cuti Bersama Nyepi" },
-  "2026-03-20": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
-  "2026-03-23": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
-  "2026-03-24": { type: "CB", name: "Cuti Bersama Hari Raya Idul Fitri" },
-  "2026-05-15": { type: "CB", name: "Cuti Bersama Kenaikan Yesus Kristus" },
-  "2026-05-28": { type: "CB", name: "Cuti Bersama Hari Raya Idul Adha" },
-  "2026-12-24": { type: "CB", name: "Cuti Bersama Hari Raya Natal" }
-};
+  /* ------------------------------------------------------------------ */
+  /* 0. CONFIG                                                           */
+  /* ------------------------------------------------------------------ */
+  var ADMIN_USERNAME = "admin";
+  var ADMIN_PASSWORD = "admin123";
+  var SESSION_KEY = "gdngprg_session";
+  var MAX_IMAGE_MB = 1.5;
 
-// ================= DATA STAFF =================
-// Staff aktif (Week 25 ke atas) — Achmad Tahir dikeluarkan
-// Urutan index 0-4 harus sama persis dengan urutan baris basePattern
-const staff = [
-  { nik: "107537", nama: "KAMIL M NUR",   avatar: "KM" },  // index 0 → row 0
-  { nik: "105855", nama: "RANDHIKA",      avatar: "RD" },  // index 1 → row 1
-  { nik: "103356", nama: "BUDIYANSAH",    avatar: "BY" },  // index 2 → row 2
-  { nik: "107271", nama: "RIKI HERMAWAN", avatar: "RH" },  // index 3 → row 3
-  { nik: "108191", nama: "M DAUD",        avatar: "MD" }   // index 4 → row 4
-];
-
-const staffOld = [
-  { nik: "108191", nama: "M DAUD",        avatar: "MD" },
-  { nik: "107271", nama: "RIKI HERMAWAN", avatar: "RH" },
-  { nik: "107537", nama: "KAMIL M NUR",   avatar: "KM" },
-  { nik: "103356", nama: "BUDIYANSAH",    avatar: "BY" },
-  { nik: "105855", nama: "RANDHIKA",      avatar: "RD" },
-  { nik: "107317", nama: "ACHMAD TAHIR",  avatar: "AT" }
-];
-
-// Pola jadwal LAMA (sebelum Week 25) — 6 orang
-const basePatternOld = [
-  ["P","P","P","OFF","OFF","M","M"],
-  ["P","P","OFF","P","P","P","OFF"],
-  ["OFF","OFF","P","P","P","P","P"],
-  ["S","S","S","OFF","OFF","S","S"],
-  ["S","S","S","S","S","OFF","OFF"],
-  ["M","M","M","M","M","OFF","OFF"]
-];
-
-// Pola jadwal BARU (Week 25 ke atas) — 5 orang
-// Urutan baris harus sama persis dengan urutan staff[] di atas
-// Kolom: Sen, Sel, Rab, Kam, Jum, Sab, Min
-const basePattern = [
-  ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // KAMIL M NUR
-  ["OFF","OFF","P",  "P",  "P",  "P",  "P"  ],  // RANDHIKA
-  ["P",  "P",  "OFF","P",  "P",  "P",  "S"  ],  // BUDIYANSAH
-  ["S",  "S",  "S",  "S",  "S",  "S",  "OFF"],  // RIKI HERMAWAN
-  ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // M DAUD
-];
-
-// ================= ADMIN BARU: RIAN ARSYANSYAH (mulai Week 35) =================
-// RIAN ARSYANSYAH bergabung sebagai admin ke-6. Jadwalnya TETAP setiap minggu
-// (tidak ikut rotasi): Senin-Sabtu masuk Pagi (P), Minggu OFF.
-// Posisinya SELALU di baris index 2 (posisi ke-3) pada tabel setiap minggunya.
-const NEW_ADMIN_WEEK = 35;
-
-const staffRian = { nik: "109639", nama: "RIAN ARSYANSYAH", avatar: "RA" };
-
-// Pola jadwal Week 35 dst — 6 baris.
-// Baris index 2 (RIAN ARSYANSYAH) TETAP setiap minggu, tidak dirotasi.
-// 5 admin lain (staff[]) tetap rotasi seperti biasa mengisi 5 baris sisanya,
-// urutan baris sisanya: 0, 1, 3, 4, 5 (index 2 dilewati karena punya RIAN).
-const basePatternWithRian = [
-  ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // baris 0
-  ["S",  "OFF","OFF","P",  "P",  "P",  "P"  ],  // baris 1
-  ["P",  "P",  "P",  "P",  "P",  "P",  "OFF"],  // baris 2 — RIAN ARSYANSYAH (TETAP)
-  ["S",  "S",  "OFF","OFF","S",  "S",  "S"  ],  // baris 3
-  ["OFF","S",  "S",  "S",  "S",  "S",  "OFF"],  // baris 4
-  ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // baris 5
-];
-const RIAN_ROW_INDEX = 2;
-const ROTATING_ROW_INDEXES = [0, 1, 3, 4, 5]; // baris untuk 5 admin yang rotasi
-
-const kegiatanDefault = [
-  { nama: "KAMIL M NUR",    tugas: "Perapihan arsip, Sawang-sawang, Kebersihan lantai area depan" },
-  { nama: "RANDHIKA",       tugas: "Kebersihan area loading, Sapu & pel koridor" },
-  { nama: "BUDIYANSAH",     tugas: "Kebersihan toilet, Lap meja, Buang sampah harian" },
-  { nama: "RIKI HERMAWAN",  tugas: "Perapihan rak gudang, Cek label barang, Kebersihan area storage" },
-  { nama: "M DAUD",         tugas: "Kebersihan parkir, Rapikan gerobak, Cek kebocoran atap" }
-];
-
-// ================= STATE =================
-let isAdmin = false;
-// Urutan rotasi kustom (KA Gudang). Key: "week_<n>" → array NIK 5 admin rotasi
-// dalam urutan baru, berlaku mulai minggu <n> dan seterusnya sampai ada
-// perubahan baru. Dimuat dari Firebase path "rotationOverrides".
-let rotationOverrides = {};
-let rotationOrderDraft = [];
-let currentDateKey = todayISO();
-let chatLastCount = 0;
-let chatPollingInterval = null;
-let isTyping = false;
-let typingTimeout = null;
-let unreadMessages = 0;
-let chatOpen = false;
-let replyTo = null;
-let currentUserName = null;
-
-// ================= WAIT FOR FIREBASE =================
-function waitForFirebase(cb, attempts = 0) {
-  if (window.firebaseReady && window.db) {
-    cb();
-  } else if (attempts > 100) {
-    // Setelah 6 detik tetap tidak ready, jalankan saja tanpa Firebase
-    console.warn("Firebase tidak merespons, melanjutkan tanpa koneksi.");
-    cb();
-  } else {
-    setTimeout(() => waitForFirebase(cb, attempts + 1), 100);
-  }
-}
-
-// ================= CLOSE LOADER =================
-function closeLoader() {
-  const MIN_MS = 500;
-  const elapsed = Date.now() - (window.__loaderStart || Date.now());
-  const remaining = Math.max(0, MIN_MS - elapsed);
-  setTimeout(() => {
-    if (window.__finishLoader) window.__finishLoader();
-  }, remaining);
-}
-
-// ================= INIT =================
-document.addEventListener("DOMContentLoaded", () => {
-  generateWeekOptions();
-  const currentWeek = getCurrentWeekNumber();
-  const sel = document.getElementById("weekSelect");
-  if (sel) sel.value = currentWeek;
-
-  waitForFirebase(() => {
-    loadRotationOverrides().finally(() => {
-      renderSchedule(currentWeek);
-      loadSerahTerima();
-      initChat();
-      loadKegiatan();
-      initPresence();
-      closeLoader(); // tutup loader begitu data siap
-    });
-  });
-
-  setupEvents();
-  updateClock();
-  setInterval(() => { if (!document.hidden) updateClock(); }, 1000);
-  updateShiftIndicator();
-  setInterval(updateShiftIndicator, 10000);
-  updateShiftCountdown();
-  setInterval(updateShiftCountdown, 60000);
-
-  // Auto-refresh schedule
-  setInterval(() => {
-    if (!document.hidden && !isAdmin) {
-      const week = parseInt(document.getElementById("weekSelect").value);
-      renderSchedule(week);
-    }
-  }, 120000);
-
-  setInterval(loadSerahTerima, 60000);
-  setInterval(checkDateChange, 60000);
-
-  // Theme restore
-  const saved = localStorage.getItem("theme") || "dark";
-  applyTheme(saved);
-});
-
-// ================= THEME =================
-function applyTheme(theme) {
-  const body = document.body;
-  const btn = document.getElementById("themeToggle");
-  if (theme === "formal") {
-    body.classList.add("formal-theme");
-    if (btn) btn.innerHTML = '<i class="fas fa-moon"></i> Mode Gelap';
-  } else {
-    body.classList.remove("formal-theme");
-    if (btn) btn.innerHTML = '<i class="fas fa-sun"></i> Mode Terang';
-  }
-  localStorage.setItem("theme", theme);
-}
-
-// ================= SETUP EVENTS =================
-function setupEvents() {
-  // Week select
-  document.getElementById("weekSelect")?.addEventListener("change", e => {
-    const w = parseInt(e.target.value);
-    renderSchedule(w);
-    updateQuickNavLabel(w);
-    updateWeekProgress(w);
-    setTimeout(updateStatsAfterRender, 600);
-  });
-
-  // Admin
-  document.getElementById("adminBtn")?.addEventListener("click", () => {
-    document.getElementById("loginModal")?.classList.add("active");
-    document.getElementById("adminEmail").value = "";
-    document.getElementById("adminPassword").value = "";
-    document.getElementById("bootText").innerHTML = "";
-  });
-
-  document.getElementById("logoutBtn")?.addEventListener("click", () => {
-    if (window.signOutFirebase && window.auth) {
-      window.signOutFirebase(window.auth).then(() => {
-        toggleAdminButtons(false);
-        showToast("✅ Logout berhasil");
-      }).catch(() => {
-        toggleAdminButtons(false);
-        showToast("✅ Berhasil keluar");
-      });
-    } else {
-      toggleAdminButtons(false);
-      showToast("✅ Berhasil keluar dari mode KA Gudang");
-    }
-  });
-
-  document.getElementById("saveBtn")?.addEventListener("click", saveChanges);
-  document.getElementById("exportBtn")?.addEventListener("click", exportToExcel);
-  document.getElementById("printBtn")?.addEventListener("click", () => window.print());
-
-  // Atur urutan rotasi (KA Gudang)
-  document.getElementById("rotationOrderBtn")?.addEventListener("click", openRotationOrderModal);
-  document.getElementById("rotationOrderCloseBtn")?.addEventListener("click", closeRotationOrderModal);
-  document.getElementById("rotationOrderSaveBtn")?.addEventListener("click", saveRotationOrder);
-  document.getElementById("rotationOrderResetBtn")?.addEventListener("click", () => {
-    const week = parseInt(document.getElementById("rotationWeekSelect")?.value);
-    if (week) deleteRotationOverride(week);
-  });
-  document.getElementById("rotationWeekSelect")?.addEventListener("change", e => {
-    loadRotationDraftForWeek(parseInt(e.target.value));
-  });
-
-  // Theme toggle
-  document.getElementById("themeToggle")?.addEventListener("click", () => {
-    const isFormal = document.body.classList.contains("formal-theme");
-    applyTheme(isFormal ? "dark" : "formal");
-  });
-
-  // Serah terima
-  document.getElementById("serahTerimaBtn")?.addEventListener("click", openSerahTerimaModal);
-  document.getElementById("historyBtn")?.addEventListener("click", openHistoryModal);
-
-  // Chat
-  document.getElementById("chatSendBtn")?.addEventListener("click", sendChatMessage);
-  document.getElementById("chatInput")?.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendChatMessage();
-    }
-    handleTypingIndicator();
-  });
-
-  document.getElementById("chatInput")?.addEventListener("input", handleTypingIndicator);
-
-  document.getElementById("chatToggleBtn")?.addEventListener("click", toggleChat);
-  document.getElementById("chatCloseFab")?.addEventListener("click", () => closeChat());
-
-  // Cancel reply
-  document.getElementById("cancelReply")?.addEventListener("click", () => {
-    replyTo = null;
-    const box = document.getElementById("replyPreview");
-    if (box) box.style.display = "none";
-  });
-
-  // Emoji picker toggle
-  document.getElementById("emojiBtn")?.addEventListener("click", toggleEmojiPicker);
-
-  // Kegiatan toggle
-  document.getElementById("kegiatanToggleBtn")?.addEventListener("click", () => {
-    const body = document.getElementById("kegiatanBody");
-    const arrow = document.getElementById("kegiatanArrow");
-    body?.classList.toggle("open");
-    if (arrow) arrow.textContent = body?.classList.contains("open") ? "▲" : "▼";
-  });
-
-  // Quick nav
-  document.getElementById("prevWeekBtn")?.addEventListener("click", () => changeWeek(-1));
-  document.getElementById("nextWeekBtn")?.addEventListener("click", () => changeWeek(1));
-
-  // Staff search
-  document.getElementById("staffSearchInput")?.addEventListener("input", e => {
-    applySearchFilter(e.target.value);
-  });
-
-  // Scroll to top
-  const scrollBtn = document.getElementById("scrollTopBtn");
-  if (scrollBtn) {
-    window.addEventListener("scroll", () => {
-      scrollBtn.classList.toggle("visible", window.scrollY > 300);
-    });
-    scrollBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-  }
-
-  // Close modals on backdrop click
-  document.querySelectorAll(".modal").forEach(modal => {
-    modal.addEventListener("click", e => {
-      if (e.target === modal) modal.classList.remove("active");
-    });
-  });
-
-  // Swipe gesture — DINONAKTIFKAN
-  // Fitur swipe untuk pindah week dimatikan karena terlalu sensitif
-  // dan bentrok dengan scroll tabel horizontal di HP.
-  // Gunakan tombol ‹ › atau dropdown weekSelect untuk navigasi week.
-
-  // Keyboard shortcuts
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") {
-      document.querySelectorAll(".modal.active").forEach(m => m.classList.remove("active"));
-      if (chatOpen) closeChat();
-    }
-    if (e.altKey && e.key === "ArrowRight") changeWeek(1);
-    if (e.altKey && e.key === "ArrowLeft") changeWeek(-1);
-    if (e.altKey && e.key === "c") toggleChat();
-  });
-
-  // Ripple effect
-  document.addEventListener("click", function(e) {
-    const btn = e.target.closest("button, .cyber-link-btn, .mobile-nav-item");
-    if (!btn) return;
-    const ripple = document.createElement("span");
-    ripple.className = "ripple";
-    const rect = btn.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;`;
-    btn.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
-  });
-
-  // MutationObserver for table
-  const tbl = document.getElementById("scheduleTable");
-  if (tbl) {
-    new MutationObserver(() => {
-      const wn = parseInt(document.getElementById("weekSelect")?.value || 1);
-      setTimeout(() => {
-        updateStatsAfterRender();
-        highlightTodayColumn(wn);
-        addShiftTooltips();
-        applySearchFilter(document.getElementById("staffSearchInput")?.value || "");
-      }, 50);
-    }).observe(tbl, { childList: true, subtree: true });
-  }
-
-  // Initial updates
-  const w = getCurrentWeekNumber();
-  updateQuickNavLabel(w);
-  updateWeekProgress(w);
-  setTimeout(updateStatsAfterRender, 800);
-  initOnlineIndicator();
-
-  // Auth state listener
-  const attachAuth = () => {
-    if (!(window.onAuthStateChangedFirebase && window.auth) || window.__authBound) return;
-    window.__authBound = true;
-    window.onAuthStateChangedFirebase(window.auth, (user) => {
-      if (user) {
-        isAdmin = true;
-        toggleAdminButtons(true);
-        document.body.classList.add("admin-active");
-      } else {
-        isAdmin = false;
-        toggleAdminButtons(false);
-        document.body.classList.remove("admin-active");
-      }
-    });
+  var LS_KEYS = {
+    contents: "gdngprg_contents",
+    materials: "gdngprg_materials",
+    images: "gdngprg_images",
+    settings: "gdngprg_settings",
+    theme: "gdngprg_theme"
   };
-  window.addEventListener("firebase-auth-ready", attachAuth);
-  attachAuth();
-  if (window.ensureAuth) setTimeout(() => window.ensureAuth(), 1500);
-}
+  // Bump this whenever the built-in seed content changes, so browsers that
+  // already have older data in LocalStorage get refreshed automatically
+  // instead of keeping stale materials forever.
+  var DATA_VERSION = "2026.09.30-sgm-surat-jalan-btb-ref-po-v8";
+  var DATA_VERSION_KEY = "gdngprg_data_version";
 
-// ================= ROTATION ORDER OVERRIDES (KA Gudang) =================
-// Memuat seluruh override urutan rotasi dari Firebase satu kali di awal.
-function loadRotationOverrides() {
-  if (!window.db) { rotationOverrides = {}; return Promise.resolve(); }
-  return window.firebaseGet(window.firebaseRef(window.db, "rotationOverrides"))
-    .then(snapshot => { rotationOverrides = snapshot.exists() ? snapshot.val() : {}; })
-    .catch(err => { console.error("Gagal memuat rotationOverrides:", err); rotationOverrides = {}; });
-}
-
-// Mengembalikan urutan array staff[] (5 admin rotasi) yang berlaku untuk
-// minggu tertentu. Mencari override terdekat yang mulai berlaku pada minggu
-// <= weekNumber; jika tidak ada, kembalikan urutan asli staff[].
-// Sekali diubah pada suatu minggu, urutan baru ini otomatis terus berlanjut
-// ke minggu-minggu berikutnya (mengikuti rumus rotasi normal) sampai ada
-// override baru yang lebih baru.
-function getEffectiveStaffOrder(weekNumber) {
-  const weeks = Object.keys(rotationOverrides)
-    .map(k => parseInt(String(k).replace("week_", "")))
-    .filter(w => !isNaN(w) && w <= weekNumber)
-    .sort((a, b) => b - a);
-  if (weeks.length === 0) return staff;
-
-  const niks = rotationOverrides["week_" + weeks[0]];
-  if (!Array.isArray(niks) || niks.length !== staff.length) return staff;
-
-  const byNik = {};
-  staff.forEach(s => { byNik[s.nik] = s; });
-  const reordered = niks.map(nik => byNik[nik]).filter(Boolean);
-  return reordered.length === staff.length ? reordered : staff;
-}
-
-// ================= WEEK ROW BUILDER =================
-// Mengembalikan array baris { person, pattern } sesuai urutan tampil di tabel
-// untuk minggu tertentu. Menyatukan logika lama (staffOld/basePatternOld),
-// logika Week 25-34 (staff/basePattern, 5 orang rotasi), dan logika baru
-// Week 35+ (6 orang, RIAN ARSYANSYAH jadwal tetap tidak ikut rotasi).
-function getWeekRows(weekNumber) {
-  const NEW_FORMAT_WEEK = 25;
-  const rows = [];
-
-  if (weekNumber < NEW_FORMAT_WEEK) {
-    const rotation = weekNumber < START_ROTATION_WEEK
-      ? (weekNumber - START_WEEK) % 6
-      : (weekNumber - START_ROTATION_WEEK) % 6;
-    for (let i = 0; i < staffOld.length; i++) {
-      const idx = (i + rotation) % staffOld.length;
-      rows.push({ person: staffOld[idx], pattern: basePatternOld[i] });
-    }
-  } else if (weekNumber < NEW_ADMIN_WEEK) {
-    const staffOrder = getEffectiveStaffOrder(weekNumber);
-    const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
-    for (let i = 0; i < staffOrder.length; i++) {
-      const idx = (i + rotation) % staffOrder.length;
-      rows.push({ person: staffOrder[idx], pattern: basePattern[i] });
-    }
-  } else {
-    // Week 35+: 6 baris. RIAN ARSYANSYAH selalu di RIAN_ROW_INDEX dengan
-    // pattern tetap. 5 admin lain rotasi mengisi ROTATING_ROW_INDEXES,
-    // memakai urutan efektif (asli atau hasil override KA Gudang).
-    const staffOrder = getEffectiveStaffOrder(weekNumber);
-    const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
-    const tempRows = new Array(6);
-    for (let j = 0; j < staffOrder.length; j++) {
-      const idx = (j + rotation) % staffOrder.length;
-      const rowIdx = ROTATING_ROW_INDEXES[j];
-      tempRows[rowIdx] = { person: staffOrder[idx], pattern: basePatternWithRian[rowIdx] };
-    }
-    tempRows[RIAN_ROW_INDEX] = { person: staffRian, pattern: basePatternWithRian[RIAN_ROW_INDEX] };
-    for (let k = 0; k < 6; k++) rows.push(tempRows[k]);
-  }
-  return rows;
-}
-
-// ================= WEEK NAVIGATION =================
-function changeWeek(delta) {
-  const sel = document.getElementById("weekSelect");
-  if (!sel) return;
-  const newVal = parseInt(sel.value) + delta;
-  if (newVal >= 6 && newVal <= 52) {
-    sel.value = newVal;
-    sel.dispatchEvent(new Event("change"));
-  }
-}
-
-// ================= WEEK OPTIONS =================
-function generateWeekOptions() {
-  const select = document.getElementById("weekSelect");
-  if (!select) return;
-  for (let i = 6; i <= 52; i++) {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = "Week " + i;
-    select.appendChild(opt);
-  }
-}
-
-// ================= RENDER SCHEDULE =================
-function renderSchedule(weekNumber) {
-  if (!window.db) return;
-
-  // Show skeleton
-  const table = document.getElementById("scheduleTable");
-  if (!table) return;
-
-  window.firebaseGet(window.firebaseRef(window.db, "schedules/week_" + weekNumber))
-    .then(snapshot => {
-      const overrides = snapshot.exists() ? snapshot.val() : {};
-      const weekRows = getWeekRows(weekNumber);
-      const monday = new Date(START_DATE);
-      monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
-      const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
-
-      let header = "<tr><th>No</th><th>NIK</th><th class='nama-col-header'>Nama</th>";
-      const holidayInfo = [];
-
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        const iso = formatISO(d);
-        let holidayClass = "";
-        if (nationalHolidays[iso]) {
-          const h = nationalHolidays[iso];
-          holidayClass = h.type === "LN" ? "holiday-ln" : "holiday-cb";
-          holidayInfo.push({ date: formatDate(d), name: h.name, type: h.type === "LN" ? "Libur Nasional" : "Cuti Bersama" });
-        }
-        const isToday = formatISO(d) === todayISO();
-        header += `<th class="${holidayClass}${isToday ? " today-col" : ""}">${formatDate(d)}<br>${days[i]}${isToday ? '<br><span class="today-tag">HARI INI</span>' : ""}</th>`;
-      }
-      header += "</tr>";
-      let tableHTML = header;
-
-      for (let i = 0; i < weekRows.length; i++) {
-        const person = weekRows[i].person;
-        const pattern = weekRows[i].pattern;
-        let row = `<tr>
-          <td>${i + 1}</td>
-          <td class="nik-cell">${person.nik}</td>
-          <td class="nama-cell">
-            <div class="staff-cell">
-              <div class="staff-avatar" data-initial="${person.avatar}">${person.avatar}</div>
-              <span>${person.nama}</span>
-            </div>
-          </td>`;
-
-        for (let j = 0; j < 7; j++) {
-          let shift = pattern[j];
-          if (overrides[i] && overrides[i][j]) shift = overrides[i][j];
-          row += `<td class="shift-${shift}" onclick="editShift(this)" data-row="${i}" data-col="${j}" data-shift="${shift}"><span class="shift-label">${shift}</span></td>`;
-        }
-        row += "</tr>";
-        tableHTML += row;
-      }
-      table.innerHTML = tableHTML;
-
-      // Holiday info box
-      const old = document.getElementById("holidayInfoBox");
-      if (old) old.remove();
-      if (holidayInfo.length > 0) {
-        const box = document.createElement("div");
-        box.id = "holidayInfoBox";
-        box.className = "holiday-info-box";
-        let html = "<strong><i class=\"fas fa-calendar-day\"></i> Hari Libur Minggu Ini:</strong><br>";
-        holidayInfo.forEach(h => {
-          html += `<span class="holiday-item ${h.type === 'Libur Nasional' ? 'ln' : 'cb'}">● ${h.date} — ${h.type}: ${h.name}</span><br>`;
-        });
-        box.innerHTML = html;
-        document.querySelector(".table-wrapper")?.after(box);
-      }
-    })
-    .catch(err => console.error("Firebase error:", err));
-}
-
-// ================= EDIT SHIFT =================
-const SHIFT_HINTS = { P:"Pagi — 07:30 s/d 15:30", S:"Sore — 15:30 s/d 23:30", M:"Malam — 23:30 s/d 07:30", OFF:"Hari Libur", C:"Cuti" };
-
-function editShift(cell) {
-  if (!isAdmin) return;
-  const options = ["P","S","M","OFF","C"];
-  const current = cell.dataset.shift;
-  const next = options[(options.indexOf(current) + 1) % options.length];
-  cell.dataset.shift = next;
-  cell.className = "shift-" + next;
-  cell.innerHTML = `<span class="shift-label">${next}</span>`;
-  cell.setAttribute("onclick", "editShift(this)");
-  if (SHIFT_HINTS[next]) cell.setAttribute("data-hint", SHIFT_HINTS[next]);
-  // Visual feedback — scale the chip only, never the <td> itself
-  // (transforming the cell can visually spill into the sticky name column)
-  const label = cell.querySelector(".shift-label");
-  if (label) {
-    label.style.transform = "scale(1.22)";
-    setTimeout(() => { label.style.transform = ""; }, 200);
-  }
-}
-
-// ================= SAVE =================
-function saveChanges() {
-  const week = document.getElementById("weekSelect").value;
-  const cells = document.querySelectorAll("#scheduleTable td[data-row]");
-  const data = {};
-  cells.forEach(cell => {
-    const r = cell.dataset.row;
-    const c = cell.dataset.col;
-    if (!data[r]) data[r] = {};
-    data[r][c] = cell.dataset.shift;
-  });
-
-  const btn = document.getElementById("saveBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
-
-  window.firebaseSet(window.firebaseRef(window.db, "schedules/week_" + week), data)
-    .then(() => {
-      showToast("💾 Perubahan berhasil disimpan!");
-      if (btn) { btn.disabled = false; btn.textContent = "Simpan Perubahan"; }
-    })
-    .catch(err => {
-      showToast("❌ Gagal menyimpan: " + err.message);
-      if (btn) { btn.disabled = false; btn.textContent = "Simpan Perubahan"; }
-    });
-}
-
-// ================= EXPORT =================
-function loadXLSX() {
-  return new Promise((res, rej) => {
-    if (typeof XLSX !== "undefined") return res();
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-    s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  });
-}
-function exportToExcel() {
-  if (typeof XLSX === "undefined") {
-    showToast("Menyiapkan library Excel...");
-    loadXLSX().then(exportToExcel).catch(() => showToast("❌ Library XLSX tidak tersedia"));
-    return;
-  }
-  const weekNumber = parseInt(document.getElementById("weekSelect").value);
-  const weekRows = getWeekRows(weekNumber);
-  const monday = new Date(START_DATE);
-  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
-
-  const cells = document.querySelectorAll("#scheduleTable td[data-row]");
-  const overrides = {};
-  cells.forEach(cell => {
-    const r = cell.dataset.row, c = cell.dataset.col;
-    if (!overrides[r]) overrides[r] = {};
-    overrides[r][c] = cell.dataset.shift;
-  });
-
-  const days = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
-  const data = [["No","NIK","Nama"]];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    data[0].push(formatDate(d) + " " + days[i]);
-  }
-
-  for (let i = 0; i < weekRows.length; i++) {
-    const p = weekRows[i].person;
-    const pattern = weekRows[i].pattern;
-    const row = [i + 1, p.nik, p.nama];
-    for (let j = 0; j < 7; j++) {
-      row.push((overrides[i] && overrides[i][j]) ? overrides[i][j] : pattern[j]);
-    }
-    data.push(row);
-  }
-
-  if (typeof XLSX === "undefined") { showToast("❌ Library XLSX tidak tersedia"); return; }
-  const ws = XLSX.utils.aoa_to_sheet(data);
-  const colorMap = { P:"26DE3C", S:"FF9066", M:"5A54B8", OFF:"A60000", C:"FFFF26" };
-  for (let r = 1; r <= weekRows.length; r++) {
-    for (let c = 3; c <= 9; c++) {
-      const ref = XLSX.utils.encode_cell({ r, c });
-      const cell = ws[ref];
-      if (!cell) continue;
-      cell.s = {
-        fill: { patternType:"solid", fgColor:{ rgb: colorMap[cell.v] || "FFFFFF" } },
-        alignment: { horizontal:"center", vertical:"center" },
-        font: { bold:true, color:{ rgb:(cell.v==="M"||cell.v==="OFF")?"FFFFFF":"000000" } }
+  /* ------------------------------------------------------------------ */
+  /* 1. UTILITIES                                                        */
+  /* ------------------------------------------------------------------ */
+  var Utils = {
+    uid: function (prefix) {
+      return (prefix || "id") + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+    },
+    escapeHtml: function (str) {
+      if (str === undefined || str === null) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    },
+    slugify: function (str) {
+      return String(str || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+    },
+    formatDate: function (iso) {
+      if (!iso) return "-";
+      try {
+        var d = new Date(iso);
+        return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) +
+          " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+      } catch (e) { return iso; }
+    },
+    debounce: function (fn, wait) {
+      var t;
+      return function () {
+        var args = arguments, ctx = this;
+        clearTimeout(t);
+        t = setTimeout(function () { fn.apply(ctx, args); }, wait);
       };
+    },
+    // Very small allow-list HTML sanitizer for the local prototype.
+    // Removes script/style/iframe tags and inline event handlers / javascript: URLs.
+    sanitizeHtml: function (html) {
+      var tpl = document.createElement("template");
+      tpl.innerHTML = html || "";
+      var walk = function (node) {
+        var toRemove = [];
+        node.childNodes.forEach(function (child) {
+          if (child.nodeType === 1) {
+            var tag = child.tagName.toLowerCase();
+            if (tag === "script" || tag === "style" || tag === "iframe" || tag === "object" || tag === "embed") {
+              toRemove.push(child);
+              return;
+            }
+            [].slice.call(child.attributes).forEach(function (attr) {
+              var name = attr.name.toLowerCase();
+              var val = attr.value || "";
+              if (name.indexOf("on") === 0) child.removeAttribute(attr.name);
+              if ((name === "href" || name === "src") && val.trim().toLowerCase().indexOf("javascript:") === 0) {
+                child.removeAttribute(attr.name);
+              }
+            });
+            walk(child);
+          }
+        });
+        toRemove.forEach(function (n) { n.remove(); });
+      };
+      walk(tpl.content);
+      return tpl.innerHTML;
     }
-  }
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Week " + weekNumber);
-  XLSX.writeFile(wb, `Jadwal_Week_${weekNumber}.xlsx`, { cellStyles:true });
-  showToast("📊 Export Excel berhasil!");
-}
-
-// ================= LOGIN =================
-async function startBiometricScan() {
-  const email = document.getElementById("adminEmail")?.value.trim();
-  const password = document.getElementById("adminPassword")?.value;
-  const boot = document.getElementById("bootText");
-  if (!email || !password) { showToast("⚠️ Email dan password wajib diisi"); return; }
-
-  if (boot) boot.innerHTML = "› Connecting Firebase...<br>";
-  await delay(400);
-  if (boot) boot.innerHTML += "› Verifying administrator...<br>";
-  await delay(500);
-  if (boot) boot.innerHTML += "› Authenticating secure access...<br>";
-
-  try {
-    if (window.ensureAuth) await window.ensureAuth();
-    await window.signInWithEmailAndPassword(window.auth, email, password);
-    if (boot) boot.innerHTML += '<span style="color:#00ff88">✔ ACCESS GRANTED</span><br>';
-    await delay(700);
-    isAdmin = true;
-    document.body.classList.add("admin-active");
-    document.getElementById("loginModal")?.classList.remove("active");
-    toggleAdminButtons(true);
-    showToast("✅ Login berhasil sebagai KA Gudang");
-  } catch (err) {
-    if (boot) boot.innerHTML += '<span style="color:#ff4444">✘ LOGIN FAILED: ' + (err.code || "unknown") + '</span><br>';
-    showToast("❌ Email atau password salah");
-  }
-}
-
-function closeModal() {
-  document.getElementById("loginModal")?.classList.remove("active");
-}
-
-function toggleAdminButtons(state) {
-  isAdmin = state;
-  ["adminBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", state));
-  ["logoutBtn","saveBtn","exportBtn","printBtn","rotationOrderBtn"].forEach(id => document.getElementById(id)?.classList.toggle("hidden", !state));
-  document.body.classList.toggle("admin-active", state);
-  renderSchedule(parseInt(document.getElementById("weekSelect").value));
-}
-
-// ================= ATUR URUTAN ROTASI (KA Gudang) =================
-// Menampilkan 5 admin rotasi (di luar RIAN ARSYANSYAH) sesuai urutan yang
-// berlaku pada minggu terpilih, dan mengizinkan KA Gudang menukar posisi
-// mereka. Urutan baru disimpan sebagai override yang berlaku mulai minggu
-// tersebut dan otomatis berlanjut ke minggu-minggu berikutnya.
-
-function renderRotationOrderList() {
-  const wrap = document.getElementById("rotationOrderList");
-  if (!wrap) return;
-  wrap.innerHTML = rotationOrderDraft.map((s, idx) => `
-    <div class="rotation-order-item" data-nik="${s.nik}">
-      <span class="rotation-order-num">${idx + 1}</span>
-      <div class="staff-avatar" data-initial="${s.avatar}">${s.avatar}</div>
-      <span class="rotation-order-name">${s.nama}</span>
-      <div class="rotation-order-actions">
-        <button type="button" class="rot-move-btn" onclick="moveRotationItem(${idx},-1)" ${idx === 0 ? "disabled" : ""} aria-label="Naik"><i class="fas fa-chevron-up"></i></button>
-        <button type="button" class="rot-move-btn" onclick="moveRotationItem(${idx},1)" ${idx === rotationOrderDraft.length - 1 ? "disabled" : ""} aria-label="Turun"><i class="fas fa-chevron-down"></i></button>
-      </div>
-    </div>`).join("");
-}
-
-function moveRotationItem(idx, dir) {
-  const j = idx + dir;
-  if (j < 0 || j >= rotationOrderDraft.length) return;
-  const tmp = rotationOrderDraft[idx];
-  rotationOrderDraft[idx] = rotationOrderDraft[j];
-  rotationOrderDraft[j] = tmp;
-  renderRotationOrderList();
-}
-
-function loadRotationDraftForWeek(week) {
-  rotationOrderDraft = getEffectiveStaffOrder(week).slice();
-  renderRotationOrderList();
-}
-
-function renderRotationOverrideHistory() {
-  const el = document.getElementById("rotationOverrideHistory");
-  if (!el) return;
-  const weeks = Object.keys(rotationOverrides)
-    .map(k => parseInt(String(k).replace("week_", "")))
-    .filter(w => !isNaN(w))
-    .sort((a, b) => a - b);
-
-  if (weeks.length === 0) {
-    el.innerHTML = `<p class="rotation-history-empty">Belum ada perubahan urutan rotasi.</p>`;
-    return;
-  }
-
-  el.innerHTML = `<div class="rotation-history-title">Riwayat Perubahan Urutan</div>` +
-    weeks.map(w => {
-      const niks = rotationOverrides["week_" + w] || [];
-      const names = niks.map(nik => (staff.find(s => s.nik === nik) || {}).nama || nik).join(" → ");
-      return `<div class="rotation-history-item">
-        <span>Week ${w}: ${names}</span>
-        <button type="button" class="rot-history-del" onclick="deleteRotationOverride(${w})" aria-label="Hapus override"><i class="fas fa-trash"></i></button>
-      </div>`;
-    }).join("");
-}
-
-function buildRotationWeekOptions() {
-  const sel = document.getElementById("rotationWeekSelect");
-  if (!sel || sel.dataset.built) return;
-  for (let i = 25; i <= 52; i++) {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = "Week " + i;
-    sel.appendChild(opt);
-  }
-  sel.dataset.built = "1";
-}
-
-function openRotationOrderModal() {
-  buildRotationWeekOptions();
-  const sel = document.getElementById("rotationWeekSelect");
-  const activeWeek = parseInt(document.getElementById("weekSelect")?.value) || 25;
-  const startWeek = Math.min(52, Math.max(25, activeWeek));
-  if (sel) sel.value = startWeek;
-  loadRotationDraftForWeek(startWeek);
-  renderRotationOverrideHistory();
-  document.getElementById("rotationOrderModal")?.classList.add("active");
-}
-
-function closeRotationOrderModal() {
-  document.getElementById("rotationOrderModal")?.classList.remove("active");
-}
-
-function saveRotationOrder() {
-  const week = parseInt(document.getElementById("rotationWeekSelect")?.value);
-  if (!week) return;
-  const niks = rotationOrderDraft.map(s => s.nik);
-  const btn = document.getElementById("rotationOrderSaveBtn");
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; }
-
-  window.firebaseSet(window.firebaseRef(window.db, "rotationOverrides/week_" + week), niks)
-    .then(() => {
-      rotationOverrides["week_" + week] = niks;
-      showToast("✅ Urutan rotasi diperbarui mulai Week " + week);
-      renderRotationOverrideHistory();
-      renderSchedule(parseInt(document.getElementById("weekSelect").value));
-    })
-    .catch(err => showToast("❌ Gagal menyimpan: " + err.message))
-    .finally(() => {
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Simpan'; }
-    });
-}
-
-function deleteRotationOverride(week) {
-  window.firebaseSet(window.firebaseRef(window.db, "rotationOverrides/week_" + week), null)
-    .then(() => {
-      delete rotationOverrides["week_" + week];
-      showToast("🗑️ Override Week " + week + " dihapus");
-      renderRotationOverrideHistory();
-      const selWeek = parseInt(document.getElementById("rotationWeekSelect")?.value) || week;
-      loadRotationDraftForWeek(selWeek);
-      renderSchedule(parseInt(document.getElementById("weekSelect").value));
-    })
-    .catch(err => showToast("❌ Gagal menghapus: " + err.message));
-}
-
-// ================= FORMAT =================
-function formatDate(date) {
-  return `${String(date.getDate()).padStart(2,"0")}/${String(date.getMonth()+1).padStart(2,"0")}/${date.getFullYear()}`;
-}
-
-function formatISO(date) {
-  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-}
-
-// Local-timezone "today" key (WIB). IMPORTANT: never use `new Date().toISOString()`
-// for this — toISOString() converts to UTC, so before 07:00 WIB the UTC date is
-// still "yesterday", which caused the "HARI INI" tag to land on the wrong day.
-function todayISO() {
-  return formatISO(new Date());
-}
-
-function getCurrentWeekNumber() {
-  const today = new Date();
-  if (today < START_DATE) return START_WEEK;
-  const diff = Math.floor((today - START_DATE) / 86400000);
-  return Math.min(START_WEEK + Math.floor(diff / 7), 52);
-}
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ================= CLOCK =================
-function updateClock() {
-  const now = new Date();
-  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-  const pad = n => String(n).padStart(2,"0");
-  const el = document.getElementById("liveClock");
-  if (el) el.textContent = `${hari[now.getDay()]} ${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} WIB`;
-}
-
-// ================= SHIFT LOGIC =================
-function getCurrentShift() {
-  const now = new Date();
-  const min = now.getHours() * 60 + now.getMinutes();
-  if (min > 450 && min <= 930) return 1;   // 07:30 - 15:30
-  if (min > 930 && min <= 1410) return 2;  // 15:30 - 23:30
-  return 3;                                  // 23:30 - 07:30
-}
-
-function updateShiftIndicator() {
-  const shift = getCurrentShift();
-  const box = document.getElementById("shiftAktifBox");
-  if (box) {
-    box.className = "shift-box gauge-shift-num shift" + shift + "-box";
-    box.innerText = shift;
-  }
-
-  const gaugeWrap = document.getElementById("shiftGauge");
-  if (gaugeWrap) gaugeWrap.setAttribute("data-active-shift", shift);
-
-  const marker = document.getElementById("gaugeMarker");
-  if (marker) {
-    const now = new Date();
-    const minutes = now.getHours() * 60 + now.getMinutes();
-    const angle = (minutes / 1440) * 360;
-    marker.style.transform = "rotate(" + angle + "deg)";
-  }
-}
-
-function updateShiftCountdown() {
-  const el = document.getElementById("shiftCountdown");
-  if (!el) return;
-  const shift = getCurrentShift();
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const endMap = { 1: 930, 2: 1410, 3: 450 };
-  let end = endMap[shift];
-  let rem = end - nowMin;
-  if (rem < 0) rem += 1440;
-  if (rem > 1440) rem = 0;
-  const h = Math.floor(rem / 60), m = rem % 60;
-  el.textContent = rem > 0 ? `SHIFT ${shift} berakhir dalam ${h}j ${m}m` : "";
-}
-
-// ================= SERAH TERIMA =================
-let serahTerimaLastSnapshot = null; // dateKey|s1|s2|s3 sebelumnya, buat deteksi perubahan
-let serahTerimaFirstLoad = true;    // supaya tidak notif saat load pertama kali buka web
-
-function loadSerahTerima() {
-  if (!window.db) return;
-  const dateKey = todayISO();
-  window.firebaseGet(window.firebaseRef(window.db, "serahTerima/" + dateKey))
-    .then(snapshot => {
-      const data = snapshot.exists() ? snapshot.val() : {};
-      const s1 = data.shift1 || "Belum ada catatan";
-      const s2 = data.shift2 || "Belum ada catatan";
-      const s3 = data.shift3 || "Belum ada catatan";
-      const text = `<span class="ticker-item"><i class="fas fa-calendar-day"></i> ${dateKey} ◆ SHIFT 3 ➜ ${s3}</span><span class="ticker-item">◆ SHIFT 1 ➜ ${s1}</span><span class="ticker-item">◆ SHIFT 2 ➜ ${s2}</span>`;
-      const el = document.getElementById("serahTerimaText");
-      const clone = document.getElementById("serahTerimaClone");
-      if (el) el.innerHTML = text;
-      if (clone) clone.innerHTML = text;
-
-      // Deteksi ada serah terima baru/berubah -> tampilkan notif OS-style
-      const sig = dateKey + "|" + s1 + "|" + s2 + "|" + s3;
-      if (!serahTerimaFirstLoad && sig !== serahTerimaLastSnapshot && window.showOSNotification) {
-        const changedShift = !serahTerimaLastSnapshot || !serahTerimaLastSnapshot.startsWith(dateKey)
-          ? null
-          : (() => {
-              const prev = serahTerimaLastSnapshot.split("|");
-              if (prev[1] !== s1) return { shift: 1, isi: s1 };
-              if (prev[2] !== s2) return { shift: 2, isi: s2 };
-              if (prev[3] !== s3) return { shift: 3, isi: s3 };
-              return null;
-            })();
-        if (changedShift) {
-          window.showOSNotification({
-            kind: "serahterima",
-            title: "Serah Terima Shift " + changedShift.shift,
-            lines: [escapeHtml(changedShift.isi).substring(0, 90)],
-            onClick: () => scrollToSection("serahTerimaTicker")
-          });
-        }
-      }
-      serahTerimaLastSnapshot = sig;
-      serahTerimaFirstLoad = false;
-    });
-}
-
-function checkDateChange() {
-  const newKey = todayISO();
-  if (newKey !== currentDateKey) { currentDateKey = newKey; loadSerahTerima(); }
-}
-
-function openSerahTerimaModal() {
-  const shift = getCurrentShift();
-  const modal = document.getElementById("serahTerimaModal");
-  const label = document.getElementById("serahTerimaShiftLabel");
-  const input = document.getElementById("serahTerimaInput");
-  if (label) label.textContent = "Input Serah Terima SHIFT " + shift;
-  if (input) input.value = "";
-  if (modal) modal.classList.add("active");
-
-  // Load existing note
-  const dateKey = todayISO();
-  window.firebaseGet(window.firebaseRef(window.db, "serahTerima/" + dateKey + "/shift" + shift))
-    .then(snap => { if (snap.exists() && input) input.value = snap.val(); })
-    .catch(() => {});
-
-  document.getElementById("serahTerimaSaveBtn").onclick = () => {
-    const isi = input?.value.trim();
-    if (!isi) { showToast("⚠️ Catatan tidak boleh kosong!"); return; }
-    const btn = document.getElementById("serahTerimaSaveBtn");
-    btn.disabled = true; btn.textContent = "Menyimpan...";
-    window.firebaseSet(window.firebaseRef(window.db, "serahTerima/" + dateKey + "/shift" + shift), isi)
-      .then(() => {
-        showToast("✅ Serah Terima Shift " + shift + " disimpan!");
-        modal?.classList.remove("active");
-        loadSerahTerima();
-        btn.disabled = false; btn.textContent = "Simpan";
-      });
   };
 
-  document.getElementById("serahTerimaCloseBtn").onclick = () => modal?.classList.remove("active");
-}
-
-async function openHistoryModal() {
-  if (!window.db) return;
-  const modal = document.getElementById("historyModal");
-  const content = document.getElementById("historyContent");
-  if (content) content.innerHTML = '<div class="loading-pulse">Memuat history...</div>';
-  if (modal) modal.classList.add("active");
-
-  try {
-    const snapshot = await window.firebaseGet(window.firebaseRef(window.db, "serahTerima"));
-    if (!snapshot.exists()) {
-      content.innerHTML = "<p style='text-align:center;opacity:0.6;padding:20px'>Belum ada history serah terima.</p>";
-    } else {
-      const data = snapshot.val();
-      let html = "";
-      Object.keys(data).sort().slice(-7).reverse().forEach(date => {
-        const d = data[date];
-        html += `<div class="history-card">
-          <div class="history-date"><i class="fas fa-calendar-day"></i> ${date}</div>
-          <div class="history-shifts">
-            <div class="history-shift shift1-label"><span class="shift-dot s1"></span>SHIFT 1: <span>${d.shift1 || "—"}</span></div>
-            <div class="history-shift shift2-label"><span class="shift-dot s2"></span>SHIFT 2: <span>${d.shift2 || "—"}</span></div>
-            <div class="history-shift shift3-label"><span class="shift-dot s3"></span>SHIFT 3: <span>${d.shift3 || "—"}</span></div>
-          </div>
-        </div>`;
-      });
-      if (content) content.innerHTML = html;
+  /* ------------------------------------------------------------------ */
+  /* 2. THEME SERVICE                                                    */
+  /* ------------------------------------------------------------------ */
+  var ThemeService = {
+    get: function () {
+      return localStorage.getItem(LS_KEYS.theme) || "light";
+    },
+    apply: function (theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+    },
+    set: function (theme) {
+      localStorage.setItem(LS_KEYS.theme, theme);
+      this.apply(theme);
+    },
+    toggle: function () {
+      var next = this.get() === "dark" ? "light" : "dark";
+      this.set(next);
+      return next;
+    },
+    init: function () {
+      this.apply(this.get());
     }
-  } catch(e) {
-    if (content) content.innerHTML = "<p style='color:red;padding:20px'>Gagal memuat history.</p>";
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* 3. TOAST + CONFIRM                                                  */
+  /* ------------------------------------------------------------------ */
+  var Toast = {
+    root: null,
+    init: function () { this.root = document.getElementById("toastRoot"); },
+    show: function (message, type, durationMs) {
+      type = type || "success";
+      var el = document.createElement("div");
+      el.className = "toast " + type;
+      var icon = type === "success" ? "&#10003;" : type === "error" ? "&#9888;" : "&#8505;";
+      el.innerHTML = "<span>" + icon + "</span><span>" + Utils.escapeHtml(message) + "</span>";
+      this.root.appendChild(el);
+      setTimeout(function () {
+        el.classList.add("toast-fade");
+        setTimeout(function () { el.remove(); }, 220);
+      }, durationMs || 2800);
+    }
+  };
+
+  // Image lightbox: any <img> inside the routed #app content (materi reader,
+  // step galleries, etc.) can be clicked to view it enlarged. Bound once via
+  // delegation on document so it keeps working after every re-render.
+  var Lightbox = {
+    overlay: null, imgEl: null, captionEl: null,
+    init: function () {
+      this.overlay = document.getElementById("lightboxOverlay");
+      this.imgEl = document.getElementById("lightboxImg");
+      this.captionEl = document.getElementById("lightboxCaption");
+      var self = this;
+      document.getElementById("lightboxClose").addEventListener("click", function () { self.close(); });
+      this.overlay.addEventListener("click", function (e) { if (e.target === self.overlay) self.close(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") self.close(); });
+      document.addEventListener("click", function (e) {
+        var img = e.target.closest("#app img");
+        if (img && img.getAttribute("src")) self.open(img.getAttribute("src"), img.getAttribute("alt") || "");
+      });
+    },
+    open: function (src, alt) {
+      this.imgEl.src = src;
+      this.imgEl.alt = alt;
+      this.captionEl.textContent = alt;
+      this.overlay.hidden = false;
+      document.body.style.overflow = "hidden";
+    },
+    close: function () {
+      this.overlay.hidden = true;
+      this.imgEl.src = "";
+      document.body.style.overflow = "";
+    }
+  };
+
+  var Confirm = {
+    overlay: null, titleEl: null, bodyEl: null, okBtn: null, cancelBtn: null, _resolve: null,
+    init: function () {
+      this.overlay = document.getElementById("confirmOverlay");
+      this.titleEl = document.getElementById("confirmTitle");
+      this.bodyEl = document.getElementById("confirmBody");
+      this.okBtn = document.getElementById("confirmOk");
+      this.cancelBtn = document.getElementById("confirmCancel");
+      var self = this;
+      this.okBtn.addEventListener("click", function () { self._close(true); });
+      this.cancelBtn.addEventListener("click", function () { self._close(false); });
+      this.overlay.addEventListener("click", function (e) { if (e.target === self.overlay) self._close(false); });
+    },
+    _close: function (result) {
+      this.overlay.hidden = true;
+      if (this._resolve) { this._resolve(result); this._resolve = null; }
+    },
+    ask: function (title, body, okLabel) {
+      var self = this;
+      this.titleEl.textContent = title;
+      this.bodyEl.textContent = body;
+      this.okBtn.textContent = okLabel || "Hapus";
+      this.overlay.hidden = false;
+      return new Promise(function (resolve) { self._resolve = resolve; });
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* 4. DATA SERVICE (LocalStorage now, Firebase-ready later)            */
+  /* ------------------------------------------------------------------ */
+  var DataService = {
+    _read: function (key, fallback) {
+      try {
+        var raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        console.error("DataService read error", key, e);
+        return fallback;
+      }
+    },
+    _write: function (key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.error("DataService write error", key, e);
+        Toast.show("Penyimpanan gagal. LocalStorage mungkin penuh.", "error");
+        return false;
+      }
+    },
+    getContents: function () { return this._read(LS_KEYS.contents, []); },
+    setContents: function (arr) { return this._write(LS_KEYS.contents, arr); },
+    getMaterials: function () { return this._read(LS_KEYS.materials, []); },
+    setMaterials: function (arr) { return this._write(LS_KEYS.materials, arr); },
+    getImages: function () { return this._read(LS_KEYS.images, []); },
+    setImages: function (arr) { return this._write(LS_KEYS.images, arr); },
+    getSettings: function () { return this._read(LS_KEYS.settings, { adminName: "Administrator" }); },
+    setSettings: function (obj) { return this._write(LS_KEYS.settings, obj); },
+
+    resetAll: function () {
+      Object.keys(LS_KEYS).forEach(function (k) {
+        if (k !== "theme") localStorage.removeItem(LS_KEYS[k]);
+      });
+      seedDefaults(true);
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* 5. AUTH SERVICE (Session-only, ready to swap for Firebase Auth)     */
+  /* ------------------------------------------------------------------ */
+  var AuthService = {
+    login: function (username, password) {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () {
+          if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify({ username: username, loginAt: new Date().toISOString() }));
+            resolve(true);
+          } else {
+            reject(new Error("Username atau password salah."));
+          }
+        }, 500); // small delay to show loading state
+      });
+    },
+    logout: function () { sessionStorage.removeItem(SESSION_KEY); },
+    isLoggedIn: function () { return !!sessionStorage.getItem(SESSION_KEY); },
+    currentUser: function () {
+      try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+  };
+
+  var TX_DMS3_CONTENT = `
+<div class="tx-intro">
+  <p><strong>Transaksi Flashout</strong> (dikenal juga sebagai <strong>Transaksi DMS 3</strong>) adalah prosedur pemindahan stok berjenjang antar-depo yang wajib dilakukan admin sebelum barang dari depo pemasok bisa "mendarat" sebagai stok siap jual di depo tujuan. Setiap perpindahan barang selalu dicatat dua kali: satu <strong>Bukti Keluar Barang (BKB)</strong> di sisi pengirim, satu <strong>Bukti Terima Barang (BTB)</strong> di sisi penerima &mdash; berpindah dari sistem lama <strong>DMS 3</strong>, transit di <strong>LP Pool Cicurug</strong>, lalu masuk ke <strong>DMS 5 (port 9301)</strong> sampai akhirnya siap dijual di depo tujuan.</p>
+  <p>Di bawah ini disusun 3 skenario nyata beserta urutan dokumen dan tangkapan layarnya, supaya admin baru bisa langsung mengikuti alurnya persis seperti aslinya. Pilih skenario dari menu tab di bawah &mdash; setiap gambar juga bisa diklik untuk diperbesar.</p>
+</div>
+
+<!-- ================= TAB MENU: pilih skenario ================= -->
+<div class="tx-tabs" role="tablist" aria-label="Pilih skenario flashout">
+  <button type="button" class="tx-tab active" role="tab" aria-selected="true" aria-controls="txCase1" data-case-target="1">
+    <span class="tx-tab-num">01</span>
+    <span class="tx-tab-text"><span class="tx-tab-title">Galon dari Parung</span><span class="tx-tab-meta">6 dokumen</span></span>
+    <span class="tx-tab-chevron">&rsaquo;</span>
+  </button>
+  <button type="button" class="tx-tab" role="tab" aria-selected="false" aria-controls="txCase2" data-case-target="2">
+    <span class="tx-tab-num">02</span>
+    <span class="tx-tab-text"><span class="tx-tab-title">Galon dari Sentul</span><span class="tx-tab-meta">8 dokumen</span></span>
+    <span class="tx-tab-chevron">&rsaquo;</span>
+  </button>
+  <button type="button" class="tx-tab" role="tab" aria-selected="false" aria-controls="txCase3" data-case-target="3">
+    <span class="tx-tab-num">03</span>
+    <span class="tx-tab-text"><span class="tx-tab-title">SPS dari Cianjur</span><span class="tx-tab-meta">4 dokumen</span></span>
+    <span class="tx-tab-chevron">&rsaquo;</span>
+  </button>
+</div>
+
+
+<!-- ================= CASE 1: GALON DARI PARUNG ================= -->
+<div class="tx-case" id="txCase1" data-case="1">
+  <div class="tx-case-head">
+    <div class="tx-case-badge">01</div>
+    <div>
+      <h2>Flashout Galon dari Parung &rarr; Penjualan Parung</h2>
+      <p>Stok galon isi ulang (Jug Aqua 19L, tissue &amp; galon kosong) diputar melalui Pool Cicurug sebelum kembali menjadi stok jual di Gudang Layak Pet Parung. 528 botol bergerak di setiap tahap.</p>
+    </div>
+  </div>
+  <div class="tx-steps">
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 1</span><img src="assets/images/transaksi-dms-3/parung-01-bkb-dms-3-ke-pol-cicurug.webp" alt="BKB DMS 3 ke Pool Cicurug" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Depo &middot; Barang Keluar</span>
+        <h3 class="tx-step-title">Keluarkan Barang Menuju Pool Cicurug (DMS 3)</h3>
+        <p class="tx-step-desc">Titik awal siklus: <strong>Bukti Keluar Barang Cabang</strong> diterbitkan dari Gudang Layak Pet Parung dengan Depo Tujuan 288 (LP Pool Cicurug), mengeluarkan 528 unit Jug Aqua 19L, tissue, dan galon isi sebagai titik transit sebelum masuk DMS 5.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 2</span><img src="assets/images/transaksi-dms-3/parung-03-btb-dms-5-port-9301-dari-depo-parung.webp" alt="BTB DMS 5 port 9301 dari Depo Parung" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Lanjutkan ke Distribution Management System 5.0</h3>
+        <p class="tx-step-desc">Di sistem baru <strong>DMS 5.0 (port 9301)</strong>, menu <em>BTB Depot</em> menerima kembali barang dari Depo 281 (LP Parung) ke gudang <strong>002-W01 Gudang NGG LP</strong> &mdash; menandai barang resmi tercatat di sistem terbaru.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 3</span><img src="assets/images/transaksi-dms-3/parung-04-bkb-distribus-dms-5-port-9301.webp" alt="BKB Distribusi DMS 5 port 9301" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Distribusi &middot; Keluar</span>
+        <h3 class="tx-step-title">Proses Bukti Keluar Barang Distribusi</h3>
+        <p class="tx-step-desc">Melalui menu <em>Transaksi Distribusi</em>, dokumen BKB Distribusi diterbitkan lengkap dengan referensi Dokumen Permintaan Barang dan keterangan salesman/driver, menyiapkan barang untuk didistribusikan ke tujuan penjualan.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 4</span><img src="assets/images/transaksi-dms-3/parung-05-btb-distribus-dms-5-port-9301.webp" alt="BTB Distribusi DMS 5 port 9301" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Distribusi &middot; Masuk</span>
+        <h3 class="tx-step-title">Konfirmasi Penerimaan Distribusi</h3>
+        <p class="tx-step-desc">Sebagai pasangannya, <em>BTB Distribusi</em> mengonfirmasi barang telah diterima di gudang tujuan dengan salesman dan kendaraan yang sama, menutup siklus distribusi internal dengan rapi.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 5</span><img src="assets/images/transaksi-dms-3/parung-06-bkb-dms-5-port-9301-ke-depo-parung.webp" alt="BKB DMS 5 port 9301 ke Depo Parung" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Depo &middot; Barang Keluar</span>
+        <h3 class="tx-step-title">Selesai &mdash; Barang Siap Jual di Parung</h3>
+        <p class="tx-step-desc">Dokumen penutup <em>BKB Depot</em> di DMS 5.0 mengeluarkan barang menuju Depo Tujuan 281 (LP Parung), menandakan seluruh 528 unit Jug Aqua, tissue, dan galon isi resmi kembali menjadi stok Depo Parung.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 6</span><img src="assets/images/transaksi-dms-3/parung-02-btb-dms-3-dari-pol-cicurug.webp" alt="BTB DMS 3 dari Pool Cicurug" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Terima Barang di Gudang Layak Pet Parung (DMS 3)</h3>
+        <p class="tx-step-desc">Menutup siklus di sistem DMS 3: dokumen <strong>Bukti Terima Barang Cabang</strong> dibuat di gudang <strong>281-W13 Gudang Layak Pet Parung</strong>, mencatat kedatangan barang dari LP Pool Cicurug: Jug Aqua 19L, tissue, dan galon isi masing-masing 528 unit dengan tipe stok Jual &mdash; barang resmi siap jual di Parung.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="tx-note"><b>Catatan:</b>&nbsp;Total 6 dokumen (3 pasang BKB/BTB) harus selesai berurutan pada tanggal transaksi yang sama agar posisi stok di kedua sistem (DMS 3 &amp; DMS 5) tetap sinkron.</div>
+</div>
+
+<!-- ================= CASE 2: GALON DARI SENTUL ================= -->
+<div class="tx-case" id="txCase2" data-case="2" hidden>
+  <div class="tx-case-head">
+    <div class="tx-case-badge">02</div>
+    <div>
+      <h2>Flashout Galon dari Sentul &rarr; Penjualan Parung</h2>
+      <p>Skenario ini lebih panjang: selain memindahkan 528 unit galon &amp; Jug Aqua dari Sentul ke Parung, ada siklus tambahan untuk mengembalikan Jug Aqua kosong dari Pool Cicurug ke Depo Sentul.</p>
+    </div>
+  </div>
+  <div class="tx-steps">
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 1</span><img src="assets/images/transaksi-dms-3/sentul-01-btb-dms-3-dari-depo-sentul.webp" alt="BTB DMS 3 dari Depo Sentul" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Terima Kiriman dari Depo Sentul</h3>
+        <p class="tx-step-desc">Gudang Layak Pet Parung menerima 528 unit Jug Aqua 19L, tissue, dan galon isi yang dikirim dari <strong>LP Sentul (Depo 283)</strong>, diangkut Angkutan Prima Jaya.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 2</span><img src="assets/images/transaksi-dms-3/sentul-02-bkb-dms-3-ke-pol-cicurug.webp" alt="BKB DMS 3 ke Pool Cicurug" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Depo &middot; Barang Keluar</span>
+        <h3 class="tx-step-title">Teruskan ke LP Pool Cicurug</h3>
+        <p class="tx-step-desc">Barang yang sama langsung diteruskan keluar menuju Depo Tujuan 288 (LP Pool Cicurug), menjaga kuantitas tetap 528 unit sebagai titik transit sebelum masuk DMS 5.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 3</span><img src="assets/images/transaksi-dms-3/sentul-03-btb-dms-5-port-9301-dari-depo-parung.webp" alt="BTB DMS 5 port 9301 dari Depo Parung" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Masuk Resmi ke DMS 5.0</h3>
+        <p class="tx-step-desc">Di <em>Distribution Management System 5.0</em>, BTB Depot mencatat kedatangan barang dari Depo 281 ke Gudang NGG LP &mdash; melanjutkan alur ke sistem port 9301.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 4</span><img src="assets/images/transaksi-dms-3/sentul-04-bkb-distribusi-dms-5-port-9301.webp" alt="BKB Distribusi DMS 5 port 9301" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Distribusi &middot; Keluar</span>
+        <h3 class="tx-step-title">Siapkan Distribusi ke Tujuan Jual</h3>
+        <p class="tx-step-desc">Menu Transaksi Distribusi menerbitkan BKB Distribusi dengan referensi Dokumen Permintaan Barang, salesman/driver, dan kendaraan lengkap sebelum barang berangkat ke lokasi penjualan.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 5</span><img src="assets/images/transaksi-dms-3/sentul-05-btb-distribusi-dms-5-port-9301.webp" alt="BTB Distribusi DMS 5 port 9301" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Distribusi &middot; Masuk</span>
+        <h3 class="tx-step-title">Barang Tiba di Tujuan Distribusi</h3>
+        <p class="tx-step-desc">BTB Distribusi menutup pasangan dokumen sebelumnya, mengonfirmasi seluruh unit sampai dengan aman ke gudang tujuan.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 6</span><img src="assets/images/transaksi-dms-3/sentul-06-bkb-dms-5-por-9301-ke-depo-parung.webp" alt="BKB DMS 5 port 9301 ke Depo Parung" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Depo &middot; Barang Keluar</span>
+        <h3 class="tx-step-title">Stok Resmi Jadi Milik Parung</h3>
+        <p class="tx-step-desc">BKB Depot mengeluarkan barang menuju Depo Tujuan 281 (LP Parung) &mdash; babak utama flashout selesai, 528 unit siap dijual.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 7</span><img src="assets/images/transaksi-dms-3/sentul-07-btb-dms-3-dari-pol-cicurug.webp" alt="BTB DMS 3 dari Pool Cicurug" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Babak Tambahan: Galon Kosong Kembali</h3>
+        <p class="tx-step-desc">Sebagai siklus balik, Gudang Layak Pet Parung kembali menerima 528 botol Jug Aqua 19L (galon kosong) dari LP Pool Cicurug &mdash; siap dikembalikan ke titik asalnya.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 8</span><img src="assets/images/transaksi-dms-3/sentul-08-bkb-dms-3-ke-depo-sentul.webp" alt="BKB DMS 3 ke Depo Sentul" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Depo &middot; Barang Keluar</span>
+        <h3 class="tx-step-title">Galon Kosong Pulang ke Sentul</h3>
+        <p class="tx-step-desc">Dokumen penutup BKB Depot mengirim 528 botol Jug Aqua kosong kembali ke Depo Tujuan 283 (LP Sentul), menyelesaikan siklus penuh bolak-balik galon.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="tx-note"><b>Catatan:</b>&nbsp;Skenario Sentul terdiri dari 8 dokumen: 6 dokumen pertama memindahkan stok isi ke Parung, 2 dokumen terakhir mengembalikan galon kosong ke Sentul &mdash; jangan sampai terlewat salah satu arah.</div>
+</div>
+
+<!-- ================= CASE 3: SPS DARI CIANJUR ================= -->
+<div class="tx-case" id="txCase3" data-case="3" hidden>
+  <div class="tx-case-head">
+    <div class="tx-case-badge">03</div>
+    <div>
+      <h2>Flashout SPS dari Cianjur &rarr; Penjualan Parung</h2>
+      <p>Berbeda produk: skenario ini memindahkan air mineral kemasan <strong>600ml (1x24, sablon gosok)</strong> sebanyak 1.440 box beserta 36 pallet sewa <em>double face</em> dari Depo Cianjur menuju Parung.</p>
+    </div>
+  </div>
+  <div class="tx-steps">
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 1</span><img src="assets/images/transaksi-dms-3/cianjur-01-btb-dms-3-dari-depo-cianjur.webp" alt="BTB DMS 3 dari Depo Cianjur" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Terima Kiriman SPS dari Cianjur</h3>
+        <p class="tx-step-desc">Gudang Layak Parung menerima 1.440 box Aqua 600ml (1x24, sablon gosok) dan 36 buah pallet rent double face dari <strong>LP Cianjur (Depo 285)</strong>, diangkut Tirta Utama Abadi.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 2</span><img src="assets/images/transaksi-dms-3/cianjur-02-bkb-dms-3-dari-pol-cicurug.webp" alt="BKB DMS 3 ke Pool Cicurug" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Depo &middot; Barang Keluar</span>
+        <h3 class="tx-step-title">Lanjutkan ke LP Pool Cicurug</h3>
+        <p class="tx-step-desc">1.440 box Aqua 600ml diteruskan keluar menuju Depo Tujuan 288 (LP Pool Cicurug) sebagai titik transit sebelum diproses di DMS 5.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 3</span><img src="assets/images/transaksi-dms-3/cianjur-03-btb-dms-5-port-9301-dari-depo-parung.webp" alt="BTB DMS 5 port 9301 dari Depo Parung" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag">BTB Depo &middot; Barang Masuk</span>
+        <h3 class="tx-step-title">Masuk ke Distribution Management System 5.0</h3>
+        <p class="tx-step-desc">BTB Depot di DMS 5.0 mencatat kedatangan 1.440 box Aqua 600ml dari Depo 281 ke Gudang NGG LP, meneruskan alur pencatatan ke sistem terbaru.</p>
+      </div>
+    </div>
+
+    <div class="tx-step">
+      <div class="tx-step-media"><span class="tx-step-num">Langkah 4</span><img src="assets/images/transaksi-dms-3/cianjur-04-bkb-dms-5-port-9301.webp" alt="BKB Distribusi DMS 5 port 9301" loading="lazy"></div>
+      <div class="tx-step-body">
+        <span class="tx-step-tag tag-out">BKB Distribusi &middot; Keluar</span>
+        <h3 class="tx-step-title">Selesai &mdash; Siap Didistribusikan untuk Dijual</h3>
+        <p class="tx-step-desc">Dokumen penutup BKB Distribusi mengeluarkan 1.440 box Aqua 600ml melalui menu Transaksi Distribusi, lengkap dengan referensi Dokumen Permintaan Barang &mdash; produk resmi siap dipasarkan dari Parung.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="tx-note"><b>Catatan:</b>&nbsp;Karena tidak ada kemasan yang perlu dikembalikan (bukan galon guna ulang), skenario SPS cukup 4 dokumen: sepasang di DMS 3 dan sepasang lagi di DMS 5.</div>
+</div>
+
+<ul class="tx-recap">
+  <li><b>3</b>Skenario flashout tercakup</li>
+  <li><b>18</b>Total dokumen BTB/BKB</li>
+  <li><b>2</b>Sistem yang dilalui (DMS 3 &amp; DMS 5)</li>
+</ul>
+`;
+
+  var TX_SGM_CONTENT = `
+<div class="tx-intro">
+  <p><strong>Transaksi Produk SGM</strong> adalah prosedur penerimaan produk susu SGM dari supplier sekaligus cara mengubah satuan stok dari <strong>BOX</strong> menjadi <strong>PCS</strong> (satuan eceran) di sistem. Produk SGM memang unik: setiap kali datang dari supplier, produk tercatat per BOX &mdash; padahal sebagian dijual eceran per PCS. Untuk itu diperlukan satu langkah tambahan yang disebut <strong>morphing</strong>, yaitu memindahkan stok BOX menjadi stok PCS memakai transaksi <strong>BKB Mutasi</strong> dan <strong>BTB Mutasi</strong> ke depo sendiri.</p>
+  <p>Ikuti 6 langkah di bawah secara berurutan: membaca surat jalan pabrik, menginput BTB Supplier, mengisi kode batch, mencetak bukti terima, lalu melakukan morphing BOX &rarr; PCS.</p>
+</div>
+
+<div class="tx-case-head">
+  <div class="tx-case-badge">SGM</div>
+  <div>
+    <h2>Penerimaan Barang &amp; Morphing BOX ke PCS</h2>
+    <p>Contoh nyata: penerimaan SGM Vitagrow Choco dari supplier di Gudang Layak Bogor, dilanjutkan proses morphing di Gudang Layak Metro 2.</p>
+  </div>
+</div>
+
+<div class="tx-steps">
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">Langkah 1</span><img src="assets/images/transaksi-produk-sgm/sgm-06-surat-jalan-batch-expired.webp" alt="Contoh surat jalan produk: nomor dokumen, qty, dan batch (tanggal expired)" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag">Surat Jalan &middot; Cek Data</span>
+      <h3 class="tx-step-title">Baca Surat Jalan &amp; Catat Batch / Tanggal Expired</h3>
+      <p class="tx-step-desc">Sebelum menginput, siapkan <strong>surat jalan produk</strong> dari pabrik. Catat tiga data berikut: <strong>(1) Doc. Number</strong> &mdash; nomor dokumen di bagian atas; <strong>(2) Kode &amp; Nama Produk</strong> beserta <strong>Qty</strong>; <strong>(3) kolom BATCH</strong> &mdash; angka 8 digit berformat <em>Tahun-Bulan-Tanggal</em> yang menjadi <strong>tanggal expired</strong>. Contoh: <code>20280825</code> dibaca <strong>25 Agustus 2028</strong>. Jika satu surat jalan memuat lebih dari satu produk, setiap produk punya batch sendiri &mdash; pastikan tidak tertukar.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">Langkah 2</span><img src="assets/images/transaksi-produk-sgm/sgm-07-input-btb-supplier-no-ref-po.webp" alt="Contoh input BTB Supplier dengan No. Ref 1 berisi nomor PO" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag">BTB Supplier &middot; Header &amp; Detil</span>
+      <h3 class="tx-step-title">Input Barang Masuk di BTB Supplier &mdash; No. Ref 1 = Nomor PO</h3>
+      <p class="tx-step-desc">Buka menu <strong>BTB Supplier</strong>, lalu isi data utama: <strong>Tanggal, Supplier, Gudang, Tipe Stok</strong> (JUAL), <strong>No. Surat Jalan</strong>, dan <strong>Tgl. Surat Jalan Pabrik</strong>. Lengkapi data pengangkut (Jasa Pengangkut, Kendaraan, Pengemudi) sesuai truk yang datang. Kolom terpenting adalah <strong>No. Ref. 1</strong>: isi dengan <strong>Nomor PO</strong> agar penerimaan barang ini terhubung ke PO-nya dan PO dapat dibuka-tutup (di-close). Pada tabel Detil, isi <strong>Kode Produk</strong> dan <strong>Qty</strong> (satuan BOX), lalu klik <strong>Simpan Applied</strong> sampai status dokumen menjadi <strong>Applied</strong>.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">Langkah 3</span><img src="assets/images/transaksi-produk-sgm/sgm-01-input-batch-btb-supplier.webp" alt="Penulisan kode batch pada BTB Supplier" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag">BTB Supplier &middot; Detil Lot</span>
+      <h3 class="tx-step-title">Tulis Kode Batch Saat Terima Barang dari Supplier</h3>
+      <p class="tx-step-desc">Pada dokumen <strong>Bukti Terima Barang Supplier</strong>, klik ikon kaca pembesar di kolom Lot/SN untuk membuka jendela <strong>UIEntryLot</strong>. Isi <strong>No. Batch</strong> dan <strong>Tanggal Expired</strong> sesuai data yang sudah Anda catat dari surat jalan (langkah 1) dan cocokkan dengan kemasan fisik produk, lalu pastikan <strong>Kuantiti</strong> pada baris batch sama persis dengan kuantiti produk di atasnya sebelum menekan <strong>Ok</strong>. Batch yang salah tulis di sini akan ikut salah pada seluruh dokumen turunannya.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">Langkah 4</span><img src="assets/images/transaksi-produk-sgm/sgm-02-cetak-btb-supplier.webp" alt="Hasil cetak BTB Supplier" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag">BTB Supplier &middot; Cetak</span>
+      <h3 class="tx-step-title">Cetak Bukti Terima Barang (Supplier)</h3>
+      <p class="tx-step-desc">Setelah dokumen disimpan, cetak sebagai bukti fisik serah terima. Pastikan Nama Depo, Gudang, No. Dokumen, No. Surat Jalan, Kode &amp; Nama Produk, Satuan (BOX), Jumlah, dan Batch ID pada hasil cetak sudah sesuai dengan fisik barang &mdash; dokumen ini yang ditandatangani Warehouse Admin, Checker, Driver, dan Security.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">Langkah 5</span><img src="assets/images/transaksi-produk-sgm/sgm-03-bkb-mutasi-morphing.webp" alt="BKB Mutasi Morphing box ke pcs" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag tag-out">BKB Depo &middot; Mutasi (Keluar)</span>
+      <h3 class="tx-step-title">Morphing Bagian 1 &mdash; BKB Mutasi ke Depo Sendiri</h3>
+      <p class="tx-step-desc">Buka menu <strong>BKB Depo</strong>. Secara normal, BKB Depo dipakai untuk mutasi stok antar-depo yang berbeda (misalnya dari Depo Parung ke Depo Bogor). Khusus morphing SGM, <strong>Depo Tujuan diisi depo itu sendiri</strong> &mdash; barang secara fisik tidak berpindah tempat, hanya satuannya yang berubah. Isi <strong>Driver</strong> dan <strong>Kendaraan</strong> dengan "COUNTER", lalu tulis <strong>MORPHING</strong> pada kolom Keterangan agar mudah ditelusuri kembali. Setelah disimpan, catat <strong>No. Dokumen</strong> BKB ini &mdash; nomor tersebut dibutuhkan sebagai referensi di langkah berikutnya.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">Langkah 6</span><img src="assets/images/transaksi-produk-sgm/sgm-04-btb-mutasi-morphing.webp" alt="BTB Mutasi Morphing box ke pcs" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag">BTB Depo &middot; Mutasi (Masuk)</span>
+      <h3 class="tx-step-title">Morphing Bagian 2 &mdash; BTB Mutasi Menutup Perubahan Satuan</h3>
+      <p class="tx-step-desc">Buka menu <strong>BTB Depo</strong>, dengan <strong>Dari Depo</strong> diisi depo itu sendiri (pasangan dari langkah 5). Pada kolom Keterangan, tulis <strong>No. Dokumen BKB Mutasi tadi diikuti "/MORPHING"</strong> (contoh: <code>902-0051876/MORPHING</code>) sebagai ID referensi. Pilih produk dengan kode ber-akhiran <strong>"P"</strong> (kode satuan PCS) senilai kuantiti yang sama. Setelah tersimpan, stok BOX otomatis berkurang dan stok PCS bertambah pada produk yang sama.</p>
+    </div>
+  </div>
+
+</div>
+
+<h2>Kode Produk: BOX vs PCS</h2>
+<p>Setiap produk SGM punya dua kode berbeda tergantung satuannya. Gunakan kode <strong>BOX</strong> saat penerimaan dari supplier, dan kode berakhiran <strong>"_pc" / "P"</strong> saat transaksi eceran per PCS setelah morphing:</p>
+<p><img src="assets/images/transaksi-produk-sgm/sgm-05-id-produk-box-pcs.webp" alt="Perbandingan ID produk satuan BOX dan PCS" loading="lazy" style="max-width:420px; border-radius:10px; border:1px solid var(--border);"></p>
+<table>
+  <tr><th>Kode Produk</th><th>Satuan</th><th>Nama Produk</th></tr>
+  <tr><td>214380</td><td>BOX</td><td>SGM VITAGROW CHOCO 24SG HMLY 1X6 POUCH</td></tr>
+  <tr><td>214380_pc</td><td>PCS</td><td>SGM VITAGROW CHOCO 245G SAP HMLY 1X1 POUCH</td></tr>
+</table>
+
+<div class="tx-note"><b>Ingat:</b>&nbsp;Morphing susu SGM dari BOX ke PCS selalu memakai <strong>BKB/BTB Mutasi</strong>, bukan BKB/BTB Supplier maupun Distribusi. Empat hal wajib diperhatikan setiap kali menginput:
+<ol class="tx-note-list">
+  <li>Kolom <strong>Nopol / Sopir</strong> diisi <strong>COUNTER</strong> saja &mdash; bukan kendaraan atau driver sungguhan.</li>
+  <li>Kolom <strong>Depo Tujuan</strong> (di BKB) maupun <strong>Dari Depo</strong> (di BTB) diisi <strong>depo sendiri</strong>, karena barang tidak benar-benar berpindah lokasi.</li>
+  <li>Pada <strong>BKB Mutasi</strong>, kolom Keterangan cukup ditulis <strong>MORPHING</strong>.</li>
+  <li>Pada <strong>BTB Mutasi</strong>, kolom Keterangan ditulis <strong>ID BKB referensi diikuti "/MORPHING"</strong>, contoh: <code>902-0051876/MORPHING</code>.</li>
+</ol>
+</div>
+`;
+
+  var TX_BTB_BKB_SUPPLIER_CONTENT = `
+<p><strong>Transaksi BTB BKB Supplier</strong> adalah prosedur pencatatan Bukti Terima Barang (BTB) dan Bukti Keluar Barang (BKB) untuk transaksi yang melibatkan supplier/pemasok eksternal. Materi ini memuat <strong>pembaruan resmi dari Kantor Pusat</strong> mengenai cara penginputan BTB Supplier untuk produk <strong>AQUA Gallon &amp; AQUA SPS</strong> di DMS 3, sekaligus aturan wajib saat sebuah Surat Jalan/PO dibatalkan. Pelajari dengan saksama agar setiap dokumen yang disimpan sudah sesuai format terbaru.</p>
+
+<div class="tx-note"><b>Berlaku untuk:</b>&nbsp;Seluruh penginputan BTB Supplier produk AQUA Gallon &amp; AQUA SPS, serta BTB/BKB Supplier yang mengalami pembatalan Surat Jalan, di DMS 3.</div>
+
+<h2>Format Baru: No. Ref. 3 &amp; Keterangan pada BTB Supplier</h2>
+<p>Ada dua ketentuan berbeda tergantung jenis produknya &mdash; perhatikan baik-baik sebelum mengisi, karena format <strong>AQUA Gallon</strong> dan <strong>AQUA SPS</strong> tidak sama.</p>
+
+<div class="tx-steps">
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">AQUA Gallon</span><img src="assets/images/transaksi-btb-bkb-supplier/btb-supplier-gallon-noref3-keterangan.webp" alt="Contoh input No. Ref. 3 dan Keterangan pada BTB Supplier AQUA Gallon" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag">BTB Supplier &middot; AQUA Gallon</span>
+      <h3 class="tx-step-title">No. Ref. 3 Diisi Berurutan, Keterangan Diisi No. GRFC</h3>
+      <p class="tx-step-desc">Kolom <strong>No. Ref. 3</strong> diisi berurutan sesuai formula <strong>HPPP / Qty Retur Air / Qty Total Botol / Qty Jugrack</strong>, dan pemisah antar-angka <strong>wajib menggunakan tanda "/"</strong> &mdash; contoh pada gambar: <code>90A0260923-005/24/960/20</code>. Kolom <strong>Keterangan</strong> diisi dengan <strong>No. GRFC</strong>; jika dokumen GRFC belum tersedia, tulis <strong>"TIDAK ADA GRFC"</strong> &mdash; jangan dibiarkan kosong.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">AQUA SPS</span><img src="assets/images/transaksi-btb-bkb-supplier/btb-supplier-sps-noref3-keterangan.webp" alt="Contoh input No. Ref. 3 dan Keterangan pada BTB Supplier AQUA SPS" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag tag-out">BTB Supplier &middot; AQUA SPS</span>
+      <h3 class="tx-step-title">No. Ref. 3 Dikosongkan, Keterangan Diisi GRFC &amp; Qty GRFC</h3>
+      <p class="tx-step-desc">Khusus produk <strong>AQUA SPS</strong>, kolom <strong>No. Ref. 3 dikosongkan</strong> &mdash; tidak perlu diisi formula apa pun. Sebagai gantinya, kolom <strong>Keterangan</strong> diisi <strong>No. GRFC diikuti Qty GRFC</strong>, dengan tanda "/" sebagai pemisah, contoh: <code>6013068918/36</code>.</p>
+    </div>
+  </div>
+
+</div>
+
+<h2>Aturan Wajib Saat Surat Jalan / PO Dibatalkan</h2>
+<p>Bila sebuah PO atau Surat Jalan dibatalkan, dokumen <strong>BTB Supplier</strong> maupun <strong>BKB Supplier</strong> yang berkaitan harus disesuaikan agar statusnya tidak membingungkan saat direkap ulang di kemudian hari.</p>
+
+<div class="tx-steps">
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">BTB Supplier</span><img src="assets/images/transaksi-btb-bkb-supplier/btb-supplier-pembatalan-surat-jalan.webp" alt="Contoh input pembatalan Surat Jalan pada BTB Supplier" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag tag-out">BTB Supplier &middot; Pembatalan</span>
+      <h3 class="tx-step-title">No. Surat Jalan Wajib Diisi "BATAL"</h3>
+      <p class="tx-step-desc">Pada dokumen BTB Supplier yang PO-nya dibatalkan, kolom <strong>No. Surat Jalan wajib diisi "BATAL"</strong> &mdash; bukan dikosongkan atau dibiarkan memakai nomor lama. Kolom <strong>Keterangan</strong> diisi sesuai alasan pembatalan tersebut, contoh: <code>BATAL PO MOBIL RUBAH MUATAN</code>.</p>
+    </div>
+  </div>
+
+  <div class="tx-step">
+    <div class="tx-step-media"><span class="tx-step-num">BKB Supplier</span><img src="assets/images/transaksi-btb-bkb-supplier/bkb-supplier-pembatalan-surat-jalan.webp" alt="Contoh update No. Surat Jalan menjadi BATAL pada BKB Supplier" loading="lazy"></div>
+    <div class="tx-step-body">
+      <span class="tx-step-tag tag-out">BKB Supplier &middot; Pembatalan</span>
+      <h3 class="tx-step-title">Samakan Melalui "Update No. Surat Jalan"</h3>
+      <p class="tx-step-desc">Dokumen pasangannya, <strong>BKB Supplier</strong>, wajib disesuaikan juga lewat tautan <strong>Update No. Surat Jalan</strong> pada layar, lalu ganti nomor manual menjadi <strong>"BATAL"</strong> &mdash; memastikan data BTB dan BKB tetap konsisten satu sama lain.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="tx-note"><b>Ringkasan Cepat</b>
+<ul class="tx-recap" style="margin:12px 0 0; padding:0;">
+  <li><b>AQUA Gallon &middot; No. Ref. 3</b>HPPP/Qty Retur Air/Qty Botol/Qty Jugrack</li>
+  <li><b>AQUA Gallon &middot; Keterangan</b>No. GRFC (atau "TIDAK ADA GRFC")</li>
+  <li><b>AQUA SPS &middot; No. Ref. 3</b>Dikosongkan</li>
+  <li><b>AQUA SPS &middot; Keterangan</b>No. GRFC/Qty GRFC</li>
+  <li><b>Pembatalan &middot; BTB Supplier</b>No. Surat Jalan diisi "BATAL"</li>
+  <li><b>Pembatalan &middot; BKB Supplier</b>Update No. Surat Jalan jadi "BATAL"</li>
+</ul>
+</div>
+`;
+
+  /* ------------------------------------------------------------------ */
+  /* 6. SEED DEFAULT DATA                                                */
+  /* ------------------------------------------------------------------ */
+  function seedDefaults(force) {
+    var materials = DataService.getMaterials();
+    if (force || materials.length === 0) {
+      var now = new Date().toISOString();
+      var defs = [
+        { title: "Transaksi Flashout", desc: "Prosedur flashout & pencatatan transaksi barang berjenjang (sebelumnya dikenal sebagai Transaksi DMS 3), lengkap dengan contoh dokumen dan foto langkah demi langkah.", body: TX_DMS3_CONTENT },
+        { title: "Transaksi Produk SGM", desc: "Prosedur penerimaan produk SGM dari supplier dan cara mengubah stok dari satuan BOX ke PCS (morphing) memakai BKB/BTB Mutasi.", body: TX_SGM_CONTENT },
+        { title: "Transaksi BTB BKB Supplier", desc: "Prosedur pencatatan Bukti Terima Barang (BTB) dan Bukti Keluar Barang (BKB) untuk transaksi dengan supplier/pemasok eksternal.", body: TX_BTB_BKB_SUPPLIER_CONTENT }
+      ];
+      materials = defs.map(function (d, i) {
+        return {
+          id: Utils.uid("materi"),
+          title: d.title,
+          slug: Utils.slugify(d.title),
+          description: d.desc,
+          content: d.body,
+          image: "",
+          order: i + 1,
+          status: "published",
+          createdAt: now,
+          updatedAt: now
+        };
+      });
+      DataService.setMaterials(materials);
+    }
+
+    var contents = DataService.getContents();
+    if (force || contents.length === 0) {
+      var mats = DataService.getMaterials();
+      var findId = function (title) {
+        var m = mats.filter(function (x) { return x.title === title; })[0];
+        return m ? m.id : null;
+      };
+      contents = [
+        { id: Utils.uid("toc"), title: "Home", order: 1, active: true, materialId: null },
+        { id: Utils.uid("toc"), title: "Transaksi Flashout", order: 2, active: true, materialId: findId("Transaksi Flashout") },
+        { id: Utils.uid("toc"), title: "Transaksi Produk SGM", order: 3, active: true, materialId: findId("Transaksi Produk SGM") },
+        { id: Utils.uid("toc"), title: "Transaksi BTB BKB Supplier", order: 4, active: true, materialId: findId("Transaksi BTB BKB Supplier") }
+      ];
+      DataService.setContents(contents);
+    }
+
+    if (force || DataService.getImages().length === 0 && force) {
+      DataService.setImages([]);
+    }
   }
 
-  document.getElementById("historyCloseBtn").onclick = () => modal?.classList.remove("active");
-}
+  /* ------------------------------------------------------------------ */
+  /* 7. ROUTER                                                           */
+  /* ------------------------------------------------------------------ */
+  var appEl;
+  var Router = {
+    routes: [],
+    add: function (pattern, handler) { this.routes.push({ pattern: pattern, handler: handler }); },
+    start: function () {
+      window.addEventListener("hashchange", this.resolve.bind(this));
+      this.resolve();
+    },
+    navigate: function (path) { window.location.hash = "#" + path; },
+    resolve: function () {
+      var hash = window.location.hash.replace(/^#/, "") || "/";
+      var path = hash.split("?")[0];
+      for (var i = 0; i < this.routes.length; i++) {
+        var m = matchRoute(this.routes[i].pattern, path);
+        if (m) { this.routes[i].handler(m); scrollToTop(); updateActiveNav(path); return; }
+      }
+      renderNotFound();
+      scrollToTop();
+    }
+  };
+  function scrollToTop() { window.scrollTo({ top: 0, behavior: "auto" }); }
+  function matchRoute(pattern, path) {
+    var pParts = pattern.split("/").filter(Boolean);
+    var uParts = path.split("/").filter(Boolean);
+    if (pParts.length !== uParts.length) return null;
+    var params = {};
+    for (var i = 0; i < pParts.length; i++) {
+      if (pParts[i].charAt(0) === ":") params[pParts[i].slice(1)] = decodeURIComponent(uParts[i]);
+      else if (pParts[i] !== uParts[i]) return null;
+    }
+    return params;
+  }
+  function updateActiveNav(path) {
+    document.querySelectorAll(".nav-link[data-route], .drawer-link[data-route], .drawer-quick-btn[data-route]").forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("data-route") === path);
+    });
+    document.body.classList.toggle("is-admin-route", path.indexOf("/admin") === 0);
+    document.getElementById("siteFooter").style.display = path.indexOf("/admin") === 0 ? "none" : "";
+  }
 
-// ================= TOAST =================
-const TOAST_ICONS = {"✅":"fa-check-circle","❌":"fa-times-circle","⚠":"fa-exclamation-triangle","💾":"fa-save","📊":"fa-file-excel","🗑":"fa-trash","📋":"fa-clipboard-check","🔔":"fa-bell"};
-function showToast(message, type = "info", duration = 3000) {
-  const existing = document.getElementById("toastNotif");
-  if (existing) existing.remove();
-  message = String(message);
-  let icon = type === "success" ? "fa-check-circle" : type === "error" ? "fa-times-circle" : "fa-info-circle";
-  const first = message.split(" ")[0];
-  const key = first.replace(/\uFE0F/g, "");
-  if (TOAST_ICONS[key]) { icon = TOAST_ICONS[key]; message = message.slice(first.length).trim(); }
-  const toast = document.createElement("div");
-  toast.id = "toastNotif";
-  toast.className = `toast-notif toast-${type}`;
-  toast.innerHTML = `<span class="toast-icon"><i class="fas ${icon}"></i></span><span></span>`;
-  toast.lastChild.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add("show"), 10);
-  setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, duration);
-}
+  function requireAdmin(renderFn) {
+    return function (params) {
+      if (!AuthService.isLoggedIn()) {
+        Router.navigate("/");
+        openLoginModal();
+        Toast.show("Silakan login sebagai admin terlebih dahulu.", "info");
+        return;
+      }
+      renderFn(params);
+    };
+  }
 
-// ================= CHAT — ENHANCED =================
-function initChat() {
-  if (!window.db) return;
-  // Get or prompt for username
-  currentUserName = localStorage.getItem("chatNama");
-  loadChatMessages();
-  if (chatPollingInterval) clearInterval(chatPollingInterval);
-  chatPollingInterval = setInterval(() => {
-    if (document.hidden) return;
-    // chat tertutup: cek tiap 30 dtk saja; chat terbuka: tiap ~5 dtk
-    if (!chatOpen && Date.now() - (window.__lastChatPoll || 0) < 30000) return;
-    loadChatMessages();
-  }, 5000);
-}
+  /* ------------------------------------------------------------------ */
+  /* 8. HOME VIEW                                                        */
+  /* ------------------------------------------------------------------ */
+  function renderHome() {
+    var materials = DataService.getMaterials().filter(function (m) { return m.status === "published"; });
+    appEl.innerHTML =
+      '<section class="hero">' +
+        '<span class="hero-texture" aria-hidden="true"></span>' +
+        '<span class="hero-blob b1" aria-hidden="true"></span>' +
+        '<span class="hero-blob b2" aria-hidden="true"></span>' +
+        '<div class="hero-inner">' +
+          '<div>' +
+            '<a href="https://benyoriki.com/" target="_blank" rel="noopener noreferrer" class="hero-eyebrow">Sistem Developer benyoriki.com</a>' +
+            '<h1 class="hero-title">Modul Sistem<span class="line2">Database Centralized Real-Time</span></h1>' +
+            '<p class="hero-sub">Modul digital dan sistem administrasi, dapat diakses kapan saja dari HP, tablet, maupun komputer.</p>' +
+            '<div class="hero-actions">' +
+              '<a href="#/materi" class="btn btn-primary">Mulai Membaca</a>' +
+              '<a href="#/materi" class="btn btn-outline">Lihat Materi</a>' +
+            '</div>' +
+            '<div class="hero-stats">' +
+              '<div class="hero-stat"><b>' + materials.length + '</b><span>Materi Tersedia</span></div>' +
+              '<div class="hero-stat"><b>100%</b><span>Akses Digital</span></div>' +
+              '<div class="hero-stat"><b>2026</b><span>Edisi Terbaru</span></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="hero-visual">' +
+            '<img class="hero-photo" src="assets/images/hero/depo-parung-warkop.webp" alt="Warkop PRG — area Depo Parung" loading="lazy">' +
+            '<span class="hero-photo-scrim" aria-hidden="true"></span>' +
+            '<div class="hero-card card-a">' +
+              '<div class="hero-mini-row"><div class="hero-mini-dot">01</div><div><strong>Progres Modul</strong></div></div>' +
+              '<div class="hero-progress"><i></i></div>' +
+              '<p class="field-hint" style="margin-top:10px;">Materi baru ditambah secara bertahap</p>' +
+            '</div>' +
+            '<div class="hero-card card-b">' +
+              '<div class="hero-mini-row"><div class="hero-mini-dot">&#10003;</div><div><strong>Transaksi Flashout</strong><div class="field-hint">Siap dipelajari</div></div></div>' +
+            '</div>' +
+            '<div class="hero-card card-c">' +
+              '<div class="hero-mini-row"><div class="hero-mini-dot">&#9889;</div><div><strong>Update Berkala</strong><div class="field-hint">Materi baru tiap bulan</div></div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</section>' +
+      '<section class="section features-section">' +
+        '<button type="button" class="mobile-collapsible-toggle" aria-expanded="false" aria-controls="featuresPanel">' +
+          '<span>Kenapa Pakai Modul Ini?</span>' +
+          '<svg class="mobile-collapsible-chevron" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</button>' +
+        '<div class="mobile-collapsible-panel" id="featuresPanel">' +
+        '<div class="mobile-collapsible-panel-inner">' +
+        '<div class="section-head">' +
+          '<div><h2 class="section-title">Kenapa Pakai Modul Ini?</h2><p class="section-desc">Dirancang supaya admin baru bisa cepat paham alur kerja GDNG PRG tanpa perlu bertanya berulang-ulang.</p></div>' +
+        '</div>' +
+        '<div class="feature-grid">' +
+          '<div class="feature-card">' +
+            '<div class="feature-icon"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H12v16h6.5a1.5 1.5 0 0 0 1.5-1.5v-13Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg></div>' +
+            '<h3 class="feature-title">Panduan Langkah demi Langkah</h3>' +
+            '<p class="feature-desc">Setiap prosedur dijelaskan detail lengkap dengan contoh dokumen asli dan tangkapan layar sistem.</p>' +
+          '</div>' +
+          '<div class="feature-card">' +
+            '<div class="feature-icon"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="3" width="12" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 18h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 8h3v10a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg></div>' +
+            '<h3 class="feature-title">Bisa Diakses di Mana Saja</h3>' +
+            '<p class="feature-desc">Buka langsung dari HP, tablet, atau komputer kapan pun dibutuhkan, tanpa perlu instal aplikasi tambahan.</p>' +
+          '</div>' +
+          '<div class="feature-card">' +
+            '<div class="feature-icon"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M20 11A8 8 0 1 0 6.5 17.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M20 5v6h-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+            '<h3 class="feature-title">Selalu Diperbarui</h3>' +
+            '<p class="feature-desc">Materi ditambah dan disempurnakan secara berkala mengikuti perubahan alur kerja dan sistem.</p>' +
+          '</div>' +
+        '</div>' +
+        '</div>' +
+      '</section>' +
+      '<section class="section materi-pilihan-section">' +
+        '<div class="section-head">' +
+          '<div><h2 class="section-title">Materi Pilihan</h2><p class="section-desc">Kumpulan modul terbaru yang perlu dipelajari admin GDNG PRG.</p></div>' +
+          '<a href="#/materi" class="btn btn-ghost btn-sm">Lihat Semua</a>' +
+        '</div>' +
+        '<div class="materi-grid">' + renderMateriCards(materials.slice(0, 6), 3) + '</div>' +
+      '</section>';
 
-async function loadChatMessages() {
-  if (!window.db) return;
-  window.__lastChatPoll = Date.now();
-  try {
-    const snapshot = await window.firebaseGet(window.firebaseRef(window.db, "chatGlobal"));
-    const container = document.getElementById("chatMessages");
-    if (!container) return;
-    if (!snapshot.exists()) {
-      container.innerHTML = '<div class="chat-empty"><i class="fas fa-comments"></i><p>Belum ada pesan. Mulai percakapan!</p></div>';
+    setupCollapsibleSections();
+    layoutHeroVisualForViewport();
+  }
+
+  // On phones, the hero photo/cards visual moves to sit between "Materi
+  // Pilihan" and the collapsed info panel, instead of next to the hero
+  // text like on desktop (see the matching order:3 rule in css/style.css).
+  // Reparenting in JS keeps the desktop grid exactly as it was, since the
+  // desktop CSS never has to know this element can move at all.
+  var HERO_MOBILE_MQ = window.matchMedia ? window.matchMedia("(max-width:860px)") : null;
+  function layoutHeroVisualForViewport() {
+    var heroVisual = document.querySelector(".hero-visual");
+    var heroInner = document.querySelector(".hero-inner");
+    var materiSection = document.querySelector(".materi-pilihan-section");
+    if (!heroVisual || !heroInner || !materiSection) return; // not on the home page
+    var isMobile = HERO_MOBILE_MQ ? HERO_MOBILE_MQ.matches : window.innerWidth <= 860;
+    if (isMobile) {
+      if (heroVisual.previousElementSibling !== materiSection) {
+        materiSection.insertAdjacentElement("afterend", heroVisual);
+      }
+    } else if (heroVisual.parentNode !== heroInner) {
+      heroInner.appendChild(heroVisual);
+    }
+  }
+  if (HERO_MOBILE_MQ) {
+    var mqChangeHandler = function () { layoutHeroVisualForViewport(); };
+    if (HERO_MOBILE_MQ.addEventListener) HERO_MOBILE_MQ.addEventListener("change", mqChangeHandler);
+    else if (HERO_MOBILE_MQ.addListener) HERO_MOBILE_MQ.addListener(mqChangeHandler); // older Safari
+  }
+
+  // On phones, "Kenapa Pakai Modul Ini?" (and any future informational
+  // section) is collapsed into a compact, tappable summary bar so visitors
+  // land on the actual reading material faster. Desktop is untouched — the
+  // toggle button only renders/behaves this way under the mobile CSS below.
+  function setupCollapsibleSections() {
+    document.querySelectorAll(".mobile-collapsible-toggle").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var panel = document.getElementById(btn.getAttribute("aria-controls"));
+        var expanded = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", String(!expanded));
+        if (panel) panel.classList.toggle("expanded", !expanded);
+      });
+    });
+  }
+
+  function renderMateriCards(list, padTo) {
+    if (list.length === 0) {
+      return '<div class="empty-state" style="grid-column:1/-1;"><b>Belum ada materi</b>Materi yang dipublikasikan akan tampil di sini.</div>';
+    }
+    var html = list.map(function (m, idx) {
+      // The whole card is a real link (not just the "Baca Materi" text) so
+      // it's easy to tap anywhere on it, especially in the compact 3-column
+      // layout used on phones.
+      return (
+        '<a class="materi-card" href="#/materi/' + m.slug + '">' +
+          '<span class="materi-num">' + String(idx + 1).padStart(2, "0") + '</span>' +
+          '<h3 class="materi-title">' + Utils.escapeHtml(m.title) + '</h3>' +
+          '<p class="materi-desc">' + Utils.escapeHtml(m.description) + '</p>' +
+          '<div class="materi-foot">' +
+            '<span class="materi-status status-' + m.status + '">' + (m.status === "published" ? "Published" : "Draft") + '</span>' +
+            '<span class="materi-link">Baca Materi</span>' +
+          '</div>' +
+        '</a>'
+      );
+    }).join("");
+    // When only a few materials are published, the grid stretches into a
+    // large empty row on wide screens. Pad it out with clearly-labelled
+    // "coming soon" placeholders so the section still feels intentional.
+    if (padTo && list.length < padTo) {
+      for (var i = list.length; i < padTo; i++) {
+        html +=
+          '<div class="materi-card-placeholder">' +
+            '<span class="materi-num">' + String(i + 1).padStart(2, "0") + '</span>' +
+            '<b>Segera Hadir</b>' +
+            '<span>Materi baru sedang disiapkan.</span>' +
+          '</div>';
+      }
+    }
+    return html;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 9. MATERI LIST VIEW                                                 */
+  /* ------------------------------------------------------------------ */
+  function renderMateriList() {
+    var materials = DataService.getMaterials()
+      .filter(function (m) { return m.status === "published"; })
+      .sort(function (a, b) { return a.order - b.order; });
+    appEl.innerHTML =
+      '<section class="section" style="padding-top:44px;">' +
+        '<div class="section-head">' +
+          '<div><h2 class="section-title">Daftar Materi</h2><p class="section-desc">Seluruh modul pelatihan admin GDNG PRG 2026 yang tersedia untuk dipelajari.</p></div>' +
+        '</div>' +
+        '<div class="materi-grid">' + renderMateriCards(materials, 3) + '</div>' +
+      '</section>';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 10. READER VIEW                                                     */
+  /* ------------------------------------------------------------------ */
+  function renderReader(params) {
+    var materials = DataService.getMaterials();
+    var material = materials.filter(function (m) { return m.slug === params.slug && m.status === "published"; })[0];
+    if (!material) {
+      appEl.innerHTML = '<div class="section"><div class="error-state"><b>Materi tidak ditemukan</b>Materi ini mungkin belum dipublikasikan atau sudah dihapus.<br><br><a href="#/materi" class="btn btn-outline btn-sm">Kembali ke Daftar Materi</a></div></div>';
       return;
     }
+    var contents = DataService.getContents()
+      .filter(function (c) { return c.active; })
+      .sort(function (a, b) { return a.order - b.order; });
 
-    const data = snapshot.val();
-    const keys = Object.keys(data).sort();
-    const last100 = keys.slice(-100);
+    var tocHtml = contents.map(function (c, idx) {
+      var isHome = !c.materialId;
+      var target = isHome ? "#/" : "#/materi/" + (materials.filter(function (m) { return m.id === c.materialId; })[0] || {}).slug;
+      var active = c.materialId === material.id;
+      return '<a class="toc-item' + (active ? " active" : "") + '" href="' + target + '"><span class="toc-num">' + String(idx + 1).padStart(2, "0") + '</span>' + Utils.escapeHtml(c.title) + '</a>';
+    }).join("");
 
-    // Check new messages
-    if (last100.length > chatLastCount && chatLastCount > 0) {
-      if (!chatOpen) {
-        unreadMessages = last100.length - chatLastCount;
-        updateChatBadge(unreadMessages);
-        // Play notification sound
-        playNotifSound();
-        // OS-style popup notification (mirip notif WhatsApp Web)
-        if (window.showOSNotification) {
-          const newKeys = last100.slice(-unreadMessages);
-          const lines = newKeys.map(k => {
-            const m = data[k];
-            return `<b>${escapeHtml(m.nama)}</b>: ${escapeHtml(m.pesan).substring(0, 60)}`;
-          });
-          window.showOSNotification({
-            kind: "chat",
-            title: "Team Operasional",
-            lines: lines,
-            onClick: () => toggleChat()
-          });
+    appEl.innerHTML =
+      '<div class="toc-mobile-bar" id="tocMobileBar">&#9776; Daftar Isi</div>' +
+      '<div class="reader-shell">' +
+        '<aside class="reader-toc"><p class="reader-toc-title">Daftar Isi</p>' + tocHtml + '</aside>' +
+        '<article class="reader-content">' +
+          '<h1 class="reader-title">' + Utils.escapeHtml(material.title) + '</h1>' +
+          '<p class="reader-desc">' + Utils.escapeHtml(material.description) + '</p>' +
+          (material.image ? '<img class="reader-image" src="' + material.image + '" alt="' + Utils.escapeHtml(material.title) + '">' : "") +
+          '<div class="reader-body">' + Utils.sanitizeHtml(material.content) + '</div>' +
+        '</article>' +
+      '</div>' +
+      '<div class="toc-drawer-overlay" id="tocDrawerOverlay"></div>' +
+      '<div class="toc-drawer" id="tocDrawer"><div class="toc-drawer-handle"></div><p class="reader-toc-title">Daftar Isi</p>' + tocHtml + '</div>';
+
+    var bar = document.getElementById("tocMobileBar");
+    var drawer = document.getElementById("tocDrawer");
+    var overlay = document.getElementById("tocDrawerOverlay");
+    function closeDrawer() { drawer.classList.remove("open"); overlay.classList.remove("open"); }
+    if (bar) bar.addEventListener("click", function () { drawer.classList.add("open"); overlay.classList.add("open"); });
+    if (overlay) overlay.addEventListener("click", closeDrawer);
+    drawer.querySelectorAll(".toc-item").forEach(function (a) { a.addEventListener("click", closeDrawer); });
+
+    initTxTabs(document.querySelector(".reader-body"));
+    wrapReaderTables(document.querySelector(".reader-body"));
+  }
+
+  // Wrap every <table> inside materi content with a scrollable container so
+  // wide tables scroll horizontally on phones without breaking the table's
+  // own column layout (see .reader-table-scroll in css/style.css).
+  function wrapReaderTables(root) {
+    if (!root) return;
+    root.querySelectorAll("table").forEach(function (table) {
+      if (table.parentElement && table.parentElement.classList.contains("reader-table-scroll")) return;
+      var wrap = document.createElement("div");
+      wrap.className = "reader-table-scroll";
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    });
+  }
+
+  // Some materials (e.g. "Transaksi DMS 3") group their content into
+  // scenario tabs (.tx-tabs / .tx-case) so the reader doesn't have to scroll
+  // through every case at once. No-op if the material doesn't use this pattern.
+  function initTxTabs(root) {
+    if (!root) return;
+    var tabs = root.querySelectorAll(".tx-tab");
+    var cases = root.querySelectorAll(".tx-case");
+    if (!tabs.length || !cases.length) return;
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var target = tab.getAttribute("data-case-target");
+        tabs.forEach(function (t) {
+          var active = t === tab;
+          t.classList.toggle("active", active);
+          t.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        cases.forEach(function (c) { c.hidden = c.getAttribute("data-case") !== target; });
+        var tabsBar = root.querySelector(".tx-tabs");
+        if (tabsBar) tabsBar.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 11. NOT FOUND                                                       */
+  /* ------------------------------------------------------------------ */
+  function renderNotFound() {
+    appEl.innerHTML = '<div class="section"><div class="error-state"><b>Halaman tidak ditemukan</b>Silakan kembali ke beranda.<br><br><a href="#/" class="btn btn-outline btn-sm">Ke Beranda</a></div></div>';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 12. SEARCH                                                          */
+  /* ------------------------------------------------------------------ */
+  var Search = {
+    overlay: null, input: null, resultsEl: null,
+    init: function () {
+      this.overlay = document.getElementById("searchOverlay");
+      this.input = document.getElementById("searchInput");
+      this.resultsEl = document.getElementById("searchResults");
+      var self = this;
+      document.getElementById("openSearchBtn").addEventListener("click", function () { self.open(); });
+      document.getElementById("openSearchBtnMobile").addEventListener("click", function () { closeDrawerNav(); self.open(); });
+      document.getElementById("closeSearchBtn").addEventListener("click", function () { self.close(); });
+      this.overlay.addEventListener("click", function (e) { if (e.target === self.overlay) self.close(); });
+      document.addEventListener("keydown", function (e) {
+        var active = document.activeElement;
+        var isTyping = active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable);
+        if (e.key === "/" && !isTyping) {
+          e.preventDefault(); self.open();
+        }
+        if (e.key === "Escape" && !self.overlay.hidden) self.close();
+      });
+      this.input.addEventListener("input", Utils.debounce(function () { self.runSearch(self.input.value); }, 120));
+    },
+    open: function () { this.overlay.hidden = false; this.input.value = ""; this.resultsEl.innerHTML = ""; this.input.focus(); },
+    close: function () { this.overlay.hidden = true; },
+    runSearch: function (q) {
+      q = (q || "").trim().toLowerCase();
+      if (!q) { this.resultsEl.innerHTML = ""; return; }
+      var materials = DataService.getMaterials().filter(function (m) { return m.status === "published"; });
+      var results = materials.filter(function (m) {
+        return m.title.toLowerCase().indexOf(q) !== -1 ||
+               m.description.toLowerCase().indexOf(q) !== -1 ||
+               m.content.toLowerCase().indexOf(q) !== -1;
+      });
+      if (results.length === 0) {
+        this.resultsEl.innerHTML = '<div class="search-empty">Materi tidak ditemukan.</div>';
+        return;
+      }
+      var self = this;
+      this.resultsEl.innerHTML = results.map(function (m) {
+        return '<a class="search-result-item" href="#/materi/' + m.slug + '"><span class="search-result-title">' + Utils.escapeHtml(m.title) + '</span><span class="search-result-desc">' + Utils.escapeHtml(m.description) + '</span></a>';
+      }).join("");
+      this.resultsEl.querySelectorAll(".search-result-item").forEach(function (a) { a.addEventListener("click", function () { self.close(); }); });
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* 13. LOGO 5-CLICK ADMIN TRIGGER + LOGIN MODAL                        */
+  /* ------------------------------------------------------------------ */
+  var clickCount = 0, clickTimer = null;
+  function setupLogoTrigger() {
+    var logo = document.getElementById("logoTrigger");
+    logo.addEventListener("click", function () {
+      logo.classList.remove("logo-pulse"); void logo.offsetWidth; logo.classList.add("logo-pulse");
+      clickCount++;
+      clearTimeout(clickTimer);
+      clickTimer = setTimeout(function () { clickCount = 0; }, 2000);
+      if (clickCount >= 5) {
+        clickCount = 0;
+        clearTimeout(clickTimer);
+        if (AuthService.isLoggedIn()) {
+          Router.navigate("/admin/dashboard");
+        } else {
+          openLoginModal();
         }
       }
+    });
+  }
+
+  function openLoginModal() {
+    var overlay = document.getElementById("loginOverlay");
+    overlay.hidden = false;
+    document.getElementById("loginError").hidden = true;
+    document.getElementById("loginForm").reset();
+    document.getElementById("loginUsername").focus();
+  }
+  function closeLoginModal() { document.getElementById("loginOverlay").hidden = true; }
+
+  function setupLoginModal() {
+    var overlay = document.getElementById("loginOverlay");
+    document.getElementById("loginClose").addEventListener("click", closeLoginModal);
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) closeLoginModal(); });
+    document.getElementById("pwToggle").addEventListener("click", function () {
+      var input = document.getElementById("loginPassword");
+      input.type = input.type === "password" ? "text" : "password";
+    });
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var username = document.getElementById("loginUsername").value.trim();
+      var password = document.getElementById("loginPassword").value;
+      var errorEl = document.getElementById("loginError");
+      var submitBtn = document.getElementById("loginSubmit");
+      var label = submitBtn.querySelector(".btn-label");
+      var spinner = submitBtn.querySelector(".spinner");
+      errorEl.hidden = true;
+      submitBtn.disabled = true; label.textContent = "Memproses..."; spinner.hidden = false;
+      AuthService.login(username, password).then(function () {
+        submitBtn.disabled = false; label.textContent = "Masuk"; spinner.hidden = true;
+        closeLoginModal();
+        Toast.show("Login berhasil. Selamat datang, Admin.", "success");
+        Router.navigate("/admin/dashboard");
+      }).catch(function (err) {
+        submitBtn.disabled = false; label.textContent = "Masuk"; spinner.hidden = true;
+        errorEl.textContent = err.message || "Login gagal.";
+        errorEl.hidden = false;
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 14. HEADER / DRAWER / THEME WIRING                                  */
+  /* ------------------------------------------------------------------ */
+  var DEV_NOTICE_MSG = "Sabar, sedang tahap pengembangan sistem oleh tim benyoriki.com";
+
+  function closeDrawerNav() {
+    document.getElementById("mobileDrawer").classList.remove("open");
+    document.getElementById("hamburgerBtn").setAttribute("aria-expanded", "false");
+    // Collapse every accordion group so the drawer always reopens fresh.
+    document.querySelectorAll(".drawer-acc-btn[aria-expanded='true']").forEach(function (btn) {
+      btn.setAttribute("aria-expanded", "false");
+      var panel = document.getElementById(btn.getAttribute("aria-controls"));
+      if (panel) panel.classList.remove("open");
+    });
+  }
+
+  // Fills the "Materi" dropdown (desktop) and accordion panel (mobile) with
+  // the real, published materials — so the menu always reflects whatever
+  // admin has published, without needing a second manual edit here.
+  function renderNavMaterials() {
+    var materials = DataService.getMaterials().filter(function (m) { return m.status === "published"; });
+    var seeAllNav = '<a class="nav-dropdown-item nav-dropdown-item-all" href="#/materi">Lihat Semua Materi &rarr;</a>';
+    var seeAllDrawer = '<a class="drawer-acc-item drawer-acc-item-all" href="#/materi">Lihat Semua Materi &rarr;</a>';
+    var navPanel = document.getElementById("navMateriPanel");
+    var drawerPanel = document.getElementById("drawerMateriPanel");
+    if (navPanel) {
+      // navPanel is itself the ".nav-dropdown-panel-inner" (see index.html),
+      // so it can be filled directly — no extra wrapper needed here.
+      navPanel.innerHTML = (materials.length
+        ? materials.map(function (m) { return '<a class="nav-dropdown-item" href="#/materi/' + m.slug + '">' + Utils.escapeHtml(m.title) + '</a>'; }).join("")
+        : '<span class="nav-dropdown-empty">Belum ada materi</span>') + seeAllNav;
     }
-    chatLastCount = last100.length;
+    if (drawerPanel) {
+      // drawerPanel is the ".drawer-acc-panel" itself (its id is what
+      // aria-controls/open-state toggling targets), so — unlike navPanel —
+      // it needs its own ".drawer-acc-panel-inner" wrapper injected here to
+      // match the static markup used for the other accordion panels.
+      drawerPanel.innerHTML = '<div class="drawer-acc-panel-inner">' + (materials.length
+        ? materials.map(function (m) { return '<a class="drawer-acc-item" href="#/materi/' + m.slug + '">' + Utils.escapeHtml(m.title) + '</a>'; }).join("")
+        : '<span class="drawer-acc-empty">Belum ada materi</span>') + seeAllDrawer + '</div>';
+    }
+  }
 
-    const myName = currentUserName || "User";
-    const wasAtBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 60;
+  function setupHeader() {
+    var hamburger = document.getElementById("hamburgerBtn");
+    var drawer = document.getElementById("mobileDrawer");
+    hamburger.addEventListener("click", function () {
+      var open = drawer.classList.toggle("open");
+      hamburger.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    // Delegated so it also covers the Materi links injected dynamically by
+    // renderNavMaterials() (real anchors, no extra binding needed per item).
+    drawer.addEventListener("click", function (e) {
+      if (e.target.closest("a")) closeDrawerNav();
+    });
+    document.getElementById("themeToggle").addEventListener("click", function () { ThemeService.toggle(); });
+    var themeToggleMobile = document.getElementById("themeToggleMobile");
+    if (themeToggleMobile) {
+      themeToggleMobile.addEventListener("click", function () { ThemeService.toggle(); closeDrawerNav(); });
+    }
 
-    let html = "";
-    let lastDate = "";
-    let lastSender = "";
-
-    last100.forEach((key, idx) => {
-      const msg = data[key];
-      const msgDate = new Date(msg.waktu).toLocaleDateString("id-ID");
-      const waktu = new Date(msg.waktu).toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" });
-      const isMe = msg.nama === myName;
-      const isSame = lastSender === msg.nama && !isMe;
-
-      // Date separator
-      if (msgDate !== lastDate) {
-        html += `<div class="chat-date-sep"><span>${msgDate === new Date().toLocaleDateString("id-ID") ? "Hari Ini" : msgDate}</span></div>`;
-        lastDate = msgDate;
-        lastSender = "";
-      }
-
-      // Reply preview
-      let replyHtml = "";
-      if (msg.replyTo) {
-        replyHtml = `<div class="chat-reply-preview"><span class="reply-name">${escapeHtml(msg.replyTo.nama)}</span><span class="reply-text">${escapeHtml(msg.replyTo.pesan.substring(0, 60))}</span></div>`;
-      }
-
-      // Avatar
-      const avatarHtml = !isMe ? `<div class="chat-avatar">${getInitials(msg.nama)}</div>` : "";
-
-      html += `<div class="chat-bubble-wrap ${isMe ? "me" : "other"} ${isSame && !isMe ? "same-sender" : ""}">
-        ${!isMe && !isSame ? avatarHtml : (isMe ? "" : '<div class="chat-avatar-placeholder"></div>')}
-        <div class="chat-bubble" data-id="${key}" oncontextmenu="showMsgMenu(event,'${key}','${escapeHtml(msg.nama)}','${escapeHtml(msg.pesan)}')">
-          ${!isMe && !isSame ? `<div class="chat-sender">${escapeHtml(msg.nama)}</div>` : ""}
-          ${replyHtml}
-          <div class="chat-text">${formatChatText(escapeHtml(msg.pesan))}</div>
-          <div class="chat-meta">
-            <span class="chat-time">${waktu}</span>
-            ${isMe ? '<span class="chat-status"><i class="fas fa-check-double"></i></span>' : ""}
-          </div>
-        </div>
-      </div>`;
-      lastSender = msg.nama;
+    // Desktop dropdown menus (Materi / Mati Listrik / Stock Buku PO PRG):
+    // click the title to toggle its panel; clicking elsewhere closes all.
+    document.querySelectorAll(".nav-dropdown").forEach(function (dd) {
+      var btn = dd.querySelector(".nav-dropdown-btn");
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var isOpen = dd.classList.contains("open");
+        document.querySelectorAll(".nav-dropdown.open").forEach(function (o) { o.classList.remove("open"); });
+        if (!isOpen) dd.classList.add("open");
+      });
+    });
+    document.addEventListener("click", function () {
+      document.querySelectorAll(".nav-dropdown.open").forEach(function (o) { o.classList.remove("open"); });
     });
 
-    container.innerHTML = html;
-    if (chatOpen && wasAtBottom) scrollChatToBottom(true);
-    if (chatOpen) unreadMessages = 0;
-  } catch(e) {
-    console.error("Chat load error:", e);
-  }
-}
-
-async function sendChatMessage() {
-  const input = document.getElementById("chatInput");
-  const pesan = input?.value.trim();
-  if (!pesan) return;
-
-  // Ensure username
-  if (!currentUserName) {
-    currentUserName = prompt("Masukkan nama Anda untuk chat:") || "Anonim";
-    localStorage.setItem("chatNama", currentUserName);
-  }
-
-  const btn = document.getElementById("chatSendBtn");
-  if (btn) { btn.disabled = true; }
-
-  const msgData = {
-    nama: currentUserName,
-    pesan: pesan,
-    waktu: Date.now()
-  };
-
-  if (replyTo) {
-    msgData.replyTo = { nama: replyTo.nama, pesan: replyTo.pesan };
-    replyTo = null;
-    const rp = document.getElementById("replyPreview");
-    if (rp) rp.style.display = "none";
-  }
-
-  const msgId = "msg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
-  try {
-    await window.firebaseSet(window.firebaseRef(window.db, "chatGlobal/" + msgId), msgData);
-    if (input) input.value = "";
-    await loadChatMessages();
-    scrollChatToBottom(true);
-  } catch(e) {
-    showToast("❌ Gagal mengirim pesan");
-  }
-  if (btn) { btn.disabled = false; }
-}
-
-function showMsgMenu(e, id, nama, pesan) {
-  e.preventDefault();
-  const existing = document.getElementById("msgContextMenu");
-  if (existing) existing.remove();
-  const menu = document.createElement("div");
-  menu.id = "msgContextMenu";
-  menu.className = "msg-context-menu";
-  menu.style.cssText = `left:${Math.min(e.clientX, window.innerWidth - 160)}px;top:${Math.min(e.clientY, window.innerHeight - 120)}px;`;
-  menu.innerHTML = `
-    <div class="ctx-item" onclick="setReplyTo('${escapeHtml(nama)}','${escapeHtml(pesan)}')"><i class="fas fa-reply"></i> Balas</div>
-    <div class="ctx-item" onclick="copyToClipboard('${escapeHtml(pesan)}')"><i class="fas fa-copy"></i> Salin</div>
-    ${(nama === currentUserName || isAdmin) ? `<div class="ctx-item danger" onclick="deleteMessage('${id}')"><i class="fas fa-trash"></i> Hapus</div>` : ""}
-  `;
-  document.body.appendChild(menu);
-  setTimeout(() => document.addEventListener("click", () => menu.remove(), { once: true }), 100);
-}
-
-function setReplyTo(nama, pesan) {
-  replyTo = { nama, pesan };
-  const box = document.getElementById("replyPreview");
-  const nameEl = document.getElementById("replyName");
-  const textEl = document.getElementById("replyText");
-  if (nameEl) nameEl.textContent = nama;
-  if (textEl) textEl.textContent = pesan.substring(0, 80);
-  if (box) box.style.display = "flex";
-  document.getElementById("chatInput")?.focus();
-}
-
-async function deleteMessage(id) {
-  if (!confirm("Hapus pesan ini?")) return;
-  try {
-    const { getDatabase, ref, remove } = window._firebaseDB || {};
-    // Fallback: use firebaseSet with null
-    await window.firebaseSet(window.firebaseRef(window.db, "chatGlobal/" + id), null);
-    await loadChatMessages();
-    showToast("🗑️ Pesan dihapus");
-  } catch(e) {
-    showToast("❌ Gagal menghapus pesan");
-  }
-}
-
-function copyToClipboard(text) {
-  navigator.clipboard?.writeText(text).then(() => showToast("📋 Disalin!")).catch(() => showToast("❌ Gagal menyalin"));
-}
-
-function handleTypingIndicator() {
-  if (!window.db || !currentUserName) return;
-  clearTimeout(typingTimeout);
-  window.firebaseSet(window.firebaseRef(window.db, "typing/" + currentUserName), Date.now());
-  typingTimeout = setTimeout(() => {
-    window.firebaseSet(window.firebaseRef(window.db, "typing/" + currentUserName), null);
-  }, 2500);
-}
-
-function toggleChat() {
-  chatOpen ? closeChat() : openChat();
-}
-
-function openChat() {
-  chatOpen = true;
-  document.getElementById("chatPanel")?.classList.add("open");
-  document.getElementById("chatBadge").style.display = "none";
-  unreadMessages = 0;
-  updateChatBadge(0);
-  setTimeout(() => scrollChatToBottom(true), 100);
-  document.getElementById("chatInput")?.focus();
-}
-
-function closeChat() {
-  chatOpen = false;
-  document.getElementById("chatPanel")?.classList.remove("open");
-}
-
-function updateChatBadge(count) {
-  const badge = document.getElementById("chatBadge");
-  if (!badge) return;
-  if (count > 0) {
-    badge.style.display = "flex";
-    badge.textContent = count > 99 ? "99+" : count;
-    badge.classList.add("pulse");
-  } else {
-    badge.style.display = "none";
-    badge.classList.remove("pulse");
-  }
-}
-
-function scrollChatToBottom(smooth = false) {
-  const c = document.getElementById("chatMessages");
-  if (c) c.scrollTo({ top: c.scrollHeight, behavior: smooth ? "smooth" : "auto" });
-}
-
-function playNotifSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 800;
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
-  } catch(e) {}
-}
-
-// Emoji picker (simple)
-const EMOJIS = window.__NOEMOJI ? [":)",":D",";)",":(","<3","(y)","OK","Siap","Oke","Mantap","Sip","Makasih"] : ["😀","😂","🙏","👍","👎","❤️","🔥","✅","❌","⚠️","📦","🚛","🧹","💪","🎉","👏","😎","🤔","💡","📝"];
-function toggleEmojiPicker() {
-  let picker = document.getElementById("emojiPicker");
-  if (picker) { picker.remove(); return; }
-  picker = document.createElement("div");
-  picker.id = "emojiPicker";
-  picker.className = "emoji-picker";
-  EMOJIS.forEach(em => {
-    const btn = document.createElement("button");
-    btn.className = "emoji-btn";
-    btn.textContent = em;
-    btn.onclick = () => {
-      const inp = document.getElementById("chatInput");
-      if (inp) inp.value += em;
-      picker.remove();
-      inp?.focus();
-    };
-    picker.appendChild(btn);
-  });
-  document.getElementById("chatInputWrap")?.appendChild(picker);
-  setTimeout(() => document.addEventListener("click", e => {
-    if (!picker.contains(e.target) && e.target.id !== "emojiBtn") picker.remove();
-  }, { once: true }), 100);
-}
-
-function getInitials(name) {
-  return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
-}
-
-function formatChatText(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/_(.*?)_/g, "<em>$1</em>")
-    .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-}
-
-function escapeHtml(text) {
-  if (!text) return "";
-  return String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-
-// ================= PRESENCE / ONLINE =================
-function initPresence() {
-  if (!window.db || !currentUserName) return;
-  const key = currentUserName || "guest_" + Math.random().toString(36).substr(2, 5);
-  window.firebaseSet(window.firebaseRef(window.db, "presence/" + key), { online: true, ts: Date.now() });
-  window.addEventListener("beforeunload", () => {
-    window.firebaseSet(window.firebaseRef(window.db, "presence/" + key), null);
-  });
-}
-
-function initOnlineIndicator() {
-  const el = document.getElementById("onlineCount");
-  if (!el) return;
-  const update = () => {
-    if (window.db) {
-      window.firebaseGet(window.firebaseRef(window.db, "presence"))
-        .then(snap => {
-          if (snap.exists()) {
-            const now = Date.now();
-            const active = Object.values(snap.val()).filter(v => v.ts && (now - v.ts) < 120000).length;
-            el.textContent = Math.max(1, active);
-          } else el.textContent = 1;
-        }).catch(() => { el.textContent = 1; });
-    }
-  };
-  update();
-  setInterval(() => { if (!document.hidden) update(); }, 30000);
-}
-
-// ================= KEGIATAN =================
-async function loadKegiatan() {
-  if (!window.db) return;
-  try {
-    const snapshot = await window.firebaseGet(window.firebaseRef(window.db, "kegiatan"));
-    let data = snapshot.exists() ? snapshot.val() : null;
-    if (!data) {
-      data = {};
-      kegiatanDefault.forEach((k, i) => { data["k_" + i] = { nama: k.nama, tugas: k.tugas }; });
-    }
-    renderKegiatan(data);
-  } catch(e) { renderKegiatan(null); }
-}
-
-function renderKegiatan(data) {
-  const container = document.getElementById("kegiatanList");
-  if (!container) return;
-  const items = data ? Object.values(data) : kegiatanDefault;
-  container.innerHTML = items.map((item, idx) => {
-    const initials = getInitials(item.nama);
-    return `<div class="kegiatan-card" id="kCard_${idx}">
-      <div class="kegiatan-header">
-        <div class="kegiatan-avatar">${initials}</div>
-        <span class="kegiatan-nama">${item.nama}</span>
-        ${isAdmin ? `<button class="kegiatan-edit-btn" onclick="editKegiatan(${idx},'${item.nama}',\`${item.tugas.replace(/`/g,"'")}\`)"><i class="fas fa-pen"></i> Edit</button>` : ""}
-      </div>
-      <div class="kegiatan-tugas"><i class="fas fa-tasks"></i> ${item.tugas}</div>
-    </div>`;
-  }).join("");
-}
-
-function editKegiatan(idx, nama, tugasLama) {
-  const modal = document.getElementById("editKegiatanModal");
-  const input = document.getElementById("editKegiatanInput");
-  const label = document.getElementById("editKegiatanLabel");
-  if (label) label.textContent = "Edit tugas: " + nama;
-  if (input) input.value = tugasLama;
-  if (modal) modal.classList.add("active");
-
-  document.getElementById("editKegiatanSaveBtn").onclick = () => {
-    const baru = input?.value.trim();
-    if (!baru) { showToast("⚠️ Tugas tidak boleh kosong"); return; }
-    window.firebaseSet(window.firebaseRef(window.db, "kegiatan/k_" + idx), { nama, tugas: baru })
-      .then(() => { showToast("✅ Tugas berhasil diupdate!"); modal?.classList.remove("active"); loadKegiatan(); })
-      .catch(e => showToast("❌ Gagal: " + e.message));
-  };
-  document.getElementById("editKegiatanCloseBtn").onclick = () => modal?.classList.remove("active");
-}
-
-// ================= SCHEDULE FEATURES =================
-function updateQuickNavLabel(week) {
-  const el = document.getElementById("quickNavLabel");
-  if (el) el.textContent = "WEEK " + week;
-}
-
-function updateWeekProgress(week) {
-  const pct = Math.min(100, Math.round(((week - 6) / 46) * 100));
-  const fill = document.getElementById("weekProgressFill");
-  const text = document.getElementById("weekProgressText");
-  if (fill) fill.style.width = pct + "%";
-  if (text) text.textContent = `WEEK ${week} / 52 (${pct}%)`;
-}
-
-function updateStatsAfterRender() {
-  const cells = document.querySelectorAll("#scheduleTable td[data-shift]");
-  const counts = { P:0, S:0, M:0, OFF:0, C:0 };
-  cells.forEach(c => { if (counts[c.dataset.shift] !== undefined) counts[c.dataset.shift]++; });
-  const ids = { P:"statP", S:"statS", M:"statM", OFF:"statOFF" };
-  Object.entries(ids).forEach(([key, id]) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.textContent = counts[key];
-      el.style.transform = "scale(1.3)";
-      setTimeout(() => { el.style.transform = ""; el.style.transition = "transform 0.3s"; }, 200);
-    }
-  });
-}
-
-function highlightTodayColumn(weekNumber) {
-  const today = new Date();
-  const monday = new Date(START_DATE);
-  monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    if (d.toDateString() === today.toDateString()) {
-      document.querySelectorAll("#scheduleTable tr").forEach(row => {
-        const cell = row.cells[3 + i];
-        if (cell) cell.classList.add("today-col");
+    // Mobile accordion groups inside the hamburger drawer.
+    document.querySelectorAll(".drawer-acc-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var panel = document.getElementById(btn.getAttribute("aria-controls"));
+        var expanded = btn.getAttribute("aria-expanded") === "true";
+        document.querySelectorAll(".drawer-acc-btn[aria-expanded='true']").forEach(function (other) {
+          if (other !== btn) {
+            other.setAttribute("aria-expanded", "false");
+            var p = document.getElementById(other.getAttribute("aria-controls"));
+            if (p) p.classList.remove("open");
+          }
+        });
+        btn.setAttribute("aria-expanded", String(!expanded));
+        if (panel) panel.classList.toggle("open", !expanded);
       });
-      break;
+    });
+
+    // Menus that aren't built yet: show a friendly "still in progress" toast
+    // instead of navigating anywhere. Delegated so it also covers items
+    // rendered dynamically later.
+    document.addEventListener("click", function (e) {
+      var trigger = e.target.closest("[data-dev-notice]");
+      if (trigger) {
+        Toast.show(DEV_NOTICE_MSG, "info", 3600);
+        closeDrawerNav();
+        document.querySelectorAll(".nav-dropdown.open").forEach(function (o) { o.classList.remove("open"); });
+      }
+    });
+
+    var header = document.getElementById("siteHeader");
+    var onScroll = function () { header.classList.toggle("is-scrolled", window.scrollY > 4); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* ==================================================================== */
+  /* ============================ ADMIN AREA ============================ */
+  /* ==================================================================== */
+
+  var ADMIN_MENU = [
+    { key: "dashboard", label: "Dashboard", route: "/admin/dashboard" },
+    { key: "toc", label: "Daftar Isi", route: "/admin/toc" },
+    { key: "materials", label: "Materi", route: "/admin/materials" },
+    { key: "images", label: "Gambar", route: "/admin/images" },
+    { key: "preview", label: "Preview Website", route: "/preview" },
+    { key: "settings", label: "Pengaturan", route: "/admin/settings" }
+  ];
+
+  function adminShell(activeKey, bodyHtml) {
+    var user = AuthService.currentUser();
+    var menuHtml = ADMIN_MENU.map(function (item) {
+      return '<a class="admin-nav-item' + (item.key === activeKey ? " active" : "") + '" href="#' + item.route + '" data-admin-link="1">' + item.label + '</a>';
+    }).join("");
+    return (
+      '<div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>' +
+      '<div class="admin-shell">' +
+        '<aside class="admin-sidebar" id="adminSidebar">' +
+          menuHtml +
+          '<div class="admin-sidebar-divider"></div>' +
+          '<button type="button" class="admin-nav-item" id="adminLogoutBtn">Logout</button>' +
+        '</aside>' +
+        '<div class="admin-main">' +
+          '<div class="admin-topbar">' +
+            '<button type="button" class="hamburger admin-hamburger" id="adminHamburger" aria-label="Buka menu admin"><span></span><span></span><span></span></button>' +
+            '<div class="admin-badge"><span class="admin-avatar">' + (user ? user.username.charAt(0).toUpperCase() : "A") + '</span>' + (user ? Utils.escapeHtml(user.username) : "Admin") + '</div>' +
+          '</div>' +
+          bodyHtml +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function wireAdminShell() {
+    var sidebar = document.getElementById("adminSidebar");
+    var overlay = document.getElementById("adminSidebarOverlay");
+    var toggle = document.getElementById("adminHamburger");
+    if (toggle) toggle.addEventListener("click", function () { sidebar.classList.add("open"); overlay.classList.add("open"); });
+    if (overlay) overlay.addEventListener("click", function () { sidebar.classList.remove("open"); overlay.classList.remove("open"); });
+    document.querySelectorAll('[data-admin-link]').forEach(function (a) {
+      a.addEventListener("click", function () { sidebar.classList.remove("open"); overlay.classList.remove("open"); });
+    });
+    var logoutBtn = document.getElementById("adminLogoutBtn");
+    if (logoutBtn) logoutBtn.addEventListener("click", function () {
+      AuthService.logout();
+      Toast.show("Anda telah logout.", "info");
+      Router.navigate("/");
+    });
+  }
+
+  /* ---------------------- 14a. ADMIN DASHBOARD ------------------------- */
+  function renderAdminDashboard() {
+    var materials = DataService.getMaterials();
+    var contents = DataService.getContents();
+    var images = DataService.getImages();
+    var lastUpdated = materials.concat().sort(function (a, b) { return new Date(b.updatedAt) - new Date(a.updatedAt); })[0];
+
+    var body =
+      '<div class="admin-topbar"><div><h1 class="admin-heading">Dashboard</h1><p class="admin-sub">Ringkasan konten Modul Materi Pelatihan Admin GDNG PRG 2026.</p></div></div>' +
+      '<div class="stat-grid">' +
+        statCard("Total Materi", materials.length) +
+        statCard("Total Daftar Isi", contents.length) +
+        statCard("Total Gambar", images.length) +
+        statCard("Terakhir Diperbarui", lastUpdated ? Utils.formatDate(lastUpdated.updatedAt) : "-") +
+      '</div>' +
+      '<div class="admin-panel">' +
+        '<p class="panel-title">Materi Terbaru</p>' +
+        renderMaterialsMiniTable(materials.concat().sort(function (a, b) { return new Date(b.updatedAt) - new Date(a.updatedAt); }).slice(0, 5)) +
+      '</div>';
+    appEl.innerHTML = adminShell("dashboard", body);
+    wireAdminShell();
+  }
+  function statCard(label, value) {
+    return '<div class="stat-card"><div class="stat-icon">&#9679;</div><div class="stat-value">' + value + '</div><div class="stat-label">' + label.toUpperCase() + '</div></div>';
+  }
+  function renderMaterialsMiniTable(list) {
+    if (list.length === 0) return '<div class="empty-state"><b>Belum ada materi</b>Tambahkan materi pertama Anda.</div>';
+    return '<div class="table-scroll"><table class="data-table"><thead><tr><th>Judul</th><th>Status</th><th>Diperbarui</th></tr></thead><tbody>' +
+      list.map(function (m) {
+        return '<tr><td>' + Utils.escapeHtml(m.title) + '</td><td><span class="materi-status status-' + m.status + '">' + (m.status === "published" ? "Published" : "Draft") + '</span></td><td>' + Utils.formatDate(m.updatedAt) + '</td></tr>';
+      }).join("") + '</tbody></table></div>';
+  }
+
+  /* ---------------------- 14b. ADMIN: DAFTAR ISI ----------------------- */
+  function renderAdminTOC() {
+    var contents = DataService.getContents().sort(function (a, b) { return a.order - b.order; });
+    var materials = DataService.getMaterials();
+
+    function materialOptions(selectedId) {
+      var opts = '<option value="">(Tautkan ke Beranda)</option>';
+      opts += materials.map(function (m) {
+        return '<option value="' + m.id + '"' + (m.id === selectedId ? " selected" : "") + '>' + Utils.escapeHtml(m.title) + '</option>';
+      }).join("");
+      return opts;
+    }
+
+    var rows = contents.map(function (c, idx) {
+      return (
+        '<tr data-id="' + c.id + '">' +
+          '<td class="row-drag">&#8942;&#8942;</td>' +
+          '<td>' + (idx + 1) + '</td>' +
+          '<td><strong>' + Utils.escapeHtml(c.title) + '</strong></td>' +
+          '<td>' + (c.materialId ? (materials.filter(function (m) { return m.id === c.materialId; })[0] || {}).title || "-" : "Beranda") + '</td>' +
+          '<td><button type="button" class="pill-toggle ' + (c.active ? "pill-on" : "pill-off") + '" data-action="toc-toggle" data-id="' + c.id + '">' + (c.active ? "Aktif" : "Nonaktif") + '</button></td>' +
+          '<td><div class="table-actions">' +
+            '<button type="button" class="icon-btn" data-action="toc-up" data-id="' + c.id + '" aria-label="Naikkan">&#8593;</button>' +
+            '<button type="button" class="icon-btn" data-action="toc-down" data-id="' + c.id + '" aria-label="Turunkan">&#8595;</button>' +
+            '<button type="button" class="icon-btn" data-action="toc-edit" data-id="' + c.id + '" aria-label="Edit">&#9998;</button>' +
+            '<button type="button" class="icon-btn" data-action="toc-delete" data-id="' + c.id + '" aria-label="Hapus">&#128465;</button>' +
+          '</div></td>' +
+        '</tr>'
+      );
+    }).join("");
+
+    var body =
+      '<div class="admin-topbar"><div><h1 class="admin-heading">Daftar Isi</h1><p class="admin-sub">Atur urutan navigasi materi pada halaman baca.</p></div>' +
+        '<button type="button" class="btn btn-primary btn-sm" id="tocAddBtn">+ Tambah Daftar Isi</button></div>' +
+      '<div class="admin-panel">' +
+        '<div class="table-scroll" id="tocTableWrap"><table class="data-table"><thead><tr><th></th><th>#</th><th>Judul</th><th>Materi Terkait</th><th>Status</th><th></th></tr></thead><tbody>' +
+        (rows || '<tr><td colspan="6"><div class="empty-state"><b>Belum ada daftar isi</b>Tambahkan item pertama.</div></td></tr>') +
+        '</tbody></table></div>' +
+      '</div>' +
+      tocFormTemplate(materialOptions);
+
+    appEl.innerHTML = adminShell("toc", body);
+    wireAdminShell();
+
+    var formPanel = document.getElementById("tocFormPanel");
+    var form = document.getElementById("tocForm");
+
+    function openForm(item) {
+      form.reset();
+      document.getElementById("tocFormTitle").textContent = item ? "Edit Daftar Isi" : "Tambah Daftar Isi";
+      document.getElementById("tocId").value = item ? item.id : "";
+      document.getElementById("tocTitleInput").value = item ? item.title : "";
+      document.getElementById("tocMaterialSelect").innerHTML = materialOptions(item ? item.materialId : "");
+      document.getElementById("tocActiveInput").checked = item ? !!item.active : true;
+      formPanel.hidden = false;
+      document.getElementById("tocTitleInput").focus();
+    }
+    function closeForm() { formPanel.hidden = true; }
+
+    document.getElementById("tocAddBtn").addEventListener("click", function () { openForm(null); });
+    document.getElementById("tocFormCancel").addEventListener("click", closeForm);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var id = document.getElementById("tocId").value;
+      var title = document.getElementById("tocTitleInput").value.trim();
+      if (!title) { Toast.show("Judul wajib diisi.", "error"); return; }
+      var materialId = document.getElementById("tocMaterialSelect").value || null;
+      var active = document.getElementById("tocActiveInput").checked;
+      var list = DataService.getContents();
+      if (id) {
+        list = list.map(function (c) { return c.id === id ? Object.assign({}, c, { title: title, materialId: materialId, active: active }) : c; });
+        Toast.show("Daftar isi berhasil diperbarui", "success");
+      } else {
+        var maxOrder = list.reduce(function (m, c) { return Math.max(m, c.order); }, 0);
+        list.push({ id: Utils.uid("toc"), title: title, order: maxOrder + 1, active: active, materialId: materialId });
+        Toast.show("Daftar isi berhasil disimpan", "success");
+      }
+      DataService.setContents(list);
+      closeForm();
+      renderAdminTOC();
+    });
+
+    document.getElementById("tocTableWrap").addEventListener("click", tocActionHandler);
+    function tocActionHandler(e) {
+      var btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      var action = btn.getAttribute("data-action");
+      if (action.indexOf("toc-") !== 0) return;
+      var id = btn.getAttribute("data-id");
+      var list = DataService.getContents();
+      var item = list.filter(function (c) { return c.id === id; })[0];
+      if (!item) return;
+
+      if (action === "toc-toggle") {
+        item.active = !item.active;
+        DataService.setContents(list);
+        renderAdminTOC();
+      } else if (action === "toc-edit") {
+        openForm(item);
+      } else if (action === "toc-delete") {
+        Confirm.ask("Hapus Daftar Isi?", 'Item "' + item.title + '" akan dihapus dari daftar isi.').then(function (ok) {
+          if (!ok) return;
+          DataService.setContents(list.filter(function (c) { return c.id !== id; }));
+          Toast.show("Daftar isi berhasil dihapus", "success");
+          renderAdminTOC();
+        });
+      } else if (action === "toc-up" || action === "toc-down") {
+        var sorted = list.slice().sort(function (a, b) { return a.order - b.order; });
+        var idx = sorted.findIndex(function (c) { return c.id === id; });
+        var swapIdx = action === "toc-up" ? idx - 1 : idx + 1;
+        if (swapIdx < 0 || swapIdx >= sorted.length) return;
+        var tmp = sorted[idx].order;
+        sorted[idx].order = sorted[swapIdx].order;
+        sorted[swapIdx].order = tmp;
+        DataService.setContents(sorted);
+        renderAdminTOC();
+      }
     }
   }
-}
+  function tocFormTemplate() {
+    return (
+      '<div class="admin-panel" id="tocFormPanel" hidden>' +
+        '<p class="panel-title" id="tocFormTitle">Tambah Daftar Isi</p>' +
+        '<form id="tocForm">' +
+          '<input type="hidden" id="tocId">' +
+          '<div class="form-grid">' +
+            '<label class="field full"><span class="field-label">Judul</span><input type="text" id="tocTitleInput" required></label>' +
+            '<label class="field full"><span class="field-label">Materi Terkait</span><select id="tocMaterialSelect"></select></label>' +
+            '<label class="field full" style="flex-direction:row; align-items:center; gap:10px;"><span class="switch"><input type="checkbox" id="tocActiveInput" checked><span class="switch-track"></span></span><span class="field-label" style="margin:0;">Aktifkan item ini</span></label>' +
+          '</div>' +
+          '<div style="display:flex; gap:10px; justify-content:flex-end;">' +
+            '<button type="button" class="btn btn-ghost" id="tocFormCancel">Batal</button>' +
+            '<button type="submit" class="btn btn-primary">Simpan</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>'
+    );
+  }
 
-function addShiftTooltips() {
-  document.querySelectorAll("#scheduleTable td[data-shift]").forEach(cell => {
-    const h = SHIFT_HINTS[cell.dataset.shift];
-    if (h) cell.setAttribute("data-hint", h);
+  /* ---------------------- 14c. ADMIN: MATERI --------------------------- */
+  function renderAdminMaterials() {
+    var materials = DataService.getMaterials().sort(function (a, b) { return a.order - b.order; });
+    var rows = materials.map(function (m) {
+      return (
+        '<tr data-row-title="' + Utils.escapeHtml(m.title.toLowerCase()) + '">' +
+          '<td>' + (m.image ? '<img class="thumb" src="' + m.image + '" alt="">' : '<div class="thumb"></div>') + '</td>' +
+          '<td><strong>' + Utils.escapeHtml(m.title) + '</strong><div class="field-hint">' + m.slug + '</div></td>' +
+          '<td><span class="materi-status status-' + m.status + '">' + (m.status === "published" ? "Published" : "Draft") + '</span></td>' +
+          '<td>' + m.order + '</td>' +
+          '<td>' + Utils.formatDate(m.updatedAt) + '</td>' +
+          '<td><div class="table-actions">' +
+            '<button type="button" class="icon-btn" data-action="mat-preview" data-id="' + m.id + '" aria-label="Preview">&#128065;</button>' +
+            '<button type="button" class="icon-btn" data-action="mat-edit" data-id="' + m.id + '" aria-label="Edit">&#9998;</button>' +
+            '<button type="button" class="icon-btn" data-action="mat-delete" data-id="' + m.id + '" aria-label="Hapus">&#128465;</button>' +
+          '</div></td>' +
+        '</tr>'
+      );
+    }).join("");
+
+    var body =
+      '<div class="admin-topbar"><div><h1 class="admin-heading">Materi</h1><p class="admin-sub">Kelola seluruh materi E-Book pelatihan &mdash; ' + materials.length + ' materi tersimpan.</p></div>' +
+        '<button type="button" class="btn btn-primary btn-sm" id="matAddBtn">+ Tambah Materi</button></div>' +
+      '<div class="admin-panel">' +
+        '<div class="field" style="max-width:320px; margin-bottom:14px;"><input type="text" id="matSearchInput" placeholder="Cari judul materi..."></div>' +
+        '<div class="table-scroll" id="matTableWrap"><table class="data-table"><thead><tr><th></th><th>Judul</th><th>Status</th><th>Urutan</th><th>Diperbarui</th><th></th></tr></thead><tbody>' +
+        (rows || '<tr><td colspan="6"><div class="empty-state"><b>Belum ada materi</b>Klik "Tambah Materi" untuk membuat materi pertama.</div></td></tr>') +
+        '</tbody></table></div>' +
+      '</div>';
+
+    appEl.innerHTML = adminShell("materials", body);
+    wireAdminShell();
+
+    document.getElementById("matAddBtn").addEventListener("click", function () { Router.navigate("/admin/materials/new"); });
+    document.getElementById("matSearchInput").addEventListener("input", Utils.debounce(function (e) {
+      var q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll("#matTableWrap tbody tr[data-row-title]").forEach(function (tr) {
+        tr.hidden = q && tr.getAttribute("data-row-title").indexOf(q) === -1;
+      });
+    }, 120));
+    document.getElementById("matTableWrap").addEventListener("click", function handler(e) {
+      var btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      var action = btn.getAttribute("data-action");
+      var id = btn.getAttribute("data-id");
+      if (action === "mat-edit") Router.navigate("/admin/materials/edit/" + id);
+      else if (action === "mat-preview") {
+        var m = DataService.getMaterials().filter(function (x) { return x.id === id; })[0];
+        if (m) window.open("#/materi/" + m.slug, "_blank");
+      } else if (action === "mat-delete") {
+        var mat = DataService.getMaterials().filter(function (x) { return x.id === id; })[0];
+        if (!mat) return;
+        Confirm.ask("Hapus Materi?", 'Materi "' + mat.title + '" akan dihapus permanen.').then(function (ok) {
+          if (!ok) return;
+          DataService.setMaterials(DataService.getMaterials().filter(function (x) { return x.id !== id; }));
+          Toast.show("Materi berhasil dihapus", "success");
+          renderAdminMaterials();
+        });
+      }
+    });
+  }
+
+  function renderAdminMaterialForm(params) {
+    var isEdit = !!(params && params.id);
+    var material = isEdit ? DataService.getMaterials().filter(function (m) { return m.id === params.id; })[0] : null;
+    if (isEdit && !material) { Router.navigate("/admin/materials"); return; }
+    var images = DataService.getImages();
+
+    function imageOptions(selected) {
+      var opts = '<option value="">(Tanpa Gambar Utama)</option>';
+      opts += images.map(function (img) {
+        return '<option value="' + img.id + '"' + (selected === img.id ? " selected" : "") + '>' + Utils.escapeHtml(img.name) + '</option>';
+      }).join("");
+      return opts;
+    }
+    var selectedImageId = "";
+    if (material && material.image) {
+      var found = images.filter(function (img) { return img.dataUrl === material.image; })[0];
+      selectedImageId = found ? found.id : "";
+    }
+
+    var body =
+      '<div class="admin-topbar"><div><h1 class="admin-heading">' + (isEdit ? "Edit Materi" : "Tambah Materi") + '</h1><p class="admin-sub">Lengkapi informasi materi di bawah ini.</p></div>' +
+        '<a href="#/admin/materials" class="btn btn-ghost btn-sm">&larr; Kembali</a></div>' +
+      '<form id="materialForm" class="admin-panel">' +
+        '<div class="form-grid">' +
+          '<label class="field full"><span class="field-label">Judul Materi</span><input type="text" id="mTitle" required value="' + (material ? Utils.escapeHtml(material.title) : "") + '"></label>' +
+          '<label class="field"><span class="field-label">Slug</span><input type="text" id="mSlug" placeholder="otomatis dari judul" value="' + (material ? material.slug : "") + '"></label>' +
+          '<label class="field"><span class="field-label">Urutan</span><input type="number" id="mOrder" min="1" value="' + (material ? material.order : (DataService.getMaterials().length + 1)) + '"></label>' +
+          '<label class="field full"><span class="field-label">Deskripsi Singkat</span><textarea id="mDesc" rows="2">' + (material ? Utils.escapeHtml(material.description) : "") + '</textarea></label>' +
+          '<label class="field"><span class="field-label">Gambar Utama</span><select id="mImage">' + imageOptions(selectedImageId) + '</select>' +
+            '<span class="field-hint">Pilih dari pustaka, atau unggah baru di bawah ini.</span>' +
+            '<div class="quick-upload" id="quickUploadZone">' +
+              '<img id="quickUploadPreview" hidden>' +
+              '<span id="quickUploadLabel"><strong>+ Unggah gambar baru</strong><br>JPG/PNG, maks ' + MAX_IMAGE_MB + ' MB &mdash; langsung tersimpan ke pustaka</span>' +
+              '<input type="file" id="quickUploadInput" accept="image/*" hidden>' +
+            '</div>' +
+          '</label>' +
+          '<label class="field"><span class="field-label">Status</span><select id="mStatus"><option value="draft"' + (material && material.status === "draft" ? " selected" : "") + '>Draft</option><option value="published"' + (!material || material.status === "published" ? " selected" : "") + '>Published</option></select></label>' +
+        '</div>' +
+        '<div class="field full">' +
+          '<span class="field-label">Isi Materi</span>' +
+          '<div class="editor-toolbar">' +
+            editorBtn("bold", "<b>B</b>") + editorBtn("italic", "<i>I</i>") + editorBtn("underline", "<u>U</u>") +
+            editorBtn("h2", "H2") + editorBtn("h3", "H3") + editorBtn("p", "P") +
+            editorBtn("ul", "&#8226; List") + editorBtn("ol", "1. List") +
+            editorBtn("quote", "&#10077;") + editorBtn("link", "&#128279;") +
+            editorBtn("table", "&#9638;") + editorBtn("code", "&lt;/&gt;") +
+          '</div>' +
+          '<div class="editor-surface" id="mContent" contenteditable="true">' + (material ? material.content : "<p>Tulis isi materi di sini...</p>") + '</div>' +
+        '</div>' +
+        '<div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">' +
+          '<a href="#/admin/materials" class="btn btn-ghost">Batal</a>' +
+          '<button type="submit" class="btn btn-primary">Simpan Materi</button>' +
+        '</div>' +
+      '</form>';
+
+    appEl.innerHTML = adminShell("materials", body);
+    wireAdminShell();
+
+    // Live slug preview: as the admin types the title, auto-fill the slug
+    // field (unless they've already customised it manually) so a new
+    // material can be added without thinking about URLs at all.
+    var titleInput = document.getElementById("mTitle");
+    var slugInput = document.getElementById("mSlug");
+    var slugTouched = isEdit; // existing materials keep their slug untouched by default
+    slugInput.addEventListener("input", function () { slugTouched = true; });
+    titleInput.addEventListener("input", function () {
+      if (!slugTouched) slugInput.value = Utils.slugify(titleInput.value);
+    });
+
+    // Quick image upload: lets the admin attach a brand-new photo to this
+    // material without leaving the form and navigating to the Gambar menu.
+    var quickZone = document.getElementById("quickUploadZone");
+    var quickInput = document.getElementById("quickUploadInput");
+    var quickPreview = document.getElementById("quickUploadPreview");
+    var quickLabel = document.getElementById("quickUploadLabel");
+    var mImageSelect = document.getElementById("mImage");
+    quickZone.addEventListener("click", function () { quickInput.click(); });
+    ["dragover", "dragenter"].forEach(function (evt) {
+      quickZone.addEventListener(evt, function (e) { e.preventDefault(); quickZone.classList.add("drag-over"); });
+    });
+    ["dragleave", "dragend"].forEach(function (evt) {
+      quickZone.addEventListener(evt, function () { quickZone.classList.remove("drag-over"); });
+    });
+    quickZone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      quickZone.classList.remove("drag-over");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleQuickFile(e.dataTransfer.files[0]);
+    });
+    quickInput.addEventListener("change", function () {
+      if (quickInput.files[0]) handleQuickFile(quickInput.files[0]);
+    });
+    function handleQuickFile(file) {
+      if (!/^image\//.test(file.type)) { Toast.show("File harus berupa gambar.", "error"); return; }
+      if (file.size > MAX_IMAGE_MB * 1024 * 1024) { Toast.show("Ukuran gambar melebihi " + MAX_IMAGE_MB + " MB.", "error"); return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        var newImg = { id: Utils.uid("img"), name: file.name.replace(/\.[^.]+$/, ""), alt: titleInput.value.trim() || file.name, dataUrl: reader.result, size: file.size, createdAt: new Date().toISOString() };
+        var list = DataService.getImages();
+        list.push(newImg);
+        DataService.setImages(list);
+        // Refresh the dropdown in place and select the freshly uploaded image.
+        var opt = document.createElement("option");
+        opt.value = newImg.id; opt.textContent = newImg.name; opt.selected = true;
+        mImageSelect.appendChild(opt);
+        images.push(newImg);
+        quickPreview.src = newImg.dataUrl; quickPreview.hidden = false; quickLabel.hidden = true;
+        Toast.show("Gambar diunggah & dipilih otomatis.", "success");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.querySelectorAll(".editor-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.getElementById("mContent").focus();
+        var cmd = btn.getAttribute("data-cmd");
+        if (cmd === "h2") document.execCommand("formatBlock", false, "H2");
+        else if (cmd === "h3") document.execCommand("formatBlock", false, "H3");
+        else if (cmd === "p") document.execCommand("formatBlock", false, "P");
+        else if (cmd === "quote") document.execCommand("formatBlock", false, "BLOCKQUOTE");
+        else if (cmd === "ul") document.execCommand("insertUnorderedList");
+        else if (cmd === "ol") document.execCommand("insertOrderedList");
+        else if (cmd === "link") { var url = prompt("Masukkan URL tautan:", "https://"); if (url) document.execCommand("createLink", false, url); }
+        else if (cmd === "table") document.execCommand("insertHTML", false, "<table><tr><th>Kolom 1</th><th>Kolom 2</th></tr><tr><td>Data</td><td>Data</td></tr></table><p><br></p>");
+        else if (cmd === "code") document.execCommand("insertHTML", false, "<pre>kode di sini</pre><p><br></p>");
+        else document.execCommand(cmd);
+      });
+    });
+
+    document.getElementById("materialForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var title = document.getElementById("mTitle").value.trim();
+      if (!title) { Toast.show("Judul materi wajib diisi.", "error"); return; }
+      var slug = Utils.slugify(document.getElementById("mSlug").value || title);
+      var list = DataService.getMaterials();
+      var dup = list.filter(function (m) { return m.slug === slug && (!material || m.id !== material.id); })[0];
+      if (dup) { Toast.show("Slug sudah digunakan materi lain.", "error"); return; }
+
+      var imgId = document.getElementById("mImage").value;
+      var imgObj = images.filter(function (img) { return img.id === imgId; })[0];
+      var now = new Date().toISOString();
+      var payload = {
+        title: title,
+        slug: slug,
+        description: document.getElementById("mDesc").value.trim(),
+        content: Utils.sanitizeHtml(document.getElementById("mContent").innerHTML),
+        image: imgObj ? imgObj.dataUrl : "",
+        order: parseInt(document.getElementById("mOrder").value, 10) || 1,
+        status: document.getElementById("mStatus").value,
+        updatedAt: now
+      };
+
+      if (isEdit) {
+        list = list.map(function (m) { return m.id === material.id ? Object.assign({}, m, payload) : m; });
+        Toast.show("Materi berhasil diperbarui", "success");
+      } else {
+        payload.id = Utils.uid("materi");
+        payload.createdAt = now;
+        list.push(payload);
+        Toast.show("Materi berhasil disimpan", "success");
+      }
+      DataService.setMaterials(list);
+      Router.navigate("/admin/materials");
+    });
+  }
+  function editorBtn(cmd, label) {
+    return '<button type="button" class="editor-btn" data-cmd="' + cmd + '">' + label + '</button>';
+  }
+
+  /* ---------------------- 14d. ADMIN: GAMBAR ---------------------------- */
+  function renderAdminImages() {
+    var images = DataService.getImages();
+    var grid = images.map(function (img) {
+      return (
+        '<div class="image-card">' +
+          '<img src="' + img.dataUrl + '" alt="' + Utils.escapeHtml(img.alt) + '" loading="lazy">' +
+          '<div class="image-card-body">' +
+            '<div class="image-card-name" title="' + Utils.escapeHtml(img.name) + '">' + Utils.escapeHtml(img.name) + '</div>' +
+            '<div class="image-card-actions">' +
+              '<button type="button" class="btn btn-ghost btn-sm" data-action="img-edit" data-id="' + img.id + '">Edit</button>' +
+              '<button type="button" class="btn btn-danger btn-sm" data-action="img-delete" data-id="' + img.id + '">Hapus</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join("");
+
+    var body =
+      '<div class="admin-topbar"><div><h1 class="admin-heading">Gambar</h1><p class="admin-sub">Kelola pustaka gambar untuk digunakan pada materi. Maksimal ' + MAX_IMAGE_MB + ' MB per gambar &mdash; ukuran besar dapat membuat LocalStorage cepat penuh.</p></div></div>' +
+      '<div class="admin-panel">' +
+        '<div class="upload-dropzone">' +
+          '<p><strong id="pickImageBtn">Pilih gambar</strong> untuk diunggah (JPG/PNG, maks ' + MAX_IMAGE_MB + ' MB).</p>' +
+          '<input type="file" id="imageFileInput" accept="image/*" hidden>' +
+        '</div>' +
+        '<div id="imageFormWrap" hidden>' +
+          '<div class="form-grid">' +
+            '<label class="field"><span class="field-label">Nama Gambar</span><input type="text" id="imgNameInput"></label>' +
+            '<label class="field"><span class="field-label">Alt Text</span><input type="text" id="imgAltInput"></label>' +
+          '</div>' +
+          '<img id="imgPreview" style="max-width:220px; border-radius:12px; border:1px solid var(--border); margin-bottom:14px;">' +
+          '<div style="display:flex; gap:10px;"><button type="button" class="btn btn-primary btn-sm" id="imgSaveBtn">Simpan Gambar</button><button type="button" class="btn btn-ghost btn-sm" id="imgCancelBtn">Batal</button></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="image-grid" id="imageGridWrap">' + (grid || '<div class="empty-state" style="grid-column:1/-1;"><b>Belum ada gambar</b>Unggah gambar pertama Anda.</div>') + '</div>';
+
+    appEl.innerHTML = adminShell("images", body);
+    wireAdminShell();
+
+    var pendingDataUrl = null, editingId = null;
+    var fileInput = document.getElementById("imageFileInput");
+    var formWrap = document.getElementById("imageFormWrap");
+
+    var dropzone = document.querySelector(".upload-dropzone");
+    function acceptFile(file) {
+      if (!file) return;
+      if (!/^image\//.test(file.type)) { Toast.show("File harus berupa gambar (JPG/PNG).", "error"); return; }
+      if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+        Toast.show("Ukuran gambar melebihi " + MAX_IMAGE_MB + " MB.", "error");
+        fileInput.value = "";
+        return;
+      }
+      editingId = null;
+      var reader = new FileReader();
+      reader.onload = function () {
+        pendingDataUrl = reader.result;
+        document.getElementById("imgPreview").src = pendingDataUrl;
+        document.getElementById("imgNameInput").value = file.name.replace(/\.[^.]+$/, "");
+        document.getElementById("imgAltInput").value = "";
+        formWrap.hidden = false;
+        formWrap.scrollIntoView({ behavior: "smooth", block: "center" });
+      };
+      reader.readAsDataURL(file);
+    }
+    document.getElementById("pickImageBtn").addEventListener("click", function () { editingId = null; fileInput.click(); });
+    fileInput.addEventListener("change", function () { acceptFile(fileInput.files[0]); });
+    // Real drag & drop onto the dropzone, so admins can drag a photo straight
+    // from their file manager instead of always clicking "Pilih gambar".
+    ["dragover", "dragenter"].forEach(function (evt) {
+      dropzone.addEventListener(evt, function (e) { e.preventDefault(); dropzone.classList.add("drag-over"); });
+    });
+    ["dragleave", "dragend"].forEach(function (evt) {
+      dropzone.addEventListener(evt, function () { dropzone.classList.remove("drag-over"); });
+    });
+    dropzone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      dropzone.classList.remove("drag-over");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) acceptFile(e.dataTransfer.files[0]);
+    });
+    document.getElementById("imgCancelBtn").addEventListener("click", function () { formWrap.hidden = true; fileInput.value = ""; pendingDataUrl = null; });
+    document.getElementById("imgSaveBtn").addEventListener("click", function () {
+      var name = document.getElementById("imgNameInput").value.trim() || "Gambar";
+      var alt = document.getElementById("imgAltInput").value.trim();
+      var list = DataService.getImages();
+      if (editingId) {
+        list = list.map(function (img) { return img.id === editingId ? Object.assign({}, img, { name: name, alt: alt }) : img; });
+        Toast.show("Gambar berhasil diperbarui", "success");
+      } else {
+        if (!pendingDataUrl) { Toast.show("Pilih file gambar terlebih dahulu.", "error"); return; }
+        list.push({ id: Utils.uid("img"), name: name, alt: alt, dataUrl: pendingDataUrl, size: 0, createdAt: new Date().toISOString() });
+        Toast.show("Gambar berhasil ditambahkan", "success");
+      }
+      DataService.setImages(list);
+      renderAdminImages();
+    });
+
+    document.getElementById("imageGridWrap").addEventListener("click", function handler(e) {
+      var btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      var action = btn.getAttribute("data-action");
+      var id = btn.getAttribute("data-id");
+      var list = DataService.getImages();
+      var img = list.filter(function (x) { return x.id === id; })[0];
+      if (!img) return;
+      if (action === "img-edit") {
+        editingId = id;
+        document.getElementById("imgPreview").src = img.dataUrl;
+        document.getElementById("imgNameInput").value = img.name;
+        document.getElementById("imgAltInput").value = img.alt;
+        formWrap.hidden = false;
+        formWrap.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (action === "img-delete") {
+        Confirm.ask("Hapus Gambar?", 'Gambar "' + img.name + '" akan dihapus dari pustaka.').then(function (ok) {
+          if (!ok) return;
+          DataService.setImages(list.filter(function (x) { return x.id !== id; }));
+          Toast.show("Gambar berhasil dihapus", "success");
+          renderAdminImages();
+        });
+      }
+    });
+  }
+
+  /* ---------------------- 14e. ADMIN: SETTINGS -------------------------- */
+  function renderAdminSettings() {
+    var settings = DataService.getSettings();
+    var body =
+      '<div class="admin-topbar"><div><h1 class="admin-heading">Pengaturan</h1><p class="admin-sub">Preferensi tampilan dan data prototype.</p></div></div>' +
+      '<div class="admin-panel">' +
+        '<div class="settings-row"><div><div class="settings-row-label">Nama Admin</div><div class="settings-row-desc">Ditampilkan pada header dashboard.</div></div>' +
+          '<input type="text" id="settingsAdminName" value="' + Utils.escapeHtml(settings.adminName || "Administrator") + '" style="max-width:220px; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary);"></div>' +
+        '<div class="settings-row"><div><div class="settings-row-label">Mode Gelap</div><div class="settings-row-desc">Aktifkan tampilan gelap untuk seluruh website.</div></div>' +
+          '<label class="switch"><input type="checkbox" id="settingsDark" ' + (ThemeService.get() === "dark" ? "checked" : "") + '><span class="switch-track"></span></label></div>' +
+      '</div>' +
+      '<div class="admin-panel">' +
+        '<p class="panel-title">Reset Data Prototype</p>' +
+        '<p class="field-hint" style="margin-bottom:14px;">Mengembalikan seluruh Daftar Isi dan Materi ke data bawaan. Gambar yang sudah diunggah akan dihapus.</p>' +
+        '<button type="button" class="btn btn-danger btn-sm" id="resetDataBtn">Reset ke Data Default</button>' +
+      '</div>' +
+      '<div class="admin-panel">' +
+        '<p class="panel-title">Catatan Keamanan Prototype</p>' +
+        '<p class="field-hint">Login admin dan seluruh data pada versi ini disimpan di LocalStorage/sessionStorage browser dan hanya untuk keperluan demo. Lihat README.md untuk detail keterbatasan keamanan dan rencana migrasi ke Firebase.</p>' +
+      '</div>';
+    appEl.innerHTML = adminShell("settings", body);
+    wireAdminShell();
+
+    document.getElementById("settingsAdminName").addEventListener("change", function (e) {
+      var s = DataService.getSettings(); s.adminName = e.target.value.trim() || "Administrator";
+      DataService.setSettings(s);
+      Toast.show("Pengaturan disimpan", "success");
+    });
+    document.getElementById("settingsDark").addEventListener("change", function (e) {
+      ThemeService.set(e.target.checked ? "dark" : "light");
+    });
+    document.getElementById("resetDataBtn").addEventListener("click", function () {
+      Confirm.ask("Reset Data?", "Seluruh Daftar Isi, Materi, dan Gambar akan dikembalikan ke data bawaan.", "Reset").then(function (ok) {
+        if (!ok) return;
+        DataService.resetAll();
+        Toast.show("Data berhasil direset ke default", "success");
+        Router.navigate("/admin/dashboard");
+      });
+    });
+  }
+
+  /* ---------------------- 14f. PREVIEW MODE ------------------------------ */
+  function renderPreview() {
+    renderHome();
+    var bar = document.createElement("div");
+    bar.className = "preview-bar";
+    bar.innerHTML = '<span>Mode Preview &mdash; tampilan seperti yang dilihat pengunjung</span><a href="#/admin/dashboard" class="btn btn-ghost btn-sm">&larr; Kembali ke Dashboard</a>';
+    appEl.prepend(bar);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 15. ROUTES REGISTRATION                                             */
+  /* ------------------------------------------------------------------ */
+  function registerRoutes() {
+    Router.add("/", renderHome);
+    Router.add("/materi", renderMateriList);
+    Router.add("/materi/:slug", renderReader);
+    Router.add("/preview", requireAdmin(renderPreview));
+    Router.add("/admin", requireAdmin(function () { Router.navigate("/admin/dashboard"); }));
+    Router.add("/admin/dashboard", requireAdmin(renderAdminDashboard));
+    Router.add("/admin/toc", requireAdmin(renderAdminTOC));
+    Router.add("/admin/materials", requireAdmin(renderAdminMaterials));
+    Router.add("/admin/materials/new", requireAdmin(function () { renderAdminMaterialForm(null); }));
+    Router.add("/admin/materials/edit/:id", requireAdmin(function (p) { renderAdminMaterialForm(p); }));
+    Router.add("/admin/images", requireAdmin(renderAdminImages));
+    Router.add("/admin/settings", requireAdmin(renderAdminSettings));
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* 16. INIT                                                            */
+  /* ------------------------------------------------------------------ */
+  document.addEventListener("DOMContentLoaded", function () {
+    appEl = document.getElementById("app");
+    ThemeService.init();
+    Toast.init();
+    Confirm.init();
+    Search.init();
+    Lightbox.init();
+    setupHeader();
+    setupLogoTrigger();
+    setupLoginModal();
+    var storedVersion = localStorage.getItem(DATA_VERSION_KEY);
+    seedDefaults(storedVersion !== DATA_VERSION);
+    localStorage.setItem(DATA_VERSION_KEY, DATA_VERSION);
+    renderNavMaterials();
+    registerRoutes();
+    Router.start();
+    initLoadingScreen();
+    initPWA();
   });
-}
 
-function applySearchFilter(query) {
-  const q = query.toLowerCase().trim();
-  document.querySelectorAll("#scheduleTable tr").forEach((row, idx) => {
-    if (idx === 0) return;
-    const nama = row.querySelector(".nama-cell")?.textContent.toLowerCase() || "";
-    row.style.display = (!q || nama.includes(q)) ? "" : "none";
-  });
-}
+  // Makes the site installable (like WhatsApp Web): registers the service
+  // worker for offline app-shell caching, and wires an optional "Instal
+  // Aplikasi" button that surfaces the browser's native install prompt when
+  // it becomes available (Chrome/Edge on Windows, Android, ChromeOS...).
+  // Browsers without install support (e.g. Safari) simply never show the
+  // button — the site still works perfectly as a normal page there.
+  function initPWA() {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () { /* offline caching just won't be available */ });
+      });
+    }
+    var installBtn = document.getElementById("installAppBtn");
+    var deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) installBtn.hidden = false;
+    });
+    if (installBtn) {
+      installBtn.addEventListener("click", function () {
+        if (!deferredPrompt) return;
+        installBtn.hidden = true;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(function () { deferredPrompt = null; });
+      });
+    }
+    window.addEventListener("appinstalled", function () {
+      if (installBtn) installBtn.hidden = true;
+      Toast.show("Aplikasi GDNG PRG berhasil dipasang di perangkat ini.", "success");
+    });
+  }
 
-// ================= SCROLL TO SECTION (mobile nav) =================
-function scrollToSection(id) {
-  const el = id === "header" ? document.querySelector("header") : document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  document.querySelectorAll(".mobile-nav-item").forEach(b => b.classList.remove("active"));
-  const map = { header: 0, scheduleSection: 1, kegiatanSection: 2 };
-  if (map[id] !== undefined) document.querySelectorAll(".mobile-nav-item")[map[id]]?.classList.add("active");
-}
+  // Premium splash/loading screen: shown for a fixed ~5s on first visit so
+  // the brand has a moment to register, then fades out smoothly. The site
+  // underneath is already fully rendered by this point (Router.start ran
+  // above), so nothing is actually blocked while the splash is visible.
+  function initLoadingScreen() {
+    var screen = document.getElementById("loadingScreen");
+    if (!screen) return;
+    var MIN_DISPLAY_MS = 5000;
+    startLoadingStatusTyper();
+    setTimeout(function () {
+      screen.classList.add("loading-hide");
+      document.documentElement.classList.remove("is-loading");
+      screen.addEventListener("transitionend", function remove() {
+        screen.removeEventListener("transitionend", remove);
+        if (screen.parentNode) screen.parentNode.removeChild(screen);
+      });
+    }, MIN_DISPLAY_MS);
+  }
 
+  // Terminal-style status line: types out a short sequence of system-boot
+  // style messages one character at a time (no external deps, ~a few lines
+  // of code) so the splash reads as a live technical process rather than a
+  // static caption. Stops on its own once the splash screen is removed.
+  function startLoadingStatusTyper() {
+    var el = document.getElementById("loadingStatus");
+    if (!el) return;
+    var messages = [
+      "menginisialisasi sistem...",
+      "menghubungkan ke server DMS...",
+      "memuat modul database...",
+      "sinkronisasi data real-time...",
+      "menyiapkan antarmuka..."
+    ];
+    var mi = 0, ci = 0, typing = true, timer = null;
+
+    function tick() {
+      if (!document.body.contains(el)) return;
+      var msg = messages[mi];
+      if (typing) {
+        ci++;
+        el.textContent = msg.slice(0, ci);
+        if (ci >= msg.length) {
+          typing = false;
+          timer = setTimeout(tick, 650);
+        } else {
+          timer = setTimeout(tick, 26);
+        }
+      } else {
+        mi = (mi + 1) % messages.length;
+        ci = 0;
+        typing = true;
+        timer = setTimeout(tick, 150);
+      }
+    }
+    tick();
+  }
+})();
