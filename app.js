@@ -124,7 +124,7 @@ let currentUserName = null;
 function waitForFirebase(cb, attempts = 0) {
   if (window.firebaseReady && window.db) {
     cb();
-  } else if (attempts > 60) {
+  } else if (attempts > 100) {
     // Setelah 6 detik tetap tidak ready, jalankan saja tanpa Firebase
     console.warn("Firebase tidak merespons, melanjutkan tanpa koneksi.");
     cb();
@@ -135,7 +135,7 @@ function waitForFirebase(cb, attempts = 0) {
 
 // ================= CLOSE LOADER =================
 function closeLoader() {
-  const MIN_MS = 5000;
+  const MIN_MS = 500;
   const elapsed = Date.now() - (window.__loaderStart || Date.now());
   const remaining = Math.max(0, MIN_MS - elapsed);
   setTimeout(() => {
@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupEvents();
   updateClock();
-  setInterval(updateClock, 1000);
+  setInterval(() => { if (!document.hidden) updateClock(); }, 1000);
   updateShiftIndicator();
   setInterval(updateShiftIndicator, 10000);
   updateShiftCountdown();
@@ -368,7 +368,9 @@ function setupEvents() {
   initOnlineIndicator();
 
   // Auth state listener
-  if (window.onAuthStateChangedFirebase && window.auth) {
+  const attachAuth = () => {
+    if (!(window.onAuthStateChangedFirebase && window.auth) || window.__authBound) return;
+    window.__authBound = true;
     window.onAuthStateChangedFirebase(window.auth, (user) => {
       if (user) {
         isAdmin = true;
@@ -380,7 +382,10 @@ function setupEvents() {
         document.body.classList.remove("admin-active");
       }
     });
-  }
+  };
+  window.addEventListener("firebase-auth-ready", attachAuth);
+  attachAuth();
+  if (window.ensureAuth) setTimeout(() => window.ensureAuth(), 1500);
 }
 
 // ================= ROTATION ORDER OVERRIDES (KA Gudang) =================
@@ -490,8 +495,6 @@ function renderSchedule(weekNumber) {
   window.firebaseGet(window.firebaseRef(window.db, "schedules/week_" + weekNumber))
     .then(snapshot => {
       const overrides = snapshot.exists() ? snapshot.val() : {};
-      table.innerHTML = "";
-
       const weekRows = getWeekRows(weekNumber);
       const monday = new Date(START_DATE);
       monday.setDate(START_DATE.getDate() + (weekNumber - START_WEEK) * 7);
@@ -514,7 +517,7 @@ function renderSchedule(weekNumber) {
         header += `<th class="${holidayClass}${isToday ? " today-col" : ""}">${formatDate(d)}<br>${days[i]}${isToday ? '<br><span class="today-tag">HARI INI</span>' : ""}</th>`;
       }
       header += "</tr>";
-      table.innerHTML += header;
+      let tableHTML = header;
 
       for (let i = 0; i < weekRows.length; i++) {
         const person = weekRows[i].person;
@@ -535,8 +538,9 @@ function renderSchedule(weekNumber) {
           row += `<td class="shift-${shift}" onclick="editShift(this)" data-row="${i}" data-col="${j}" data-shift="${shift}"><span class="shift-label">${shift}</span></td>`;
         }
         row += "</tr>";
-        table.innerHTML += row;
+        tableHTML += row;
       }
+      table.innerHTML = tableHTML;
 
       // Holiday info box
       const old = document.getElementById("holidayInfoBox");
@@ -545,7 +549,7 @@ function renderSchedule(weekNumber) {
         const box = document.createElement("div");
         box.id = "holidayInfoBox";
         box.className = "holiday-info-box";
-        let html = "<strong>📅 Hari Libur Minggu Ini:</strong><br>";
+        let html = "<strong><i class=\"fas fa-calendar-day\"></i> Hari Libur Minggu Ini:</strong><br>";
         holidayInfo.forEach(h => {
           html += `<span class="holiday-item ${h.type === 'Libur Nasional' ? 'ln' : 'cb'}">● ${h.date} — ${h.type}: ${h.name}</span><br>`;
         });
@@ -591,21 +595,35 @@ function saveChanges() {
   });
 
   const btn = document.getElementById("saveBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "💾 Menyimpan..."; }
+  if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
 
   window.firebaseSet(window.firebaseRef(window.db, "schedules/week_" + week), data)
     .then(() => {
       showToast("💾 Perubahan berhasil disimpan!");
-      if (btn) { btn.disabled = false; btn.textContent = "💾 Simpan Perubahan"; }
+      if (btn) { btn.disabled = false; btn.textContent = "Simpan Perubahan"; }
     })
     .catch(err => {
       showToast("❌ Gagal menyimpan: " + err.message);
-      if (btn) { btn.disabled = false; btn.textContent = "💾 Simpan Perubahan"; }
+      if (btn) { btn.disabled = false; btn.textContent = "Simpan Perubahan"; }
     });
 }
 
 // ================= EXPORT =================
+function loadXLSX() {
+  return new Promise((res, rej) => {
+    if (typeof XLSX !== "undefined") return res();
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
 function exportToExcel() {
+  if (typeof XLSX === "undefined") {
+    showToast("Menyiapkan library Excel...");
+    loadXLSX().then(exportToExcel).catch(() => showToast("❌ Library XLSX tidak tersedia"));
+    return;
+  }
   const weekNumber = parseInt(document.getElementById("weekSelect").value);
   const weekRows = getWeekRows(weekNumber);
   const monday = new Date(START_DATE);
@@ -672,6 +690,7 @@ async function startBiometricScan() {
   if (boot) boot.innerHTML += "› Authenticating secure access...<br>";
 
   try {
+    if (window.ensureAuth) await window.ensureAuth();
     await window.signInWithEmailAndPassword(window.auth, email, password);
     if (boot) boot.innerHTML += '<span style="color:#00ff88">✔ ACCESS GRANTED</span><br>';
     await delay(700);
@@ -892,7 +911,7 @@ function updateShiftCountdown() {
   if (rem < 0) rem += 1440;
   if (rem > 1440) rem = 0;
   const h = Math.floor(rem / 60), m = rem % 60;
-  el.textContent = rem > 0 ? `⏱ SHIFT ${shift} berakhir dalam ${h}j ${m}m` : "";
+  el.textContent = rem > 0 ? `SHIFT ${shift} berakhir dalam ${h}j ${m}m` : "";
 }
 
 // ================= SERAH TERIMA =================
@@ -908,7 +927,7 @@ function loadSerahTerima() {
       const s1 = data.shift1 || "Belum ada catatan";
       const s2 = data.shift2 || "Belum ada catatan";
       const s3 = data.shift3 || "Belum ada catatan";
-      const text = `<span class="ticker-item">📅 ${dateKey} ◆ SHIFT 3 ➜ ${s3}</span><span class="ticker-item">◆ SHIFT 1 ➜ ${s1}</span><span class="ticker-item">◆ SHIFT 2 ➜ ${s2}</span>`;
+      const text = `<span class="ticker-item"><i class="fas fa-calendar-day"></i> ${dateKey} ◆ SHIFT 3 ➜ ${s3}</span><span class="ticker-item">◆ SHIFT 1 ➜ ${s1}</span><span class="ticker-item">◆ SHIFT 2 ➜ ${s2}</span>`;
       const el = document.getElementById("serahTerimaText");
       const clone = document.getElementById("serahTerimaClone");
       if (el) el.innerHTML = text;
@@ -970,7 +989,7 @@ function openSerahTerimaModal() {
         showToast("✅ Serah Terima Shift " + shift + " disimpan!");
         modal?.classList.remove("active");
         loadSerahTerima();
-        btn.disabled = false; btn.textContent = "💾 Simpan";
+        btn.disabled = false; btn.textContent = "Simpan";
       });
   };
 
@@ -994,7 +1013,7 @@ async function openHistoryModal() {
       Object.keys(data).sort().slice(-7).reverse().forEach(date => {
         const d = data[date];
         html += `<div class="history-card">
-          <div class="history-date">📅 ${date}</div>
+          <div class="history-date"><i class="fas fa-calendar-day"></i> ${date}</div>
           <div class="history-shifts">
             <div class="history-shift shift1-label"><span class="shift-dot s1"></span>SHIFT 1: <span>${d.shift1 || "—"}</span></div>
             <div class="history-shift shift2-label"><span class="shift-dot s2"></span>SHIFT 2: <span>${d.shift2 || "—"}</span></div>
@@ -1012,13 +1031,20 @@ async function openHistoryModal() {
 }
 
 // ================= TOAST =================
+const TOAST_ICONS = {"✅":"fa-check-circle","❌":"fa-times-circle","⚠":"fa-exclamation-triangle","💾":"fa-save","📊":"fa-file-excel","🗑":"fa-trash","📋":"fa-clipboard-check","🔔":"fa-bell"};
 function showToast(message, type = "info", duration = 3000) {
   const existing = document.getElementById("toastNotif");
   if (existing) existing.remove();
+  message = String(message);
+  let icon = type === "success" ? "fa-check-circle" : type === "error" ? "fa-times-circle" : "fa-info-circle";
+  const first = message.split(" ")[0];
+  const key = first.replace(/\uFE0F/g, "");
+  if (TOAST_ICONS[key]) { icon = TOAST_ICONS[key]; message = message.slice(first.length).trim(); }
   const toast = document.createElement("div");
   toast.id = "toastNotif";
   toast.className = `toast-notif toast-${type}`;
-  toast.innerHTML = `<span class="toast-icon">${type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️"}</span><span>${message}</span>`;
+  toast.innerHTML = `<span class="toast-icon"><i class="fas ${icon}"></i></span><span></span>`;
+  toast.lastChild.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => toast.classList.add("show"), 10);
   setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, duration);
@@ -1031,11 +1057,17 @@ function initChat() {
   currentUserName = localStorage.getItem("chatNama");
   loadChatMessages();
   if (chatPollingInterval) clearInterval(chatPollingInterval);
-  chatPollingInterval = setInterval(loadChatMessages, 4000);
+  chatPollingInterval = setInterval(() => {
+    if (document.hidden) return;
+    // chat tertutup: cek tiap 30 dtk saja; chat terbuka: tiap ~5 dtk
+    if (!chatOpen && Date.now() - (window.__lastChatPoll || 0) < 30000) return;
+    loadChatMessages();
+  }, 5000);
 }
 
 async function loadChatMessages() {
   if (!window.db) return;
+  window.__lastChatPoll = Date.now();
   try {
     const snapshot = await window.firebaseGet(window.firebaseRef(window.db, "chatGlobal"));
     const container = document.getElementById("chatMessages");
@@ -1271,7 +1303,7 @@ function playNotifSound() {
 }
 
 // Emoji picker (simple)
-const EMOJIS = ["😀","😂","🙏","👍","👎","❤️","🔥","✅","❌","⚠️","📦","🚛","🧹","💪","🎉","👏","😎","🤔","💡","📝"];
+const EMOJIS = window.__NOEMOJI ? [":)",":D",";)",":(","<3","(y)","OK","Siap","Oke","Mantap","Sip","Makasih"] : ["😀","😂","🙏","👍","👎","❤️","🔥","✅","❌","⚠️","📦","🚛","🧹","💪","🎉","👏","😎","🤔","💡","📝"];
 function toggleEmojiPicker() {
   let picker = document.getElementById("emojiPicker");
   if (picker) { picker.remove(); return; }
@@ -1338,7 +1370,7 @@ function initOnlineIndicator() {
     }
   };
   update();
-  setInterval(update, 30000);
+  setInterval(() => { if (!document.hidden) update(); }, 30000);
 }
 
 // ================= KEGIATAN =================
@@ -1365,7 +1397,7 @@ function renderKegiatan(data) {
       <div class="kegiatan-header">
         <div class="kegiatan-avatar">${initials}</div>
         <span class="kegiatan-nama">${item.nama}</span>
-        ${isAdmin ? `<button class="kegiatan-edit-btn" onclick="editKegiatan(${idx},'${item.nama}',\`${item.tugas.replace(/`/g,"'")}\`)">✏️ Edit</button>` : ""}
+        ${isAdmin ? `<button class="kegiatan-edit-btn" onclick="editKegiatan(${idx},'${item.nama}',\`${item.tugas.replace(/`/g,"'")}\`)"><i class="fas fa-pen"></i> Edit</button>` : ""}
       </div>
       <div class="kegiatan-tugas"><i class="fas fa-tasks"></i> ${item.tugas}</div>
     </div>`;

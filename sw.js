@@ -14,7 +14,7 @@
    ============================================================ */
 'use strict';
 
-var CACHE_VERSION = '2026-09-20.1';
+var CACHE_VERSION = '2026-09-29.1';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
 var CDN_CACHE = 'jadwal-admin-cdn-' + CACHE_VERSION;
 

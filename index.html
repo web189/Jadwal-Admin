@@ -13,8 +13,6 @@
 
 <!-- PWA Manifest & Icons -->
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
 <!-- iOS Safari (Add to Home Screen) -->
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -24,8 +22,29 @@
 <meta name="apple-mobile-web-app-title" content="Jadwal Admin">
 <meta name="mobile-web-app-capable" content="yes">
 
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<script>
+/* Deteksi PC lama (Windows XP/Vista/7/8) atau spesifikasi rendah -> MODE RINGAN.
+   Paksa: tambah ?lite=1 di alamat.  Matikan: ?lite=0 */
+(function(){
+  var ua = navigator.userAgent, h = document.documentElement, q = location.search;
+  var oldWin = /Windows NT (5\.|6\.[0-2])/.test(ua);
+  var weak = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) || (navigator.deviceMemory && navigator.deviceMemory <= 2);
+  var lite = /[?&]lite=1/.test(q) || (!/[?&]lite=0/.test(q) && (oldWin || weak));
+  if (lite) h.className += ' lite';
+  window.__LITE = lite;
+  window.__NOEMOJI = oldWin;   /* Windows <= 8.0 tidak punya font emoji berwarna */
+  if (!lite) {                 /* font web hanya di PC yang mampu, dimuat tanpa memblokir tampilan */
+    var f = document.createElement('link'); f.rel = 'stylesheet';
+    f.href = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap';
+    document.head.appendChild(f);
+  }
+})();
+</script>
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 </head>
 <body class="formal-theme">
 
@@ -52,7 +71,7 @@
       <h1 class="loader-title">JADWAL ADMIN GUDANG</h1>
       <div class="loader-sub-row">
         <span class="loader-year">2026</span>
-        <span class="loader-aqua-chip">💧 AQUA</span>
+        <span class="loader-aqua-chip"><i class="fas fa-tint"></i> AQUA</span>
       </div>
     </div>
 
@@ -198,34 +217,34 @@
   <span class="legend-badge lb-M">M — Malam 23:30</span>
   <span class="legend-badge lb-OFF">OFF — Libur</span>
   <span class="legend-badge lb-C">C — Cuti</span>
-  <span class="legend-badge lb-LN">🔴 Libur Nasional</span>
-  <span class="legend-badge lb-CB">🟡 Cuti Bersama</span>
+  <span class="legend-badge lb-LN"><span style="color:#ff3d66">●</span> Libur Nasional</span>
+  <span class="legend-badge lb-CB"><span style="color:#f5d93a">●</span> Cuti Bersama</span>
 </div>
 
 <!-- ===== STATS DASHBOARD ===== -->
 <div class="stats-dashboard" id="statsDashboard">
   <div class="stat-card stat-p">
-    <span class="stat-icon">☀️</span>
+    <span class="stat-icon"><i class="fas fa-sun"></i></span>
     <span class="stat-value" id="statP">—</span>
     <span class="stat-label">Pagi (P)</span>
   </div>
   <div class="stat-card stat-s">
-    <span class="stat-icon">🌅</span>
+    <span class="stat-icon"><i class="fas fa-cloud-sun"></i></span>
     <span class="stat-value" id="statS">—</span>
     <span class="stat-label">Sore (S)</span>
   </div>
   <div class="stat-card stat-m">
-    <span class="stat-icon">🌙</span>
+    <span class="stat-icon"><i class="fas fa-moon"></i></span>
     <span class="stat-value" id="statM">—</span>
     <span class="stat-label">Malam (M)</span>
   </div>
   <div class="stat-card stat-off">
-    <span class="stat-icon">🏖️</span>
+    <span class="stat-icon"><i class="fas fa-umbrella-beach"></i></span>
     <span class="stat-value" id="statOFF">—</span>
     <span class="stat-label">OFF</span>
   </div>
   <div class="stat-card stat-total">
-    <span class="stat-icon">👥</span>
+    <span class="stat-icon"><i class="fas fa-users"></i></span>
     <span class="stat-value" id="statTotal">6</span>
     <span class="stat-label">Total Staff</span>
   </div>
@@ -248,7 +267,7 @@
 <div class="kegiatan-section" id="kegiatanSection">
   <div class="kegiatan-header-bar" id="kegiatanToggleBtn">
     <div class="kegiatan-title-group">
-      <span class="kegiatan-section-icon">🧹</span>
+      <span class="kegiatan-section-icon"><i class="fas fa-broom"></i></span>
       <span class="kegiatan-section-title">Kegiatan Kebersihan &amp; Kerapihan</span>
     </div>
     <span id="kegiatanArrow">▼</span>
@@ -404,7 +423,7 @@
 <!-- ===== SIGNATURE ===== -->
 <footer class="cyber-signature">
   <div class="signature-text">
-    ⚡ SYSTEM CORE v2026 — Enhanced Edition ⚡<br>
+    SYSTEM CORE v2026 — Enhanced Edition<br>
     Sistem terintegrasi berbasis cyber interface<br>
     Website Developer by <a href="https://benyoriki.com/" target="_blank" class="hacker-name">@benyoriki</a>
   </div>
@@ -439,14 +458,9 @@
 </nav>
 
 <!-- ===== SCRIPTS ===== -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <!-- FIREBASE SDK -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyAvJun21jAsquw8htCSBHK1N56T6Ld6jNY",
   authDomain: "jadwal-admin-2026.firebaseapp.com",
@@ -457,28 +471,37 @@ const firebaseConfig = {
   appId: "1:638335464309:web:5094ebcd6bd082003c193c"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
+const V = "https://www.gstatic.com/firebasejs/10.12.0/";
+(async () => {
+  try {
+    const [appMod, dbMod] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-database.js")]);
+    const app = appMod.initializeApp(firebaseConfig);
+    window.db = dbMod.getDatabase(app);
+    window.firebaseRef = dbMod.ref;
+    window.firebaseSet = dbMod.set;
+    window.firebaseGet = dbMod.get;
+    window.firebaseRemove = dbMod.remove;
+    window.firebaseReady = true;
 
-window.db = db;
-window.auth = auth;
-window.firebaseRef = ref;
-window.firebaseSet = set;
-window.firebaseGet = get;
-window.firebaseRemove = remove;
-window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.signOutFirebase = signOut;
-window.onAuthStateChangedFirebase = onAuthStateChanged;
-window.firebaseReady = true;
+    // Firebase Auth (berat) hanya dimuat setelah halaman tampil / saat login
+    let authP = null;
+    window.ensureAuth = () => authP || (authP = import(V + "firebase-auth.js").then(m => {
+      window.auth = m.getAuth(app);
+      window.signInWithEmailAndPassword = m.signInWithEmailAndPassword;
+      window.signOutFirebase = m.signOut;
+      window.onAuthStateChangedFirebase = m.onAuthStateChanged;
+      window.dispatchEvent(new Event("firebase-auth-ready"));
+    }));
+  } catch (err) { console.error("Firebase gagal dimuat:", err); }
+})();
 </script>
 
 <!-- INLINE BOOT SCRIPT — 7s polished intro, lightweight (CSS-driven, no canvas) -->
 <script>
 window.__loaderStart = Date.now();
 (function() {
-  const MIN_MS = 7000;
-  const FAILSAFE_MS = 8500;
+  const MIN_MS = 800;
+  const FAILSAFE_MS = 3500;
   const progEl = document.getElementById("loaderProgress");
   const textEl = document.getElementById("loaderText");
   const liquidEl = document.getElementById("loaderLiquid");
@@ -503,7 +526,7 @@ window.__loaderStart = Date.now();
     loader.dataset.closed = "1";
     if (progEl) { progEl.style.transitionDuration = "300ms"; progEl.style.width = "100%"; }
     if (liquidEl) { liquidEl.style.transitionDuration = "300ms"; liquidEl.style.height = "100%"; }
-    if (textEl) { textEl.style.opacity = "1"; textEl.textContent = "Siap ✓"; }
+    if (textEl) { textEl.style.opacity = "1"; textEl.textContent = "Siap"; }
     setTimeout(() => {
       loader.style.opacity = "0";
       setTimeout(() => { loader.style.display = "none"; }, 400);

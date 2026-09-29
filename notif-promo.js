@@ -79,7 +79,7 @@
       requestNotifPermission().then(() => {
         setLabel();
         if (Notification.permission === "granted") {
-          fireNative("BENYORIKI.COM", "Notifikasi desktop aktif ✅", {});
+          fireNative("BENYORIKI.COM", "Notifikasi desktop aktif", {});
           if (window.showToast) window.showToast("🔔 Notifikasi desktop diaktifkan!");
         }
       });
@@ -133,7 +133,7 @@
       bodyHtml = `
         <span class="os-notif-promo-badge">PROMO</span>
         <div class="os-notif-promo-row">
-          <div class="os-notif-promo-icon">🚀</div>
+          <div class="os-notif-promo-icon"><i class="fas fa-rocket"></i></div>
           <div class="os-notif-promo-title">${title}</div>
         </div>
         <div class="os-notif-promo-actions">
@@ -214,7 +214,7 @@
         kind: "promo",
         title: variant.title,
         nativeBody: variant.body,
-        cta: { label: "🎯 Konsultasi Gratis Sekarang →", url: "https://benyoriki.com/" },
+        cta: { label: "Konsultasi Gratis Sekarang →", url: "https://benyoriki.com/" },
         secondaryLabel: "Nanti",
         nativeTag: "promo-" + Date.now(), // tag unik supaya tiap notif native baru tetap muncul, tidak ke-replace diam2
       });
