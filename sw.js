@@ -14,7 +14,7 @@
    ============================================================ */
 'use strict';
 
-var CACHE_VERSION = '2026-09-29.1';
+var CACHE_VERSION = '2026-10-03.1';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
 var CDN_CACHE = 'jadwal-admin-cdn-' + CACHE_VERSION;
 
@@ -27,6 +27,7 @@ var PRECACHE = [
   "icon-512.png",
   "apple-touch-icon.png",
   "style.css",
+  "ui2026.css",
   "app.js",
   "notif-promo.js",
   "pwa.js"

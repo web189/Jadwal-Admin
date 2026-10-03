@@ -43,6 +43,7 @@
 })();
 </script>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="ui2026.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 </head>
@@ -122,6 +123,18 @@
       <span class="shift-label-text">SHIFT AKTIF SEKARANG</span>
       <span id="shiftCountdown" class="shift-countdown"></span>
     </div>
+    <div class="shift-timeline" id="shiftTimeline" aria-hidden="true">
+      <div class="st-bar">
+        <i class="st-seg st-m1"></i><i class="st-seg st-p"></i><i class="st-seg st-s"></i><i class="st-seg st-m2"></i>
+        <b class="st-now" id="stNow"></b>
+      </div>
+      <div class="st-ticks">
+        <span style="left:0">00:00<em>Malam</em></span>
+        <span style="left:31.25%">07:30<em>Pagi</em></span>
+        <span style="left:64.5833%">15:30<em>Sore</em></span>
+        <span style="left:97.9167%">23:30<em>Malam</em></span>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -133,31 +146,28 @@
     <button id="hamburgerCloseBtn" class="hmenu-close" aria-label="Tutup menu"><i class="fas fa-times"></i></button>
   </div>
   <div class="hmenu-body">
+    <div class="hmenu-sec">Tampilan</div>
     <div class="hmenu-group">
-      <label class="hmenu-label"><i class="fas fa-calendar-week"></i> Pilih Minggu</label>
+      <label class="hmenu-label" for="weekSelect"><i class="fas fa-calendar-week"></i> Pilih minggu</label>
       <select id="weekSelect"></select>
     </div>
-
     <button id="themeToggle" class="hmenu-btn"><i class="fas fa-sun"></i> Mode Terang</button>
     <button id="enableNotifBtn" class="hmenu-btn"><i class="fas fa-bell"></i> Aktifkan Notifikasi Desktop</button>
 
-    <div class="hmenu-divider"></div>
-
+    <div class="hmenu-sec">Akses KA Gudang</div>
     <button id="adminBtn" class="hmenu-btn"><i class="fas fa-lock"></i> KA Gudang</button>
-    <button id="logoutBtn" class="hmenu-btn hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
     <button id="saveBtn" class="hmenu-btn hidden btn-success"><i class="fas fa-save"></i> Simpan</button>
     <button id="rotationOrderBtn" class="hmenu-btn hidden"><i class="fas fa-random"></i> Urutan Rotasi</button>
     <button id="exportBtn" class="hmenu-btn hidden"><i class="fas fa-file-excel"></i> Export</button>
     <button id="printBtn" class="hmenu-btn hidden"><i class="fas fa-print"></i> Print</button>
+    <button id="logoutBtn" class="hmenu-btn hidden btn-danger"><i class="fas fa-sign-out-alt"></i> Keluar</button>
 
-    <div class="hmenu-divider"></div>
-
+    <div class="hmenu-sec">Serah terima</div>
     <button id="serahTerimaBtn" class="hmenu-btn"><i class="fas fa-file-alt"></i> Serah Terima</button>
     <button id="historyBtn" class="hmenu-btn btn-outline"><i class="fas fa-history"></i> History</button>
 
-    <div class="hmenu-divider"></div>
-
-    <a href="https://web189.github.io/UangRitase/" target="_blank" class="hmenu-btn cyber-link-btn">
+    <div class="hmenu-sec">Aplikasi lain</div>
+    <a href="https://web189.github.io/UangRitase/" target="_blank" rel="noopener" class="hmenu-btn cyber-link-btn">
       <i class="fas fa-coins"></i> Uang Ritase
     </a>
     <a href="https://arisan69.netlify.app/" target="_blank" rel="noopener" class="hmenu-btn cyber-link-btn cyber-link-btn-amber">
@@ -168,6 +178,8 @@
       <i class="fas fa-clipboard-list"></i> Sistem DMS/Laporan
       <i class="fas fa-arrow-up-right-from-square link-ext-icon" aria-hidden="true"></i>
     </a>
+
+    <div class="hmenu-foot"><span>Jadwal Admin Gudang 2026</span><span>Tutup: <kbd>Esc</kbd></span></div>
   </div>
 </nav>
 

@@ -867,7 +867,7 @@ function updateClock() {
   const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
   const pad = n => String(n).padStart(2,"0");
   const el = document.getElementById("liveClock");
-  if (el) el.textContent = `${hari[now.getDay()]} ${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} WIB`;
+  if (el) el.innerHTML = `<span class="ck-date">${hari[now.getDay()]} ${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}</span><span class="ck-time">${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} WIB</span>`;
 }
 
 // ================= SHIFT LOGIC =================
@@ -896,6 +896,14 @@ function updateShiftIndicator() {
     const minutes = now.getHours() * 60 + now.getMinutes();
     const angle = (minutes / 1440) * 360;
     marker.style.transform = "rotate(" + angle + "deg)";
+  }
+
+  // Timeline 24 jam (tampilan PC)
+  const tl = document.getElementById("shiftTimeline"), nowEl = document.getElementById("stNow");
+  if (tl && nowEl) {
+    const d = new Date();
+    tl.setAttribute("data-active-shift", shift);
+    nowEl.style.left = (((d.getHours() * 60 + d.getMinutes()) / 1440) * 100) + "%";
   }
 }
 
