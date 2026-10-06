@@ -73,11 +73,63 @@
   });
 
   /* ---------- 3. Rentang tanggal minggu + geser otomatis ke HARI INI ---------- */
+  /* ---------- 3b. Ringkasan "Petugas Hari Ini" (dibaca dari tabel yang tampil) ---------- */
+  var crewEl = null;
+  var SH = [
+    { k: 'P', n: 'Pagi', t: '07:30', id: 1 },
+    { k: 'S', n: 'Sore', t: '15:30', id: 2 },
+    { k: 'M', n: 'Malam', t: '23:30', id: 3 }
+  ];
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function activeShiftId() {
+    try { if (typeof window.getCurrentShift === 'function') return window.getCurrentShift(); } catch (e) {}
+    var d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+    return (m > 450 && m <= 930) ? 1 : (m > 930 && m <= 1410) ? 2 : 3;
+  }
+  function paintActive() {
+    if (!crewEl) return;
+    var a = activeShiftId(), i, c = crewEl.querySelectorAll('.crew-card');
+    for (i = 0; i < c.length; i++) c[i].classList.toggle('active', +c[i].getAttribute('data-sid') === a);
+  }
+  function buildCrew() {
+    var tbl = $('scheduleTable'); if (!tbl) return;
+    var th = tbl.querySelector('th.today-col'); if (!th) return;      /* minggu lain: biarkan yang terakhir */
+    var idx = th.cellIndex, rows = tbl.querySelectorAll('tr'), g = { P: [], S: [], M: [], OFF: [], C: [] }, r;
+    for (r = 0; r < rows.length; r++) {
+      var cell = rows[r].cells[idx], nm = rows[r].querySelector('.staff-cell span');
+      if (!cell || !nm || !cell.getAttribute('data-shift')) continue;
+      var sh = cell.getAttribute('data-shift');
+      if (g[sh]) g[sh].push(nm.textContent);
+    }
+    var scope = $('scheduleSection'); if (!scope) return;
+    if (!crewEl) {
+      crewEl = doc.createElement('section');
+      crewEl.id = 'todayCrew'; crewEl.className = 'today-crew';
+      crewEl.setAttribute('aria-label', 'Petugas hari ini');
+      scope.insertBefore(crewEl, scope.firstChild);
+    }
+    var day = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+    var h = '<div class="crew-head"><span class="crew-title">PETUGAS HARI INI</span><span class="crew-date">' + esc(day) + '</span></div><div class="crew-grid">';
+    SH.forEach(function (x) {
+      var list = g[x.k];
+      h += '<div class="crew-card crew-' + x.k + '" data-sid="' + x.id + '"><div class="crew-top"><i class="crew-dot"></i><b>' + x.n +
+        '</b><em>' + x.t + '</em><span class="crew-live">AKTIF</span></div><ul>' +
+        (list.length ? list.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') : '<li class="crew-none">—</li>') + '</ul></div>';
+    });
+    h += '</div>';
+    var off = g.OFF.concat(g.C);
+    if (off.length) h += '<div class="crew-off"><b>Libur / Cuti:</b> ' + off.map(esc).join(', ') + '</div>';
+    crewEl.innerHTML = h;
+    paintActive();
+  }
+  window.setInterval(paintActive, 30000);
+
   var lastKey = '';
   function onTable() {
     var tbl = $('scheduleTable'); if (!tbl) return;
     var ths = tbl.querySelectorAll('th');
     if (ths.length < 10) return;
+    try { buildCrew(); } catch (e) {}
     var first = /(\d{2})\/(\d{2})\/(\d{4})/.exec(ths[3].textContent);
     var last = /(\d{2})\/(\d{2})\/(\d{4})/.exec(ths[9].textContent);
     var lab = $('quickNavLabel');
@@ -105,6 +157,18 @@
       pend = window.setTimeout(onTable, 60);   /* tunggu render selesai */
     }).observe(tb, { childList: true });
     onTable();
+  }
+
+  /* ---------- 5. Lencana chat belum dibaca -> ikut tampil di navigasi bawah (HP) ---------- */
+  var cb = $('chatBadge'), nb = $('mobileNavBadge');
+  if (cb && nb) {
+    var sync = function () {
+      var on = cb.style.display !== 'none' && cb.textContent !== '' && cb.textContent !== '0';
+      nb.style.display = on ? 'flex' : 'none';
+      nb.textContent = on ? cb.textContent : '';
+    };
+    new MutationObserver(sync).observe(cb, { attributes: true, childList: true, characterData: true, subtree: true });
+    sync();
   }
 
   paintScroll();

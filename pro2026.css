@@ -11,7 +11,7 @@
 :root{
   --pro-line:rgba(111,180,255,0.20);
   --pro-line-2:rgba(111,180,255,0.08);
-  --pro-card-a:rgba(24,38,76,0.62);
+  --pro-card-a:#16213F;
   --pro-card-b:rgba(11,18,38,0.92);
   --pro-hi:rgba(255,255,255,0.05);
   --pro-ring:0 0 0 1px var(--pro-line-2);
@@ -385,8 +385,8 @@ body.formal-theme .modal-box{background:#fff;}
   .mobile-bottom-nav{
     left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));padding:6px;gap:2px;
     border:1px solid var(--pro-line);border-radius:22px;
-    background:linear-gradient(180deg,var(--pro-card-a),var(--pro-card-b));
-    box-shadow:0 18px 34px -10px rgba(0,0,0,.85),0 1px 0 var(--pro-hi) inset;
+    background:var(--bg-elevated);
+    box-shadow:0 -10px 24px -6px rgba(0,0,0,.55),0 18px 34px -10px rgba(0,0,0,.85),0 1px 0 var(--pro-hi) inset;
   }
   .mobile-nav-item{position:relative;border-radius:16px;padding:7px 2px 6px;font-size:9px;font-weight:600;letter-spacing:.2px;transition:background .2s,color .2s,transform .15s;}
   .mobile-nav-item:active{transform:scale(.92);}
@@ -529,6 +529,81 @@ body.formal-theme .modal-box{background:#fff;}
   .stats-dashboard{grid-template-columns:repeat(6,1fr);}
   .stat-card{grid-column:span 2;}
   .stat-card.stat-off,.stat-card.stat-total{grid-column:span 3;}
+}
+
+
+
+/* =====================================================================
+   TAHAP 3 — hasil uji di perangkat
+   ===================================================================== */
+
+/* ---------- Petugas Hari Ini (dibuat oleh pro2026.js) ---------- */
+.today-crew{
+  margin:0 0 14px;padding:14px 14px 12px;border-radius:18px;border:1px solid var(--pro-line);
+  background:
+    radial-gradient(ellipse 60% 100% at 0% 0%, var(--accent-dim) 0%, transparent 70%),
+    linear-gradient(180deg,var(--bg-elevated),var(--surface));
+  box-shadow:0 1px 0 var(--pro-hi) inset,var(--pro-shadow);
+}
+.crew-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.crew-title{font-family:var(--font-mono);font-size:10px;letter-spacing:1.4px;font-weight:700;color:var(--text-dim);}
+.crew-date{font-family:var(--font-mono);font-size:10px;color:var(--accent-strong);font-weight:600;}
+body.formal-theme .crew-date{color:var(--accent);}
+.crew-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.crew-card{
+  --cc:var(--c-pagi);position:relative;padding:10px 10px 9px;border-radius:14px;min-width:0;
+  border:1px solid var(--pro-line-2);background:var(--surface-2);
+  transition:border-color .25s,box-shadow .25s,transform .25s var(--pro-ease);
+}
+.crew-card.crew-S{--cc:var(--c-sore);}
+.crew-card.crew-M{--cc:var(--c-malam);}
+.crew-card::before{content:"";position:absolute;left:10px;right:10px;top:0;height:2px;border-radius:0 0 3px 3px;background:var(--cc);opacity:.55;}
+.crew-card.active{border-color:var(--cc);box-shadow:0 0 0 1px var(--cc) inset,0 12px 26px -16px var(--cc);transform:translateY(-1px);}
+.crew-card.active::before{opacity:1;}
+.crew-top{display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:12px;color:var(--text);flex-wrap:wrap;}
+.crew-top b{font-family:var(--font-display);font-weight:700;letter-spacing:.2px;}
+.crew-top em{font-style:normal;font-family:var(--font-mono);font-size:9.5px;color:var(--text-dim);font-weight:600;}
+.crew-dot{width:8px;height:8px;border-radius:50%;background:var(--cc);box-shadow:0 0 0 3px rgba(127,150,200,.14);flex:0 0 auto;}
+.crew-live{
+  display:none;margin-left:auto;padding:1px 6px;border-radius:6px;font-family:var(--font-mono);font-size:8px;font-weight:800;
+  letter-spacing:.8px;color:var(--badge-ink);background:var(--cc);
+}
+.crew-card.active .crew-live{display:inline-block;}
+.crew-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;}
+.crew-card li{font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.crew-card li.crew-none{color:var(--text-faint);}
+.crew-off{margin-top:10px;padding-top:9px;border-top:1px dashed var(--pro-line-2);font-size:11px;line-height:1.5;color:var(--text-dim);}
+.crew-off b{color:var(--c-off);font-weight:700;margin-right:4px;}
+body.formal-theme .crew-off b{color:var(--red);}
+
+/* ---------- HP: rapikan tabel & hilangkan penutup data ---------- */
+@media (max-width:768px){
+  /* tombol chat melayang disembunyikan: menu "Chat" sudah ada di navigasi bawah (lencana ikut disalin) */
+  .chat-fab{display:none!important;}
+  #scrollTopBtn{bottom:96px;}
+
+  /* tabel lebih padat: lebih banyak hari terlihat sekaligus */
+  th{padding:12px 3px;font-size:8.5px;letter-spacing:.3px;}
+  td,th{padding-left:3px;padding-right:3px;}
+  .staff-avatar{width:22px;height:22px;font-size:7.5px;box-shadow:0 0 0 1px var(--pro-line);}
+  .staff-cell{gap:6px;}
+  td.nama-cell{font-size:10.5px;letter-spacing:0;padding-left:5px;padding-right:6px;}
+  .shift-label{min-width:40px;padding:5px 8px;font-size:10.5px;}
+  table{min-width:0;}
+  .today-crew{padding:12px 11px 10px;border-radius:16px;margin-bottom:12px;}
+  .crew-grid{gap:7px;}
+  .crew-card{padding:9px 8px 8px;border-radius:12px;}
+  .crew-top{gap:5px;font-size:11.5px;margin-bottom:6px;}
+  .crew-top em{display:none;}
+  .crew-card li{font-size:10.5px;white-space:normal;overflow:visible;word-break:break-word;}
+}
+@media (min-width:769px){
+  .today-crew{padding:16px 18px 14px;border-radius:20px;}
+  .crew-grid{gap:14px;}
+  .crew-card{padding:13px 15px 12px;border-radius:16px;}
+  .crew-top{font-size:13.5px;margin-bottom:9px;}
+  .crew-card li{font-size:12.5px;}
+  .crew-card:hover{border-color:var(--cc);}
 }
 
 /* Layar sangat lebar */
