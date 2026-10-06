@@ -8,7 +8,7 @@
 <meta property="og:title" content="Jadwal Admin Gudang 2026">
 <meta property="og:description" content="Sistem jadwal Admin Gudang terintegrasi berbasis cyber interface.">
 <meta property="og:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg">
-<meta name="theme-color" content="#00f5ff">
+<meta name="theme-color" content="#070B18">
 <link rel="icon" href="favicon.png">
 
 <!-- PWA Manifest & Icons -->
@@ -44,22 +44,24 @@
 </script>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="ui2026.css">
+<link rel="stylesheet" href="pro2026.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 </head>
 <body class="formal-theme">
 
-<!-- ===== LOADING SCREEN ===== -->
-<div id="cyberLoader">
+<!-- ===== LOADING SCREEN (5 detik) ===== -->
+<div id="cyberLoader" role="status" aria-live="polite">
+  <div class="ld-grid" aria-hidden="true"></div>
   <div class="loader-content">
     <div class="loader-emblem">
       <div class="loader-glow"></div>
+      <div class="ld-ring ld-ring-1" aria-hidden="true"></div>
+      <div class="ld-ring ld-ring-2" aria-hidden="true"></div>
       <div class="loader-bottle" aria-hidden="true">
         <div class="bottle-cap"></div>
         <div class="bottle-body">
-          <div class="bottle-liquid" id="loaderLiquid">
-            <span class="liquid-wave"></span>
-          </div>
+          <div class="bottle-liquid" id="loaderLiquid"><span class="liquid-wave"></span></div>
           <span class="bottle-bubble b1"></span>
           <span class="bottle-bubble b2"></span>
           <span class="bottle-bubble b3"></span>
@@ -76,9 +78,15 @@
       </div>
     </div>
 
+    <div class="ld-percent"><span id="loaderPercent">0</span><small>%</small></div>
+
     <div class="loader-bar-wrap">
       <div class="loader-bar"><div class="loader-progress" id="loaderProgress"></div></div>
     </div>
+
+    <ul class="ld-steps" id="loaderSteps" aria-hidden="true">
+      <li>Server</li><li>Jadwal</li><li>Staff</li><li>Siap</li>
+    </ul>
 
     <p class="loader-text" id="loaderText">Menghubungkan sistem…</p>
 
@@ -508,44 +516,51 @@ const V = "https://www.gstatic.com/firebasejs/10.12.0/";
 })();
 </script>
 
-<!-- INLINE BOOT SCRIPT — 7s polished intro, lightweight (CSS-driven, no canvas) -->
+<!-- INLINE BOOT SCRIPT — intro 5 detik, ringan (progress via CSS + 1 penghitung persen) -->
 <script>
 window.__loaderStart = Date.now();
 (function() {
-  const MIN_MS = 800;
-  const FAILSAFE_MS = 3500;
+  const MIN_MS = 5000;        /* lama loading screen minimal: 5 detik */
+  const FAILSAFE_MS = 9000;   /* jaring pengaman bila app.js gagal dimuat */
   const progEl = document.getElementById("loaderProgress");
   const textEl = document.getElementById("loaderText");
   const liquidEl = document.getElementById("loaderLiquid");
-  const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data terbaru…", "Menyinkronkan server…", "Hampir siap…"];
+  const pctEl = document.getElementById("loaderPercent");
+  const stepEls = document.querySelectorAll("#loaderSteps li");
+  const msgs = ["Menghubungkan sistem…", "Menyiapkan jadwal shift…", "Memuat data staff…", "Menyinkronkan server…", "Hampir siap…"];
 
-  if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "94%"; });
-  if (liquidEl) requestAnimationFrame(() => { liquidEl.style.transitionDuration = MIN_MS + "ms"; liquidEl.style.height = "88%"; });
+  if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "100%"; });
+  if (liquidEl) requestAnimationFrame(() => { liquidEl.style.transitionDuration = MIN_MS + "ms"; liquidEl.style.height = "100%"; });
 
-  let mi = 0;
-  const msgInterval = setInterval(() => {
-    mi = (mi + 1) % msgs.length;
-    if (textEl) {
-      textEl.style.opacity = "0";
-      setTimeout(() => { textEl.textContent = msgs[mi]; textEl.style.opacity = "1"; }, 180);
-    }
-  }, 1250);
+  /* persen + teks status + langkah, semuanya mengikuti waktu 5 detik */
+  let lastMsg = -1, lastStep = -1, rafId = 0;
+  function tick() {
+    const t = Math.min(1, (Date.now() - window.__loaderStart) / MIN_MS);
+    const eased = 1 - Math.pow(1 - t, 2.2);
+    if (pctEl) pctEl.textContent = Math.round(eased * 100);
+    const m = Math.min(msgs.length - 1, Math.floor(t * msgs.length));
+    if (m !== lastMsg && textEl) { lastMsg = m; textEl.textContent = msgs[m]; }
+    const st = Math.min(stepEls.length, Math.floor(t * (stepEls.length + 0.999)));
+    if (st !== lastStep) { lastStep = st; stepEls.forEach((el, i) => el.classList.toggle("on", i < st)); }
+    if (t < 1) rafId = requestAnimationFrame(tick);
+  }
+  tick();
 
   window.__finishLoader = function() {
-    clearInterval(msgInterval);
     const loader = document.getElementById("cyberLoader");
     if (!loader || loader.dataset.closed) return;
+    /* jangan pernah menutup sebelum 5 detik penuh */
+    const wait = Math.max(0, MIN_MS - (Date.now() - window.__loaderStart));
+    if (wait > 0) { setTimeout(window.__finishLoader, wait); return; }
     loader.dataset.closed = "1";
-    if (progEl) { progEl.style.transitionDuration = "300ms"; progEl.style.width = "100%"; }
-    if (liquidEl) { liquidEl.style.transitionDuration = "300ms"; liquidEl.style.height = "100%"; }
-    if (textEl) { textEl.style.opacity = "1"; textEl.textContent = "Siap"; }
-    setTimeout(() => {
-      loader.style.opacity = "0";
-      setTimeout(() => { loader.style.display = "none"; }, 400);
-    }, 250);
+    cancelAnimationFrame(rafId);
+    if (pctEl) pctEl.textContent = "100";
+    stepEls.forEach(el => el.classList.add("on"));
+    if (textEl) textEl.textContent = "Siap";
+    loader.classList.add("ld-done");
+    setTimeout(() => { loader.style.display = "none"; document.documentElement.classList.add("app-ready"); }, 520);
   };
 
-  // Hard failsafe so the intro never blocks the app for long
   setTimeout(() => { if (window.__finishLoader) window.__finishLoader(); }, FAILSAFE_MS);
 })();
 </script>
