@@ -14,7 +14,7 @@
    ============================================================ */
 'use strict';
 
-var CACHE_VERSION = '2026-10-06.1';
+var CACHE_VERSION = '2026-10-07.1';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
 var CDN_CACHE = 'jadwal-admin-cdn-' + CACHE_VERSION;
 
@@ -29,6 +29,7 @@ var PRECACHE = [
   "style.css",
   "ui2026.css",
   "pro2026.css",
+  "pro2026.js",
   "app.js",
   "notif-promo.js",
   "pwa.js"

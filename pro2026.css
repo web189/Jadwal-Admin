@@ -167,11 +167,12 @@ body.formal-theme .glitch{filter:none;background:linear-gradient(95deg,#0E1B33 4
 .hamburger-btn:active{transform:scale(.94);}
 
 .online-indicator{background:rgba(51,209,139,0.10);border:1px solid rgba(51,209,139,0.40);color:var(--green);font-weight:700;}
-.online-dot{position:relative;}
+.online-dot{position:relative;margin-right:4px;}
 .online-dot::after{
   content:"";position:absolute;inset:-3px;border-radius:50%;border:1.5px solid var(--green);
   animation:proPing 1.8s ease-out infinite;
 }
+@keyframes proPingSm{0%{transform:scale(1);opacity:.7;}100%{transform:scale(1.28);opacity:0;}}
 @keyframes proPing{0%{transform:scale(.6);opacity:.9;}100%{transform:scale(1.9);opacity:0;}}
 
 .cyber-clock{font-variant-numeric:tabular-nums;}
@@ -289,8 +290,8 @@ footer.cyber-signature::before{
   box-shadow:0 12px 28px -8px var(--accent),0 0 0 1px rgba(255,255,255,0.18) inset;
 }
 .chat-fab::after{
-  content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--accent);opacity:0;
-  animation:proPing 2.8s ease-out infinite;pointer-events:none;
+  content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--accent);opacity:0;
+  animation:proPingSm 2.8s ease-out infinite;pointer-events:none;
 }
 #scrollTopBtn{background:linear-gradient(180deg,var(--surface-2),var(--bg-elevated));border:1px solid var(--pro-line);box-shadow:0 8px 18px -8px rgba(0,0,0,.7);}
 
@@ -424,6 +425,9 @@ body.formal-theme .modal-box{background:#fff;}
 
 /* HP kecil */
 @media (max-width:400px){
+  .shift-indicator{gap:10px;padding:11px 12px;}
+  .shift-gauge{width:50px;height:50px;}
+  .shift-countdown{font-size:11.5px;}
   .glitch{font-size:18px;}
   .cyber-clock .ck-time{font-size:15px;}
   .shift-countdown{font-size:13px;}
@@ -435,15 +439,6 @@ body.formal-theme .modal-box{background:#fff;}
    ===================================================================== */
 @media (min-width:769px){
   header{box-shadow:0 30px 60px -34px rgba(0,0,0,.9),0 1px 0 var(--pro-hi) inset;}
-  /* sudut siku bercahaya di header (gaya HUD) */
-  header .header-row-1::before,header .header-row-1::after{
-    content:"";position:absolute;width:14px;height:14px;pointer-events:none;
-    border:2px solid var(--accent);opacity:.55;
-  }
-  header .header-row-1::before{left:-16px;top:-8px;border-right:none;border-bottom:none;border-radius:6px 0 0 0;}
-  header .header-row-1::after{left:-16px;bottom:-8px;border-right:none;border-top:none;border-radius:0 0 0 6px;}
-  .header-row-1{position:relative;}
-
   .glitch{font-size:clamp(30px,3.3vw,44px);}
   .cyber-clock .ck-time{font-size:32px;}
 
@@ -460,6 +455,80 @@ body.formal-theme .modal-box{background:#fff;}
   .legend-bar{padding:14px 20px;}
 
   .mobile-bottom-nav{display:none!important;}
+}
+
+
+
+/* =====================================================================
+   TAHAP 2 — penyempurnaan dari hasil uji di perangkat
+   ===================================================================== */
+
+/* garis progres scroll (dibuat oleh pro2026.js) */
+#proScroll{
+  position:fixed;left:0;top:0;width:100%;height:3px;z-index:9000;pointer-events:none;
+  transform:scaleX(0);transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--accent),var(--teal),var(--c-pagi));
+  box-shadow:0 0 10px var(--accent);
+}
+
+/* rentang tanggal di bawah "WEEK 41" */
+.quick-nav-label{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;}
+.quick-nav-label[data-range]::after{
+  content:attr(data-range);margin-top:3px;font-size:9px;font-weight:600;letter-spacing:.6px;color:var(--text-dim);
+  text-transform:none;white-space:nowrap;
+}
+
+/* bar proporsi di kartu statistik (dibuat oleh pro2026.js) */
+.stat-bar{display:block;order:4;flex-basis:100%;width:100%;height:4px;margin-top:9px;border-radius:4px;overflow:hidden;
+  background:var(--pro-line-2);box-shadow:0 0 0 1px var(--pro-line-2) inset;}
+.stat-bar b{display:block;height:100%;width:0;border-radius:4px;background:var(--stat-color,var(--accent));transition:width .9s var(--pro-ease);}
+.stat-card.stat-total .stat-bar{display:none;}
+.stat-value{transition:transform .3s;}
+
+/* HP: lebih banyak kolom hari terlihat, garis waktu 24 jam */
+@media (max-width:768px){
+  /* kolom NIK disembunyikan di HP supaya kolom hari lebih lega (tetap tampil di PC) */
+  #scheduleTable th:nth-child(2),#scheduleTable td:nth-child(2){display:none;}
+  #scheduleTable th:nth-child(1),#scheduleTable td:nth-child(1){width:26px;min-width:26px;padding-left:4px;padding-right:2px;}
+  td.nama-cell{padding-left:6px;padding-right:8px;font-size:11.5px;}
+  .staff-cell{gap:7px;}
+  .staff-avatar{width:26px;height:26px;font-size:8.5px;}
+  table{min-width:700px;}
+
+  /* hitungan mundur tidak lagi terpotong */
+  .shift-indicator{flex-wrap:wrap;row-gap:12px;}
+  .shift-meta{flex:1 1 0;min-width:0;}
+  .shift-countdown{font-size:12.5px;white-space:nowrap;letter-spacing:0;}
+  .shift-label-text{font-size:9.5px;letter-spacing:1px;}
+
+  /* garis waktu 24 jam (versi HP) */
+  .shift-timeline{display:block;flex:1 1 100%;padding-top:10px;border-top:1px solid var(--pro-line-2);position:relative;z-index:1;}
+  .st-bar{position:relative;display:flex;height:9px;border-radius:6px;background:var(--surface);box-shadow:0 0 0 1px var(--border);}
+  .st-seg{display:block;height:100%;opacity:.30;}
+  .st-m1{width:31.25%;background:var(--c-malam);border-radius:6px 0 0 6px;}
+  .st-p{width:33.3333%;background:var(--c-pagi);}
+  .st-s{width:33.3333%;background:var(--c-sore);}
+  .st-m2{width:2.0833%;background:var(--c-malam);border-radius:0 6px 6px 0;}
+  .shift-timeline[data-active-shift="1"] .st-p,
+  .shift-timeline[data-active-shift="2"] .st-s,
+  .shift-timeline[data-active-shift="3"] .st-m1,
+  .shift-timeline[data-active-shift="3"] .st-m2{opacity:1;}
+  .st-now{position:absolute;top:-4px;width:4px;height:17px;margin-left:-2px;border-radius:2px;background:#fff;
+    box-shadow:0 0 0 2px var(--bg-elevated),0 0 10px 2px var(--accent);}
+  .st-ticks{position:relative;height:26px;margin-top:7px;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);font-weight:600;}
+  .st-ticks span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;text-align:center;line-height:1.3;}
+  .st-ticks span:first-child{transform:none;text-align:left;}
+  .st-ticks span:last-child{transform:translateX(-100%);text-align:right;}
+  .st-ticks em{display:block;font-style:normal;font-size:8.5px;color:var(--text-faint);font-weight:600;}
+
+  .quick-nav-label[data-range]{font-size:12.5px;}
+}
+
+/* PC sempit (769–1100px): statistik 3 + 2 penuh, tanpa slot kosong */
+@media (min-width:769px) and (max-width:1100px){
+  .stats-dashboard{grid-template-columns:repeat(6,1fr);}
+  .stat-card{grid-column:span 2;}
+  .stat-card.stat-off,.stat-card.stat-total{grid-column:span 3;}
 }
 
 /* Layar sangat lebar */
