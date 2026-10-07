@@ -77,31 +77,77 @@
   var crewEl = null, crewCollapsed = false;
   try { crewCollapsed = localStorage.getItem('proCrew') === '1'; } catch (e) {}
   var SH = [
-    { k: 'P', n: 'Pagi', t: '07:30', id: 1 },
-    { k: 'S', n: 'Sore', t: '15:30', id: 2 },
-    { k: 'M', n: 'Malam', t: '23:30', id: 3 }
+    { k: 'P', n: 'Pagi', t: '07:00', id: 1 },
+    { k: 'S', n: 'Sore', t: '15:00', id: 2 },
+    { k: 'M', n: 'Malam', t: '23:00', id: 3 }
   ];
   function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function activeShiftId() {
     try { if (typeof window.getCurrentShift === 'function') return window.getCurrentShift(); } catch (e) {}
     var d = new Date(), m = d.getHours() * 60 + d.getMinutes();
-    return (m > 450 && m <= 930) ? 1 : (m > 930 && m <= 1410) ? 2 : 3;
+    return (m > 420 && m <= 900) ? 1 : (m > 900 && m <= 1380) ? 2 : 3;
+  }
+  var SHCODE = { 1: 'P', 2: 'S', 3: 'M' };
+  /* Malam dimulai 23:00 hari D dan berakhir 07:00 hari D+1. Jadi pukul 00:00–07:00 yang sedang
+     bertugas adalah petugas Malam hari SEBELUMNYA, bukan hari ini. */
+  function isEarlyMorning() {
+    var d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+    return activeShiftId() === 3 && m <= 420;
   }
   function paintActive() {
     if (!crewEl) return;
-    var a = activeShiftId(), i, c = crewEl.querySelectorAll('.crew-card');
-    for (i = 0; i < c.length; i++) c[i].classList.toggle('active', +c[i].getAttribute('data-sid') === a);
+    var a = activeShiftId(), i, c = crewEl.querySelectorAll('.crew-card'), unk = crewEl.getAttribute('data-unk') === '1';
+    for (i = 0; i < c.length; i++) {
+      var sid = +c[i].getAttribute('data-sid');
+      c[i].classList.toggle('active', sid === a && !(sid === 3 && unk));
+    }
+  }
+  /* Titik hijau "sedang bertugas" di avatar tabel */
+  function markDuty(tbl, idx) {
+    var a = activeShiftId(), col = idx, rows = tbl.querySelectorAll('tr'), r, known = true;
+    if (isEarlyMorning()) { if (idx - 1 >= 3) col = idx - 1; else known = false; }
+    for (r = 0; r < rows.length; r++) {
+      var av = rows[r].querySelector('.staff-avatar'); if (!av) continue;
+      var cell = rows[r].cells[col], on = known && cell && cell.getAttribute('data-shift') === SHCODE[a];
+      av.classList.toggle('on-duty', !!on);
+      if (on) av.setAttribute('title', 'Sedang bertugas'); else av.removeAttribute('title');
+    }
+  }
+  var crewHtml = '', crewText = '';
+  function copyText(t, done) {
+    function fallback() {
+      try {
+        var ta = doc.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+        doc.body.appendChild(ta); ta.select(); var ok = doc.execCommand('copy'); doc.body.removeChild(ta); done(ok);
+      } catch (e) { done(false); }
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { done(true); }, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+  function toast(msg, type) { try { if (typeof window.showToast === 'function') window.showToast(msg, type || 'info'); } catch (e) {} }
+  function shareCrew() {
+    if (!crewText) return;
+    if (navigator.share) {
+      navigator.share({ title: 'Jadwal Admin Gudang', text: crewText }).catch(function () {});
+      return;
+    }
+    copyText(crewText, function (ok) { toast(ok ? 'Jadwal hari ini disalin — tinggal tempel di WhatsApp' : 'Gagal menyalin jadwal', ok ? 'success' : 'error'); });
   }
   function buildCrew() {
     var tbl = $('scheduleTable'); if (!tbl) return;
     var th = tbl.querySelector('th.today-col'); if (!th) return;      /* minggu lain: biarkan yang terakhir */
-    var idx = th.cellIndex, rows = tbl.querySelectorAll('tr'), g = { P: [], S: [], M: [], OFF: [], C: [] }, r;
+    var idx = th.cellIndex, rows = tbl.querySelectorAll('tr'), g = { P: [], S: [], M: [], OFF: [], C: [] }, prevM = [], r;
     for (r = 0; r < rows.length; r++) {
-      var cell = rows[r].cells[idx], nm = rows[r].querySelector('.staff-cell span');
-      if (!cell || !nm || !cell.getAttribute('data-shift')) continue;
-      var sh = cell.getAttribute('data-shift');
-      if (g[sh]) g[sh].push(nm.textContent);
+      var nm = rows[r].querySelector('.staff-cell span'); if (!nm) continue;
+      var cell = rows[r].cells[idx];
+      if (cell && cell.getAttribute('data-shift')) { var sh = cell.getAttribute('data-shift'); if (g[sh]) g[sh].push(nm.textContent); }
+      var pc = idx - 1 >= 3 ? rows[r].cells[idx - 1] : null;
+      if (pc && pc.getAttribute('data-shift') === 'M') prevM.push(nm.textContent);
     }
+    var early = isEarlyMorning(), carry = early && idx - 1 >= 3, unk = early && !carry;
     var scope = $('scheduleSection'); if (!scope) return;
     if (!crewEl) {
       crewEl = doc.createElement('section');
@@ -109,30 +155,46 @@
       crewEl.setAttribute('aria-label', 'Petugas hari ini');
       scope.insertBefore(crewEl, scope.firstChild);
       crewEl.addEventListener('click', function (e) {
-        if (!e.target.closest || !e.target.closest('.crew-head')) return;
+        var t = e.target;
+        if (t.closest && t.closest('.crew-share')) { shareCrew(); return; }
+        if (!t.closest || !t.closest('.crew-head')) return;
         crewCollapsed = !crewCollapsed;
         crewEl.classList.toggle('collapsed', crewCollapsed);
         var hd = crewEl.querySelector('.crew-head'); if (hd) hd.setAttribute('aria-expanded', crewCollapsed ? 'false' : 'true');
         try { localStorage.setItem('proCrew', crewCollapsed ? '1' : '0'); } catch (x) {}
       });
     }
-    var day = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
-    var h = '<button type="button" class="crew-head" aria-expanded="' + (crewCollapsed ? 'false' : 'true') + '"><span class="crew-title">PETUGAS HARI INI</span><span class="crew-date">' + esc(day) + '</span><i class="crew-chev" aria-hidden="true"></i></button><div class="crew-body"><div class="crew-grid">';
+    var now = new Date();
+    var day = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+    var dayLong = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    var SHARE_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18 16.1c-.8 0-1.4.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8 1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3c0 .2 0 .5.1.7L8 9.8C7.500 9.300 6.800 9 6 9c-1.700 0-3 1.300-3 3s1.300 3 3 3c.8 0 1.500-.3 2-.8l7.100 4.200c0 .2-.1.400-.1.600 0 1.600 1.300 2.900 2.900 2.900s2.900-1.300 2.900-2.900-1.200-2.900-2.800-2.900z"/></svg>';
+    var h = '<div class="crew-bar"><button type="button" class="crew-head" aria-expanded="' + (crewCollapsed ? 'false' : 'true') + '"><span class="crew-title">PETUGAS HARI INI</span><span class="crew-date">' + esc(day) + '</span><i class="crew-chev" aria-hidden="true"></i></button>' +
+      '<button type="button" class="crew-share" aria-label="Bagikan jadwal hari ini" title="Bagikan jadwal hari ini">' + SHARE_ICON + '</button></div><div class="crew-body"><div class="crew-grid">';
     SH.forEach(function (x) {
-      var list = g[x.k];
+      var showCarry = x.k === 'M' && carry;
+      var list = showCarry ? prevM : g[x.k];
       h += '<div class="crew-card crew-' + x.k + '" data-sid="' + x.id + '"><div class="crew-top"><i class="crew-dot"></i><b>' + x.n +
         '</b><em>' + x.t + '</em><span class="crew-live">AKTIF</span></div><ul>' +
-        (list.length ? list.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') : '<li class="crew-none">—</li>') + '</ul></div>';
+        (list.length ? list.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') : '<li class="crew-none">—</li>') +
+        (showCarry ? '</ul><div class="crew-note">lanjutan dari semalam</div>' : '</ul>') + '</div>';
     });
     h += '</div>';
     var off = g.OFF.concat(g.C);
     if (off.length) h += '<div class="crew-off"><b>Libur / Cuti:</b> ' + off.map(esc).join(', ') + '</div>';
     h += '</div>';
+    crewText = 'Jadwal Admin Gudang — ' + dayLong + '\n\n' +
+      'Pagi (07:00): ' + (g.P.join(', ') || '-') + '\n' +
+      'Sore (15:00): ' + (g.S.join(', ') || '-') + '\n' +
+      'Malam (23:00): ' + (g.M.join(', ') || '-') + '\n' +
+      (off.length ? 'Libur/Cuti: ' + off.join(', ') + '\n' : '') +
+      '\n' + location.origin + location.pathname;
     crewEl.classList.toggle('collapsed', crewCollapsed);
-    crewEl.innerHTML = h;
+    crewEl.setAttribute('data-unk', unk ? '1' : '0');
+    if (h !== crewHtml) { crewHtml = h; crewEl.innerHTML = h; }      /* tulis ulang hanya bila isi berubah */
     paintActive();
+    markDuty(tbl, idx);
   }
-  window.setInterval(paintActive, 30000);
+  window.setInterval(function () { try { buildCrew(); } catch (e) {} }, 30000);
 
   /* ---------- 3c. Penanda "tersinkron" di footer ---------- */
   var syncEl = null;

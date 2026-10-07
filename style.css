@@ -348,7 +348,7 @@ header::after{
 @keyframes gaugeBreathe{0%,100%{opacity:0.5;transform:scale(0.92);}50%{opacity:1;transform:scale(1.08);}}
 .shift-gauge-ring{
   position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(from 112.5deg,
+  background:conic-gradient(from 105deg,
     var(--c-pagi) 0deg 120deg,
     var(--c-sore) 120deg 240deg,
     var(--c-malam) 240deg 360deg);

@@ -1,6 +1,6 @@
 // ================= CONFIG =================
 const START_WEEK = 6;
-const START_DATE = new Date("2026-02-02");
+const START_DATE = new Date(2026, 1, 2); // 2 Feb 2026 00:00 waktu lokal (sebelumnya UTC → minggu baru terlambat 7 jam di WIB)
 const START_ROTATION_WEEK = 19;
 
 const nationalHolidays = {
@@ -561,7 +561,7 @@ function renderSchedule(weekNumber) {
 }
 
 // ================= EDIT SHIFT =================
-const SHIFT_HINTS = { P:"Pagi — 07:30 s/d 15:30", S:"Sore — 15:30 s/d 23:30", M:"Malam — 23:30 s/d 07:30", OFF:"Hari Libur", C:"Cuti" };
+const SHIFT_HINTS = { P:"Pagi — 07:00 s/d 15:00", S:"Sore — 15:00 s/d 23:00", M:"Malam — 23:00 s/d 07:00", OFF:"Hari Libur", C:"Cuti" };
 
 function editShift(cell) {
   if (!isAdmin) return;
@@ -874,9 +874,9 @@ function updateClock() {
 function getCurrentShift() {
   const now = new Date();
   const min = now.getHours() * 60 + now.getMinutes();
-  if (min > 450 && min <= 930) return 1;   // 07:30 - 15:30
-  if (min > 930 && min <= 1410) return 2;  // 15:30 - 23:30
-  return 3;                                  // 23:30 - 07:30
+  if (min > 420 && min <= 900) return 1;   // 07:00 - 15:00
+  if (min > 900 && min <= 1380) return 2;  // 15:00 - 23:00
+  return 3;                                  // 23:00 - 07:00
 }
 
 function updateShiftIndicator() {
@@ -913,13 +913,13 @@ function updateShiftCountdown() {
   const shift = getCurrentShift();
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const endMap = { 1: 930, 2: 1410, 3: 450 };
+  const endMap = { 1: 900, 2: 1380, 3: 420 };
   let end = endMap[shift];
   let rem = end - nowMin;
   if (rem < 0) rem += 1440;
   if (rem > 1440) rem = 0;
   const h = Math.floor(rem / 60), m = rem % 60;
-  el.textContent = rem > 0 ? `SHIFT ${shift} berakhir dalam ${h}j ${m}m` : "";
+  el.textContent = rem > 0 ? `SHIFT ${shift} berakhir dalam ${h > 0 ? h + "j " : ""}${m}m` : "";
 }
 
 // ================= SERAH TERIMA =================
