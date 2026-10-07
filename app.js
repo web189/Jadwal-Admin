@@ -96,12 +96,22 @@ const RIAN_ROW_INDEX = 2;
 const ROTATING_ROW_INDEXES = [0, 1, 3, 4, 5]; // baris untuk 5 admin yang rotasi
 
 const kegiatanDefault = [
-  { nama: "KAMIL M NUR",    tugas: "Perapihan arsip, Sawang-sawang, Kebersihan lantai area depan" },
-  { nama: "RANDHIKA",       tugas: "Kebersihan area loading, Sapu & pel koridor" },
-  { nama: "BUDIYANSAH",     tugas: "Kebersihan toilet, Lap meja, Buang sampah harian" },
-  { nama: "RIKI HERMAWAN",  tugas: "Perapihan rak gudang, Cek label barang, Kebersihan area storage" },
-  { nama: "M DAUD",         tugas: "Kebersihan parkir, Rapikan gerobak, Cek kebocoran atap" }
+  { nama: "KAMIL M NUR",     tugas: "Basmi sarang laba-laba, Arsip rapi sejajar, Lantai depan kinclong" },
+  { nama: "RANDHIKA",        tugas: "Jalur loading bebas debu, Koridor licin berkilau, Sapu bersih tanpa sisa" },
+  { nama: "BUDIYANSAH",      tugas: "Toilet wangi segar, Meja bebas noda, Sampah harian beres tuntas" },
+  { nama: "RIKI HERMAWAN",   tugas: "Rak gudang tertata lurus, Label barang terbaca jelas, Area storage steril" },
+  { nama: "M DAUD",          tugas: "Parkiran bersih bersinar, Gerobak berbaris rapi, Patroli atap anti bocor" },
+  { nama: "RIAN ARSYANSYAH", tugas: "Kaca & pintu bening mengilap, Ruangan harum semerbak, Tong sampah selalu lega, Meja admin rapi jali" }
 ];
+// Teks lama (bawaan sebelumnya) otomatis diganti dengan teks baru; teks hasil edit admin tidak disentuh.
+const kegiatanLegacy = {
+  "KAMIL M NUR": "Perapihan arsip, Sawang-sawang, Kebersihan lantai area depan",
+  "RANDHIKA": "Kebersihan area loading, Sapu & pel koridor",
+  "BUDIYANSAH": "Kebersihan toilet, Lap meja, Buang sampah harian",
+  "RIKI HERMAWAN": "Perapihan rak gudang, Cek label barang, Kebersihan area storage",
+  "M DAUD": "Kebersihan parkir, Rapikan gerobak, Cek kebocoran atap",
+  "RIAN ARSYANSYAH": "Poles kaca & pintu sampai berkilau, Semprot wangi ruangan, Kawal tong sampah tetap kosong, Tata meja admin rapi jali"
+};
 
 // ================= STATE =================
 let isAdmin = false;
@@ -1391,6 +1401,18 @@ async function loadKegiatan() {
       data = {};
       kegiatanDefault.forEach((k, i) => { data["k_" + i] = { nama: k.nama, tugas: k.tugas }; });
     }
+    Object.keys(data).forEach(k => {
+      const v = data[k], dflt = v && kegiatanDefault.find(x => x.nama === v.nama);
+      if (dflt && String(v.tugas).trim() === kegiatanLegacy[v.nama]) data[k] = { nama: v.nama, tugas: dflt.tugas };
+    });
+    // Pastikan semua admin terdaftar (mis. admin baru yang belum ada di database)
+    const have = Object.values(data).map(v => v && v.nama);
+    kegiatanDefault.forEach((k, i) => {
+      if (have.indexOf(k.nama) === -1) {
+        let key = "k_" + i; while (data[key]) key += "x";
+        data[key] = { nama: k.nama, tugas: k.tugas };
+      }
+    });
     renderKegiatan(data);
   } catch(e) { renderKegiatan(null); }
 }
@@ -1407,7 +1429,7 @@ function renderKegiatan(data) {
         <span class="kegiatan-nama">${item.nama}</span>
         ${isAdmin ? `<button class="kegiatan-edit-btn" onclick="editKegiatan(${idx},'${item.nama}',\`${item.tugas.replace(/`/g,"'")}\`)"><i class="fas fa-pen"></i> Edit</button>` : ""}
       </div>
-      <div class="kegiatan-tugas"><i class="fas fa-tasks"></i> ${item.tugas}</div>
+      <div class="kegiatan-tugas kg-chips">${String(item.tugas).split(",").map(t => t.trim()).filter(Boolean).map(t => `<span class="kg-chip">${t}</span>`).join("")}</div>
     </div>`;
   }).join("");
 }

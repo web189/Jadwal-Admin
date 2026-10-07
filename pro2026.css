@@ -812,3 +812,25 @@ html.lite .stat-card::after,html.lite .crew-card::after,html.lite .kegiatan-card
 @media (prefers-reduced-motion:reduce){
   .table-wrapper.wk-swap tbody tr,.sync-chip i,body::after{animation:none!important;}
 }
+
+/* ===== Kegiatan: tugas sebagai chip ===== */
+.kg-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;}
+.kg-chip{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11.5px;line-height:1.4;color:var(--text);background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.28);}
+.kg-chip::before{content:"\2726";margin-right:6px;color:var(--accent);font-size:10px;}
+body.formal-theme .kg-chip{background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.22);}
+
+/* ===== Popup promo: tidak menutupi konten, menutup sendiri ===== */
+.os-notif-promo::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:linear-gradient(90deg,#6c5ce7,#5b9bff);transform-origin:left;animation:osCountdown 12s linear forwards;}
+@keyframes osCountdown{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+html.lite .os-notif-promo::after{display:none;}
+@media (max-width:768px){
+  .os-notif-popup{left:12px;right:12px;width:auto;max-width:none;bottom:96px;border-radius:12px;}
+  .os-notif-promo .os-notif-head{padding:7px 10px 2px;}
+  .os-notif-promo .os-notif-body{padding:0 10px 9px;}
+  .os-notif-promo .os-notif-promo-badge{display:none;}
+  .os-notif-promo .os-notif-promo-row{margin-bottom:7px;gap:8px;}
+  .os-notif-promo .os-notif-promo-icon{width:28px;height:28px;font-size:14px;}
+  .os-notif-promo .os-notif-promo-title{font-size:12.5px;}
+  .os-notif-promo .os-notif-cta{padding:7px 12px;font-size:12px;}
+  .os-notif-promo .os-notif-later{padding:7px 10px;font-size:12px;}
+}

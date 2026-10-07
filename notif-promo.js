@@ -103,7 +103,7 @@
       lines = [],
       cta = null,
       secondaryLabel = null,
-      duration = kind === "promo" ? 0 : 6000,
+      duration = kind === "promo" ? 12000 : 6000,
       onClick = null,
       nativeTag = null,
       nativeBody = null, // teks body khusus utk notif native, biar tidak duplikat sama title
