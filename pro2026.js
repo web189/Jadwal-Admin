@@ -74,7 +74,8 @@
 
   /* ---------- 3. Rentang tanggal minggu + geser otomatis ke HARI INI ---------- */
   /* ---------- 3b. Ringkasan "Petugas Hari Ini" (dibaca dari tabel yang tampil) ---------- */
-  var crewEl = null;
+  var crewEl = null, crewCollapsed = false;
+  try { crewCollapsed = localStorage.getItem('proCrew') === '1'; } catch (e) {}
   var SH = [
     { k: 'P', n: 'Pagi', t: '07:30', id: 1 },
     { k: 'S', n: 'Sore', t: '15:30', id: 2 },
@@ -107,9 +108,16 @@
       crewEl.id = 'todayCrew'; crewEl.className = 'today-crew';
       crewEl.setAttribute('aria-label', 'Petugas hari ini');
       scope.insertBefore(crewEl, scope.firstChild);
+      crewEl.addEventListener('click', function (e) {
+        if (!e.target.closest || !e.target.closest('.crew-head')) return;
+        crewCollapsed = !crewCollapsed;
+        crewEl.classList.toggle('collapsed', crewCollapsed);
+        var hd = crewEl.querySelector('.crew-head'); if (hd) hd.setAttribute('aria-expanded', crewCollapsed ? 'false' : 'true');
+        try { localStorage.setItem('proCrew', crewCollapsed ? '1' : '0'); } catch (x) {}
+      });
     }
     var day = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
-    var h = '<div class="crew-head"><span class="crew-title">PETUGAS HARI INI</span><span class="crew-date">' + esc(day) + '</span></div><div class="crew-grid">';
+    var h = '<button type="button" class="crew-head" aria-expanded="' + (crewCollapsed ? 'false' : 'true') + '"><span class="crew-title">PETUGAS HARI INI</span><span class="crew-date">' + esc(day) + '</span><i class="crew-chev" aria-hidden="true"></i></button><div class="crew-body"><div class="crew-grid">';
     SH.forEach(function (x) {
       var list = g[x.k];
       h += '<div class="crew-card crew-' + x.k + '" data-sid="' + x.id + '"><div class="crew-top"><i class="crew-dot"></i><b>' + x.n +
@@ -119,10 +127,25 @@
     h += '</div>';
     var off = g.OFF.concat(g.C);
     if (off.length) h += '<div class="crew-off"><b>Libur / Cuti:</b> ' + off.map(esc).join(', ') + '</div>';
+    h += '</div>';
+    crewEl.classList.toggle('collapsed', crewCollapsed);
     crewEl.innerHTML = h;
     paintActive();
   }
   window.setInterval(paintActive, 30000);
+
+  /* ---------- 3c. Penanda "tersinkron" di footer ---------- */
+  var syncEl = null;
+  function stampSync() {
+    if (!syncEl) {
+      var ft = doc.querySelector('footer.cyber-signature'); if (!ft) return;
+      syncEl = doc.createElement('div'); syncEl.className = 'sync-chip';
+      syncEl.innerHTML = '<i></i><span></span>';
+      ft.insertBefore(syncEl, ft.firstChild);
+    }
+    var d = new Date(), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    syncEl.lastChild.textContent = 'Data tersinkron ' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds()) + ' WIB';
+  }
 
   var lastKey = '';
   function onTable() {
@@ -130,6 +153,7 @@
     var ths = tbl.querySelectorAll('th');
     if (ths.length < 10) return;
     try { buildCrew(); } catch (e) {}
+    try { stampSync(); } catch (e) {}
     var first = /(\d{2})\/(\d{2})\/(\d{4})/.exec(ths[3].textContent);
     var last = /(\d{2})\/(\d{2})\/(\d{4})/.exec(ths[9].textContent);
     var lab = $('quickNavLabel');
@@ -140,8 +164,12 @@
     /* geser ke kolom hari ini — hanya sekali per minggu yang ditampilkan */
     var key = lab ? lab.textContent : '';
     if (key === lastKey) return;
+    var firstRun = lastKey === '';
     lastKey = key;
     var wrap = tbl.parentNode, today = tbl.querySelector('th.today-col');
+    if (!firstRun && ANIMATE && wrap) {            /* transisi halus saat pindah minggu */
+      wrap.classList.remove('wk-swap'); void wrap.offsetWidth; wrap.classList.add('wk-swap');
+    }
     if (wrap && today && wrap.scrollWidth > wrap.clientWidth + 4) {
       var nameTh = tbl.querySelector('th.nama-col-header');
       var left = today.offsetLeft - (nameTh ? nameTh.offsetWidth : 0) - 6;
@@ -170,6 +198,96 @@
     new MutationObserver(sync).observe(cb, { attributes: true, childList: true, characterData: true, subtree: true });
     sync();
   }
+
+  /* ---------- 6. Sorot cahaya mengikuti kursor di kartu (PC / mouse saja) ---------- */
+  if (ANIMATE && window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+    var ptEl = null, ptX = 0, ptY = 0, ptRaf = 0;
+    doc.addEventListener('pointermove', function (e) {
+      var t = e.target && e.target.closest ? e.target.closest('.stat-card,.crew-card,.kegiatan-card') : null;
+      if (!t) return;
+      ptEl = t; ptX = e.clientX; ptY = e.clientY;
+      if (!ptRaf) ptRaf = window.requestAnimationFrame(function () {
+        ptRaf = 0; if (!ptEl) return;
+        var r = ptEl.getBoundingClientRect();
+        ptEl.style.setProperty('--mx', (ptX - r.left) + 'px');
+        ptEl.style.setProperty('--my', (ptY - r.top) + 'px');
+      });
+    }, { passive: true });
+  }
+
+  /* ---------- 7. Perbaikan penyorotan navigasi bawah (HP) ----------
+     Skrip bawaan memetakan 3 bagian ke tombol ke-1,2,3 padahal urutan tombolnya
+     Beranda, Arisan, Jadwal, Kebersihan… sehingga tombol yang menyala selalu bergeser satu. */
+  var navBtns = doc.querySelectorAll('.mobile-nav-item'), navMap = {};
+  Array.prototype.forEach.call(navBtns, function (b) {
+    var sp = b.querySelector('span'); if (!sp) return;
+    var t = sp.textContent.replace(/\s+/g, '');
+    if (t === 'Beranda') navMap.header = b;
+    else if (t === 'Jadwal') navMap.scheduleSection = b;
+    else if (t === 'Kebersihan') navMap.kegiatanSection = b;
+  });
+  var navTick = false;
+  function pageTop(el) { return el.getBoundingClientRect().top + (window.pageYOffset || root.scrollTop); }
+  function navSpy() {
+    navTick = false;
+    var sy = window.pageYOffset || root.scrollTop, y = sy + window.innerHeight * 0.3, cur = 'header';
+    var ids = ['scheduleSection', 'kegiatanSection'], i;
+    for (i = 0; i < ids.length; i++) { var el = $(ids[i]); if (el && y >= pageTop(el)) cur = ids[i]; }
+    if (sy < 60) cur = 'header';
+    else if (sy + window.innerHeight >= root.scrollHeight - 6) cur = 'kegiatanSection';
+    var want = navMap[cur]; if (!want) return;
+    Array.prototype.forEach.call(navBtns, function (b) { if (b !== want) b.classList.remove('active'); });
+    want.classList.add('active');
+  }
+  if (navMap.header) {
+    window.addEventListener('scroll', function () { if (!navTick) { navTick = true; window.requestAnimationFrame(navSpy); } }, { passive: true });
+    window.addEventListener('resize', navSpy);
+    navSpy();
+  }
+
+  /* ---------- 8. Tombol ganti tema cepat di header + warna bilah browser ikut tema ---------- */
+  var row1 = doc.querySelector('.header-row-1'), tt = $('themeToggle');
+  if (row1 && tt && !doc.getElementById('themeQuick')) {
+    var q = doc.createElement('button');
+    q.id = 'themeQuick'; q.type = 'button'; q.className = 'theme-quick';
+    q.setAttribute('aria-label', 'Ganti tema terang / gelap');
+    q.innerHTML =
+      '<svg class="tq-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>' +
+      '<svg class="tq-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></g></svg>';
+    q.addEventListener('click', function () { tt.click(); });
+    row1.appendChild(q);
+  }
+  var metaTheme = doc.querySelector('meta[name="theme-color"]');
+  function syncThemeColor() {
+    if (metaTheme) metaTheme.setAttribute('content', doc.body.classList.contains('formal-theme') ? '#EEF3FC' : '#070B18');
+  }
+  new MutationObserver(syncThemeColor).observe(doc.body, { attributes: true, attributeFilter: ['class'] });
+  syncThemeColor();
+
+  /* ---------- 9. Chip "Kembali ke minggu ini" saat melihat minggu lain ---------- */
+  var backChip = null;
+  function updateBackChip() {
+    var lab = $('quickNavLabel'), bar = doc.querySelector('.schedule-toolbar');
+    if (!lab || !bar || typeof window.getCurrentWeekNumber !== 'function') return;
+    var shown = parseInt((/\d+/.exec(lab.textContent) || [0])[0], 10), cur = window.getCurrentWeekNumber();
+    if (!backChip) {
+      backChip = doc.createElement('button');
+      backChip.type = 'button'; backChip.className = 'back-chip'; backChip.style.display = 'none';
+      backChip.addEventListener('click', function () {
+        var sel = $('weekSelect'); if (!sel) return;
+        sel.value = window.getCurrentWeekNumber();
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      bar.appendChild(backChip);
+    }
+    if (shown && shown !== cur) {
+      backChip.textContent = '↩ Kembali ke minggu ini (Week ' + cur + ')';
+      backChip.style.display = '';
+    } else backChip.style.display = 'none';
+  }
+  var qnl = $('quickNavLabel');
+  if (qnl) new MutationObserver(updateBackChip).observe(qnl, { childList: true, characterData: true, subtree: true });
+  window.setTimeout(updateBackChip, 800);
 
   paintScroll();
 })();
