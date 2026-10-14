@@ -1,0 +1,26 @@
+/* Lapisan tampilan "ultra" — hanya CSS ringan (tanpa blur/filter berat) agar lancar di Windows 7 */
+:root{--u-glow:0 0 0 1px rgba(0,245,255,.18),0 8px 24px rgba(0,0,0,.35)}
+.today-crew,.crew-card,.stat-card{box-shadow:var(--u-glow)}
+.today-crew{background:linear-gradient(160deg,rgba(20,34,72,.95),rgba(8,14,34,.95));border:1px solid rgba(0,245,255,.22)}
+.crew-card{transition:transform .18s ease,box-shadow .18s ease}
+.crew-card:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(0,245,255,.45),0 10px 26px rgba(0,245,255,.15)}
+.crew-card.active{animation:uPulse 2.4s ease-in-out infinite}
+@keyframes uPulse{50%{box-shadow:0 0 0 1px rgba(255,190,60,.7),0 0 22px rgba(255,190,60,.35)}}
+.crew-title{background:linear-gradient(90deg,#00f5ff,#7c8cff);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700;letter-spacing:.14em}
+table#scheduleTable td,table#scheduleTable th{transition:background .15s}
+table#scheduleTable tbody tr:hover td{background:rgba(0,245,255,.06)}
+.hmenu-btn{transition:transform .15s,border-color .15s}.hmenu-btn:hover{transform:translateX(3px);border-color:#00f5ff}
+@media (min-width:900px){body{font-size:15.5px}.today-crew{max-width:1200px;margin-left:auto;margin-right:auto}.crew-grid{gap:16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Petugas sakit */
+.crew-sick{margin-top:10px;padding:9px 12px;border-radius:12px;background:rgba(255,92,120,.1);border:1px dashed rgba(255,92,120,.55);color:#ffb3c1;font-size:.92em}
+.crew-sick b{color:#ff6b88;margin-right:4px}
+.crew-card li.is-sick{text-decoration:line-through;opacity:.55}
+.crew-card li.is-sick:after{content:" 🤒";text-decoration:none;display:inline-block}
+.sakit-modal{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px}
+.sakit-modal[hidden]{display:none}
+.sakit-box{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:#0e1736;border:1px solid rgba(0,245,255,.3);border-radius:18px;padding:18px;color:#e8eeff}
+.sakit-title{font-weight:700;font-size:1.1em;margin-bottom:4px}.sakit-sub{opacity:.7;font-size:.85em;margin-bottom:10px}
+.sakit-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:6px 0;border:1px solid rgba(124,140,255,.3);border-radius:12px;cursor:pointer}
+.sakit-row input{width:20px;height:20px;accent-color:#ff6b88}
+.sakit-act{display:flex;gap:10px;margin-top:12px}.sakit-act .hmenu-btn{flex:1;justify-content:center}
