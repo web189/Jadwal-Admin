@@ -73,27 +73,38 @@ const basePattern = [
 ];
 
 // ================= ADMIN BARU: RIAN ARSYANSYAH (mulai Week 35) =================
-// RIAN ARSYANSYAH bergabung sebagai admin ke-6. Jadwalnya TETAP setiap minggu
-// (tidak ikut rotasi): Senin-Sabtu masuk Pagi (P), Minggu OFF.
-// Posisinya SELALU di baris index 2 (posisi ke-3) pada tabel setiap minggunya.
+// RIAN ARSYANSYAH bergabung sebagai admin ke-6 mulai Week 35. Jadwalnya TETAP
+// setiap minggu (tidak ikut rotasi), 5 admin lain tetap berotasi.
+//  - Week 35–42 : Rian di baris index 2, shift Pagi (P) Sen–Sab, Minggu OFF.
+//  - Week 43+   : Rian di baris index 3, shift Sore (S) Sen–Jum, Sab OFF, Min S.
 const NEW_ADMIN_WEEK = 35;
+const RIAN_REVISION_WEEK = 43;
 
 const staffRian = { nik: "109639", nama: "RIAN ARSYANSYAH", avatar: "RA" };
 
-// Pola jadwal Week 35 dst — 6 baris.
-// Baris index 2 (RIAN ARSYANSYAH) TETAP setiap minggu, tidak dirotasi.
-// 5 admin lain (staff[]) tetap rotasi seperti biasa mengisi 5 baris sisanya,
-// urutan baris sisanya: 0, 1, 3, 4, 5 (index 2 dilewati karena punya RIAN).
-const basePatternWithRian = [
+// Pola Week 35–42 (lama) — Rian di baris index 2.
+const basePatternWithRianOld = [
   ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // baris 0
   ["S",  "OFF","OFF","P",  "P",  "P",  "P"  ],  // baris 1
-  ["P",  "P",  "P",  "P",  "P",  "P",  "OFF"],  // baris 2 — RIAN ARSYANSYAH (TETAP)
+  ["P",  "P",  "P",  "P",  "P",  "P",  "OFF"],  // baris 2 — RIAN (TETAP)
   ["S",  "S",  "OFF","OFF","S",  "S",  "S"  ],  // baris 3
   ["OFF","S",  "S",  "S",  "S",  "S",  "OFF"],  // baris 4
   ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // baris 5
 ];
-const RIAN_ROW_INDEX = 2;
-const ROTATING_ROW_INDEXES = [0, 1, 3, 4, 5]; // baris untuk 5 admin yang rotasi
+const RIAN_ROW_INDEX_OLD = 2;
+const ROTATING_ROW_INDEXES_OLD = [0, 1, 3, 4, 5];
+
+// Pola Week 43 dst (baru) — Rian di baris index 3.
+const basePatternWithRian = [
+  ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // baris 0
+  ["OFF","OFF","P",  "P",  "P",  "P",  "P"  ],  // baris 1
+  ["P",  "P",  "OFF","P",  "P",  "P",  "OFF"],  // baris 2
+  ["S",  "S",  "S",  "S",  "S",  "OFF","S"  ],  // baris 3 — RIAN (TETAP)
+  ["S",  "S",  "OFF","S",  "S",  "S",  "OFF"],  // baris 4
+  ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // baris 5
+];
+const RIAN_ROW_INDEX = 3;
+const ROTATING_ROW_INDEXES = [0, 1, 2, 4, 5];
 
 const kegiatanDefault = [
   { nama: "KAMIL M NUR",     tugas: "Basmi sarang laba-laba, Arsip rapi sejajar, Lantai depan kinclong" },
@@ -459,13 +470,17 @@ function getWeekRows(weekNumber) {
     // memakai urutan efektif (asli atau hasil override KA Gudang).
     const staffOrder = getEffectiveStaffOrder(weekNumber);
     const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
+    const useNew = weekNumber >= RIAN_REVISION_WEEK;
+    const pat = useNew ? basePatternWithRian : basePatternWithRianOld;
+    const rotRows = useNew ? ROTATING_ROW_INDEXES : ROTATING_ROW_INDEXES_OLD;
+    const rianRow = useNew ? RIAN_ROW_INDEX : RIAN_ROW_INDEX_OLD;
     const tempRows = new Array(6);
     for (let j = 0; j < staffOrder.length; j++) {
       const idx = (j + rotation) % staffOrder.length;
-      const rowIdx = ROTATING_ROW_INDEXES[j];
-      tempRows[rowIdx] = { person: staffOrder[idx], pattern: basePatternWithRian[rowIdx] };
+      const rowIdx = rotRows[j];
+      tempRows[rowIdx] = { person: staffOrder[idx], pattern: pat[rowIdx] };
     }
-    tempRows[RIAN_ROW_INDEX] = { person: staffRian, pattern: basePatternWithRian[RIAN_ROW_INDEX] };
+    tempRows[rianRow] = { person: staffRian, pattern: pat[rianRow] };
     for (let k = 0; k < 6; k++) rows.push(tempRows[k]);
   }
   return rows;
