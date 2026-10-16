@@ -1,0 +1,97 @@
+/* =====================================================================
+   mobile2026.css — lapisan tampilan HP (<= 768px), dimuat paling akhir.
+   Hanya gradient/garis/bayangan statis: ringan di HP lama & Windows 7.
+   ===================================================================== */
+@media (max-width:768px){
+
+  /* ---------- latar: grid tipis statis ---------- */
+  body{
+    padding:12px 12px 104px;
+    background:
+      linear-gradient(var(--accent-dim) 1px,transparent 1px) 0 0/36px 36px,
+      linear-gradient(90deg,var(--accent-dim) 1px,transparent 1px) 0 0/36px 36px,
+      radial-gradient(ellipse 80% 30% at 20% -6%,var(--accent-dim) 0%,transparent 62%),
+      var(--bg);
+    background-attachment:scroll,scroll,scroll,scroll;
+  }
+
+  /* ---------- urutan: petugas -> angka ringkas -> jadwal ---------- */
+  #scheduleSection{gap:12px;}
+  #scheduleSection > #todayCrew{order:1;max-width:none;width:100%;margin:0;}
+  #scheduleSection > .stats-dashboard{order:2;}
+  #scheduleSection > .schedule-toolbar{order:3;}
+  #scheduleSection > .news-ticker{order:4;}
+  #scheduleSection > .table-wrapper{order:5;}
+  #scheduleSection > .legend-bar{order:6;}
+  #scheduleSection > .week-progress-wrap{order:7;}
+
+  /* ---------- header ringkas ---------- */
+  header{padding:14px 14px 14px;border-radius:18px;margin-bottom:12px;}
+
+  /* ---------- panel petugas hari ini ---------- */
+  .today-crew{padding:14px 14px 12px;border-radius:18px;border:1px solid var(--border-strong);}
+  .crew-grid{gap:8px;}
+  .crew-card{border-radius:13px;padding:10px 10px 9px;}
+  .crew-card.active{box-shadow:0 0 0 1px var(--c-sore),0 6px 18px -8px var(--c-sore);}
+
+  /* ---------- KPI: 5 angka dalam satu baris ---------- */
+  #scheduleSection .stats-dashboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:0;}
+  #scheduleSection .stat-card,#scheduleSection .stat-card.stat-off,#scheduleSection .stat-card.stat-total{grid-column:auto;}
+  #scheduleSection .stat-card,#scheduleSection .stat-card.stat-off,#scheduleSection .stat-card.stat-total{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    padding:10px 2px 9px;min-height:0;border-radius:13px;text-align:center;
+    border:1px solid var(--border-strong);
+    background:linear-gradient(165deg,var(--surface-2),var(--bg-elevated));
+  }
+  #scheduleSection .stat-card .stat-icon,#scheduleSection .stat-card .stat-bar{display:none;}
+  #scheduleSection .stat-card .stat-value{order:1;font-size:24px;line-height:1;flex:none;text-align:center;width:100%;}
+  #scheduleSection .stat-card .stat-label{order:2;flex-basis:auto;margin:3px 0 0;font:700 8.5px/1.1 var(--font-mono,monospace);letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);text-align:center;}
+  .stat-card::before{top:auto;bottom:0;height:3px;}
+  .stat-card:hover{transform:none;}
+
+  /* ---------- toolbar & ticker ---------- */
+  .schedule-toolbar{gap:8px;}
+  .staff-search-input{padding:12px 36px 12px 40px;font-size:14px;border-radius:13px;}
+  .news-ticker{height:38px;border-radius:12px;}
+
+  /* ---------- tabel ---------- */
+  .table-wrapper{border-radius:18px;border:1px solid var(--border-strong);}
+  td{height:54px;padding-top:0;padding-bottom:0;}
+  tbody tr:nth-child(even) td:not(.nama-cell){background:rgba(120,150,220,.035);}
+  td.nama-cell{font-size:12.5px;}
+  .shift-label{min-width:44px;}
+
+  /* ---------- legend: satu baris, geser ---------- */
+  .legend-bar{
+    flex-wrap:nowrap;overflow-x:auto;gap:7px;padding:10px 12px;border-radius:13px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .legend-bar::-webkit-scrollbar{display:none;}
+  .legend-title,.legend-badge{flex:0 0 auto;white-space:nowrap;}
+
+  /* ---------- navigasi bawah: bar melayang ---------- */
+  .mobile-bottom-nav{
+    left:10px;right:10px;bottom:10px;border-radius:20px;padding:6px;
+    background:linear-gradient(180deg,var(--surface-2),var(--bg-elevated));
+    border:1px solid var(--border-strong);box-shadow:0 10px 26px -8px rgba(0,0,0,.75);
+  }
+  .mobile-nav-item.active{background:var(--accent-dim);box-shadow:0 0 0 1px var(--accent) inset;}
+
+  /* tombol chat naik agar tidak menutupi bar bawah */
+  .chat-fab{bottom:86px;}
+  #scrollTopBtn{bottom:140px;}
+
+  /* kartu lain */
+  .kegiatan-section{border-radius:18px;}
+  footer.cyber-signature{margin-top:16px;border-radius:18px;}
+
+  body.formal-theme .today-crew{background:linear-gradient(165deg,var(--surface),var(--surface-2));border-color:var(--border-strong);}
+  /* judul panel petugas terbaca di tema terang */
+  body.formal-theme .crew-title{background:linear-gradient(90deg,var(--accent),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent;}
+}
+
+/* HP sangat sempit */
+@media (max-width:360px){
+  .stat-card .stat-value{font-size:21px;}
+  .stat-card .stat-label{font-size:7.5px;}
+}

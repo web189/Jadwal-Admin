@@ -156,7 +156,7 @@ function waitForFirebase(cb, attempts = 0) {
 
 // ================= CLOSE LOADER =================
 function closeLoader() {
-  const MIN_MS = 5000;
+  const MIN_MS = window.__LOADER_MS || 5000;
   const elapsed = Date.now() - (window.__loaderStart || Date.now());
   const remaining = Math.max(0, MIN_MS - elapsed);
   setTimeout(() => {

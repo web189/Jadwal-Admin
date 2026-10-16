@@ -47,6 +47,7 @@
 <link rel="stylesheet" href="pro2026.css">
 <link rel="stylesheet" href="ultra2026.css">
 <link rel="stylesheet" href="desktop2026.css">
+<link rel="stylesheet" href="mobile2026.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 </head>
@@ -534,8 +535,11 @@ const V = "https://www.gstatic.com/firebasejs/10.12.0/";
 <!-- INLINE BOOT SCRIPT — intro 5 detik, ringan (progress via CSS + 1 penghitung persen) -->
 <script>
 window.__loaderStart = Date.now();
+/* Intro 5 detik hanya saat pertama dibuka; buka ulang/refresh dalam sesi yang sama cukup ~1,2 detik */
+window.__LOADER_MS = 5000;
+try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sessionStorage.setItem("ldSeen", "1"); } catch (e) {}
 (function() {
-  const MIN_MS = 5000;        /* lama loading screen minimal: 5 detik */
+  const MIN_MS = window.__LOADER_MS;  /* lama loading screen minimal */
   const FAILSAFE_MS = 9000;   /* jaring pengaman bila app.js gagal dimuat */
   const progEl = document.getElementById("loaderProgress");
   const textEl = document.getElementById("loaderText");
