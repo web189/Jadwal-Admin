@@ -179,7 +179,28 @@
         (showCarry ? '</ul><div class="crew-note">lanjutan dari semalam</div>' : '</ul>') + '</div>';
     });
     h += '</div>';
-    var off = g.OFF.concat(g.C);
+    /* Hari kerja berganti pukul 07:00 (shift Malam hari kemarin pulang 07:00). Pukul 00:00–07:00 status
+       "Libur / Cuti" masih milik KEMARIN (mis. BUDIYANSAH); baru setelah 07:00 diganti yang libur HARI INI. */
+    var off;
+    if (early) {
+      off = [];
+      if (carry) {
+        for (r = 0; r < rows.length; r++) {
+          var nm2 = rows[r].querySelector('.staff-cell span'), pc2 = rows[r].cells[idx - 1];
+          var ps = pc2 && pc2.getAttribute('data-shift');
+          if (nm2 && (ps === 'OFF' || ps === 'C')) off.push(nm2.textContent);
+        }
+      } else {                                   /* hari Senin: "kemarin" = Minggu minggu sebelumnya */
+        try {
+          var wk = parseInt(($('weekSelect') || {}).value, 10);
+          if (typeof window.getWeekRows === 'function' && wk - 1 >= 6) {
+            window.getWeekRows(wk - 1).forEach(function (rw) { if (rw.pattern[6] === 'OFF') off.push(rw.person.nama); });
+          }
+        } catch (e) {}
+      }
+    } else {
+      off = g.OFF.concat(g.C);
+    }
     if (off.length) h += '<div class="crew-off"><b>Libur / Cuti:</b> ' + off.map(esc).join(', ') + '</div>';
     h += '</div>';
     crewText = 'Jadwal Admin Gudang — ' + dayLong + '\n\n' +
