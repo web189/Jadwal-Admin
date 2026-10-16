@@ -45,6 +45,8 @@
 
   function show() {
     if (bar || !deferred || isStandalone() || snoozed()) return;
+    /* tombol "Instal Aplikasi" permanen sudah ada di menu — tidak perlu bar melayang */
+    if (document.getElementById('installAppBtn')) return;
     /* hanya tampil di layar lebar (komputer); di HP browser sudah punya menu sendiri */
     if (window.matchMedia && !window.matchMedia('(min-width: 800px)').matches) return;
 
@@ -81,6 +83,7 @@
   }
 
   /* bisa dipanggil dari tombol buatan sendiri di situs: onclick="pwaInstall()" */
+  window.pwaCanInstall = function () { return !!deferred; };
   window.pwaInstall = function () {
     if (!deferred) return false;
     var p = deferred; deferred = null; hide();

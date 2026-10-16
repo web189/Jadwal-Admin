@@ -46,6 +46,7 @@
 <link rel="stylesheet" href="ui2026.css">
 <link rel="stylesheet" href="pro2026.css">
 <link rel="stylesheet" href="ultra2026.css">
+<link rel="stylesheet" href="desktop2026.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 </head>
@@ -110,6 +111,7 @@
       Jadwal Admin Gudang
       <span class="header-badge">2026</span>
     </h1>
+    <button type="button" id="installHeaderBtn" class="install-chip" hidden><i class="fas fa-download"></i><span>Instal Aplikasi</span></button>
   </div>
 
   <div class="header-row-2">
@@ -150,11 +152,23 @@
 <!-- ===== HAMBURGER SLIDE-OUT MENU ===== -->
 <div id="hamburgerOverlay" class="hamburger-overlay"></div>
 <nav id="hamburgerMenu" class="hamburger-menu" aria-label="Menu utama">
+  <div class="sb-brand" aria-hidden="true">
+    <img src="icon-192.png" alt="" width="44" height="44">
+    <div class="sb-brand-text"><b>JADWAL ADMIN</b><span>Gudang &middot; 2026</span></div>
+  </div>
+  <div class="sb-status" aria-hidden="true"><i class="sb-dot"></i> Sistem aktif &middot; realtime</div>
   <div class="hmenu-header">
     <span class="hmenu-title"><i class="fas fa-sliders-h"></i> Menu</span>
     <button id="hamburgerCloseBtn" class="hmenu-close" aria-label="Tutup menu"><i class="fas fa-times"></i></button>
   </div>
   <div class="hmenu-body">
+    <div class="install-card" id="installCard" hidden>
+      <button type="button" id="installAppBtn" class="install-btn">
+        <span class="ib-ico"><i class="fas fa-download"></i></span>
+        <span class="ib-txt"><b>Instal Aplikasi</b><small id="installSub">Buka seperti aplikasi desktop</small></span>
+      </button>
+    </div>
+
     <div class="hmenu-sec">Tampilan</div>
     <div class="hmenu-group">
       <label class="hmenu-label" for="weekSelect"><i class="fas fa-calendar-week"></i> Pilih minggu</label>
@@ -188,7 +202,7 @@
       <i class="fas fa-arrow-up-right-from-square link-ext-icon" aria-hidden="true"></i>
     </a>
 
-    <div class="hmenu-foot"><span>Jadwal Admin Gudang 2026</span><span>Tutup: <kbd>Esc</kbd></span></div>
+    <div class="hmenu-foot"><span>Jadwal Admin Gudang 2026</span><span class="hf-esc">Tutup: <kbd>Esc</kbd></span></div>
   </div>
 </nav>
 
@@ -651,7 +665,22 @@ window.__loaderStart = Date.now();
 })();
 </script>
 
+<!-- ===== PANDUAN INSTAL APLIKASI ===== -->
+<div id="installHelp" class="inst-modal" hidden role="dialog" aria-modal="true" aria-labelledby="installHelpTitle">
+  <div class="inst-box">
+    <div class="inst-head">
+      <span class="inst-ico"><i class="fas fa-download"></i></span>
+      <div><h3 id="installHelpTitle">Instal Jadwal Admin</h3><p>Buka langsung dari desktop, tanpa membuka browser.</p></div>
+      <button type="button" id="installHelpClose" class="inst-x" aria-label="Tutup"><i class="fas fa-times"></i></button>
+    </div>
+    <ol class="inst-steps" id="installSteps"></ol>
+    <p class="inst-note" id="installNote"></p>
+    <button type="button" id="installHelpOk" class="install-btn inst-ok"><span class="ib-txt"><b>Mengerti</b></span></button>
+  </div>
+</div>
+
 <script src="pro2026.js" defer></script>
+<script src="desktop2026.js" defer></script>
 <script src="sakit2026.js" defer></script>
 <script src="notif-promo.js" defer></script>
 
