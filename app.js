@@ -106,6 +106,19 @@ const basePatternWithRian = [
 const RIAN_ROW_INDEX = 3;
 const ROTATING_ROW_INDEXES = [0, 1, 2, 4, 5];
 
+// Pola Week 44 dst (formasi terbaru) — berlaku seterusnya.
+//  - RIAN ARSYANSYAH (baris 3) tetap di posisi yang sama, libur hari Jumat.
+//  - Baris 4 (BUDIYANSAH di Week 44): libur Sabtu & Minggu.
+const FORMATION_WEEK_44 = 44;
+const basePatternWithRian44 = [
+  ["P",  "P",  "P",  "OFF","OFF","M",  "M"  ],  // baris 0
+  ["OFF","OFF","P",  "P",  "P",  "P",  "P"  ],  // baris 1
+  ["P",  "P",  "OFF","P",  "P",  "P",  "OFF"],  // baris 2
+  ["S",  "S",  "S",  "S",  "OFF","S",  "S"  ],  // baris 3 — RIAN (TETAP, libur Jumat)
+  ["S",  "S",  "S",  "S",  "S",  "OFF","OFF"],  // baris 4 — libur Sabtu & Minggu
+  ["M",  "M",  "M",  "M",  "M",  "OFF","OFF"]   // baris 5
+];
+
 const kegiatanDefault = [
   { nama: "KAMIL M NUR",     tugas: "Basmi sarang laba-laba, Arsip rapi sejajar, Lantai depan kinclong" },
   { nama: "RANDHIKA",        tugas: "Jalur loading bebas debu, Koridor licin berkilau, Sapu bersih tanpa sisa" },
@@ -471,7 +484,8 @@ function getWeekRows(weekNumber) {
     const staffOrder = getEffectiveStaffOrder(weekNumber);
     const rotation = (weekNumber - NEW_FORMAT_WEEK) % 5;
     const useNew = weekNumber >= RIAN_REVISION_WEEK;
-    const pat = useNew ? basePatternWithRian : basePatternWithRianOld;
+    const pat = weekNumber >= FORMATION_WEEK_44 ? basePatternWithRian44
+                : (useNew ? basePatternWithRian : basePatternWithRianOld);
     const rotRows = useNew ? ROTATING_ROW_INDEXES : ROTATING_ROW_INDEXES_OLD;
     const rianRow = useNew ? RIAN_ROW_INDEX : RIAN_ROW_INDEX_OLD;
     const tempRows = new Array(6);
