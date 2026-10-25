@@ -179,35 +179,28 @@
         (showCarry ? '</ul><div class="crew-note">lanjutan dari semalam</div>' : '</ul>') + '</div>';
     });
     h += '</div>';
-    /* Hari kerja berganti pukul 07:00 (shift Malam hari kemarin pulang 07:00). Pukul 00:00–07:00 status
-       "Libur / Cuti" masih milik KEMARIN (mis. BUDIYANSAH); baru setelah 07:00 diganti yang libur HARI INI. */
-    var off;
-    if (early) {
-      off = [];
-      if (carry) {
-        for (r = 0; r < rows.length; r++) {
-          var nm2 = rows[r].querySelector('.staff-cell span'), pc2 = rows[r].cells[idx - 1];
-          var ps = pc2 && pc2.getAttribute('data-shift');
-          if (nm2 && (ps === 'OFF' || ps === 'C')) off.push(nm2.textContent);
-        }
-      } else {                                   /* hari Senin: "kemarin" = Minggu minggu sebelumnya */
-        try {
-          var wk = parseInt(($('weekSelect') || {}).value, 10);
-          if (typeof window.getWeekRows === 'function' && wk - 1 >= 6) {
-            window.getWeekRows(wk - 1).forEach(function (rw) { if (rw.pattern[6] === 'OFF') off.push(rw.person.nama); });
-          }
-        } catch (e) {}
-      }
-    } else {
-      off = g.OFF.concat(g.C);
+    /* "Libur / Cuti" SELALU mengikuti tanggal HARI INI (kolom hari ini di tabel), termasuk dini hari
+       00:00–07:00. Orang yang bertugas hari ini tidak pernah masuk daftar ini. */
+    var off = g.OFF.concat(g.C);
+    var busy = g.P.concat(g.S, g.M);
+    var away = [];
+    g.OFF.forEach(function (n) { if (busy.indexOf(n) < 0) away.push({ n: n, t: 'libur' }); });
+    g.C.forEach(function (n) { if (busy.indexOf(n) < 0) away.push({ n: n, t: 'cuti' }); });
+    var LBL = { libur: 'LIBUR', cuti: 'CUTI', sakit: 'SAKIT' };
+    function initials(n) { var w = String(n).trim().split(/\s+/); return ((w[0] || '?').charAt(0) + (w.length > 1 ? w[1].charAt(0) : '')).toUpperCase(); }
+    if (away.length) {
+      h += '<div class="crew-away"><div class="away-head"><span class="away-title">TIDAK BERTUGAS</span><span class="away-count">' + away.length + '</span></div><div class="away-list">' +
+        away.map(function (a) {
+          return '<div class="away-chip ' + a.t + '"><span class="away-av">' + esc(initials(a.n)) + '</span><span class="away-name">' + esc(a.n) + '</span><span class="away-tag">' + LBL[a.t] + '</span></div>';
+        }).join('') + '</div></div>';
     }
-    if (off.length) h += '<div class="crew-off"><b>Libur / Cuti:</b> ' + off.map(esc).join(', ') + '</div>';
     h += '</div>';
     crewText = 'Jadwal Admin Gudang — ' + dayLong + '\n\n' +
       'Pagi (07:00): ' + (g.P.join(', ') || '-') + '\n' +
       'Sore (15:00): ' + (g.S.join(', ') || '-') + '\n' +
       'Malam (23:00): ' + (g.M.join(', ') || '-') + '\n' +
-      (off.length ? 'Libur/Cuti: ' + off.join(', ') + '\n' : '') +
+      (g.OFF.length ? 'Libur: ' + g.OFF.join(', ') + '\n' : '') +
+      (g.C.length ? 'Cuti: ' + g.C.join(', ') + '\n' : '') +
       '\n' + location.origin + location.pathname;
     crewEl.classList.toggle('collapsed', crewCollapsed);
     crewEl.setAttribute('data-unk', unk ? '1' : '0');

@@ -24,14 +24,27 @@
   function paint() {
     var el = $('todayCrew'); if (!el) return;
     var body = el.querySelector('.crew-body'); if (!body) return;
-    var old = el.querySelector('.crew-sick'); if (old) old.remove();
+    var old = el.querySelectorAll('.away-chip.sakit');
+    for (var k = 0; k < old.length; k++) old[k].remove();
     var lis = el.querySelectorAll('.crew-card li');
     for (var i = 0; i < lis.length; i++) lis[i].classList.toggle('is-sick', sick.indexOf(lis[i].textContent.trim()) > -1);
-    if (!sick.length) return;
-    var d = doc.createElement('div'); d.className = 'crew-sick';
-    d.innerHTML = '<b><i class="fas fa-notes-medical"></i> Sakit:</b> ' + sick.map(esc).join(', ');
-    body.appendChild(d);
+    var box = el.querySelector('.crew-away');
+    if (!sick.length) { if (box && !box.querySelector('.away-chip')) box.remove(); else if (box) cnt(box); return; }
+    if (!box) {
+      box = doc.createElement('div'); box.className = 'crew-away';
+      box.innerHTML = '<div class="away-head"><span class="away-title">TIDAK BERTUGAS</span><span class="away-count">0</span></div><div class="away-list"></div>';
+      body.appendChild(box);
+    }
+    var list = box.querySelector('.away-list');
+    sick.forEach(function (n) {
+      var w = String(n).trim().split(/\s+/), ini = ((w[0] || '?').charAt(0) + (w.length > 1 ? w[1].charAt(0) : '')).toUpperCase();
+      var c = doc.createElement('div'); c.className = 'away-chip sakit';
+      c.innerHTML = '<span class="away-av">' + esc(ini) + '</span><span class="away-name">' + esc(n) + '</span><span class="away-tag">SAKIT</span>';
+      list.appendChild(c);
+    });
+    cnt(box);
   }
+  function cnt(box) { var c = box.querySelector('.away-count'); if (c) c.textContent = box.querySelectorAll('.away-chip').length; }
   /* Tombol di menu KA Gudang (hanya tampil saat login) */
   var btn = doc.createElement('button');
   btn.id = 'sakitBtn'; btn.className = 'hmenu-btn hidden';
@@ -66,7 +79,7 @@
     function sync() { btn.classList.toggle('hidden', lo.classList.contains('hidden')); }
     if (lo) { sync(); new MutationObserver(sync).observe(lo, { attributes: true, attributeFilter: ['class'] }); }
     var tc = $('todayCrew');
-    new MutationObserver(function () { var e = $('todayCrew'); if (e && !e.querySelector('.crew-sick') && sick.length || (e && e.querySelector('.crew-card li.is-sick') === null && sick.length)) paint(); })
+    new MutationObserver(function () { var e = $('todayCrew'); if (e && sick.length && (!e.querySelector('.away-chip.sakit') || e.querySelector('.crew-card li.is-sick') === null)) paint(); })
       .observe(doc.body, { childList: true, subtree: true });
     var t = 0, iv = setInterval(function () { if (ready() || ++t > 40) { clearInterval(iv); load(); } }, 500);
     setInterval(load, 60000);
