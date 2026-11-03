@@ -26,9 +26,37 @@
     } catch (e) { return false; }
   }
 
+  /* banner instal untuk HP & tablet (di PC tombolnya ada di header & menu samping) */
+  var BKEY = 'instBannerDismissed', banner = null;
+  function bannerOk() {
+    try { var t = parseInt(localStorage.getItem(BKEY) || '0', 10); if (t && Date.now() - t < 3 * 864e5) return false; } catch (e) {}
+    return !!(window.matchMedia && window.matchMedia('(max-width:1099px)').matches);
+  }
+  function buildBanner() {
+    var hd = doc.getElementById('header') || doc.querySelector('header');
+    if (!hd || banner) return;
+    banner = doc.createElement('div');
+    banner.className = 'inst-banner';
+    banner.setAttribute('role', 'region');
+    banner.setAttribute('aria-label', 'Pasang aplikasi');
+    banner.innerHTML =
+      '<span class="ib-ic"><svg class="ic-dl" viewBox="0 0 24 24" aria-hidden="true"><g class="dl-arrow"><path d="M12 3.5v10.5"/><path d="M7.6 9.8 12 14.2l4.4-4.4"/></g><path d="M4.5 15.5v1.6A2.4 2.4 0 0 0 6.9 19.5h10.2a2.4 2.4 0 0 0 2.4-2.4v-1.6"/></svg></span>' +
+      '<span class="ib-tx"><b>Pasang Aplikasi</b><small>Cepat &amp; bisa dipakai offline</small></span>' +
+      '<button type="button" class="ib-go">Instal</button>' +
+      '<button type="button" class="ib-x" aria-label="Tutup">&times;</button>';
+    hd.parentNode.insertBefore(banner, hd.nextSibling);
+    banner.querySelector('.ib-go').addEventListener('click', onInstallClick);
+    banner.querySelector('.ib-x').addEventListener('click', function () {
+      try { localStorage.setItem(BKEY, String(Date.now())); } catch (e) {}
+      banner.hidden = true;
+    });
+  }
+
   function setVisible(show) {
     if (card) card.hidden = !show;
     if (chip) chip.hidden = !show;
+    if (show && bannerOk()) { buildBanner(); if (banner) banner.hidden = false; }
+    else if (banner) banner.hidden = true;
   }
 
   function refresh() {
@@ -36,6 +64,7 @@
     setVisible(true);
     var ready = !!(window.pwaCanInstall && window.pwaCanInstall());
     if (sub) sub.textContent = ready ? 'Klik untuk memasang sekarang' : 'Buka seperti aplikasi desktop';
+    if (banner && banner.classList) { if (ready) banner.classList.add('ready'); else banner.classList.remove('ready'); }
     if (btn.classList) { if (ready) btn.classList.add('ready'); else btn.classList.remove('ready'); }
     if (chip && chip.classList) { if (ready) chip.classList.add('ready'); else chip.classList.remove('ready'); }
   }

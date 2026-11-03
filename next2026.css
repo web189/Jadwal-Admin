@@ -1,0 +1,347 @@
+/* =====================================================================
+   next2026.css — lapisan tampilan "Aurora Glass" (dimuat PALING AKHIR)
+   ---------------------------------------------------------------------
+   • Warna shift di tabel (P / S / M / OFF / C) TIDAK disentuh sama sekali.
+   • Ringan: hanya gradient + border + shadow statis. Blur & animasi hanya
+     aktif di perangkat kuat (html:not(.lite)); Windows 7 / HP lemah otomatis
+     memakai mode ringan (class .lite dari index.html).
+   • Tanpa :has(), color-mix(), @layer, container query -> aman Chrome 109 (Win 7).
+   ===================================================================== */
+
+:root{
+  --n-b1:rgba(111,180,255,.60);
+  --n-b2:rgba(143,124,255,.10);
+  --n-b3:rgba(0,212,255,.38);
+  --n-bd:linear-gradient(150deg,var(--n-b1) 0%,var(--n-b2) 45%,var(--n-b3) 100%);
+  --n-card:linear-gradient(168deg,rgba(24,38,76,.92),rgba(10,17,38,.94));
+  --n-hi:rgba(255,255,255,.06);
+  --n-soft:rgba(127,150,200,.14);
+  --n-r:22px;
+  --n-spring:cubic-bezier(.22,1,.36,1);
+}
+body.formal-theme{
+  --n-b1:rgba(24,87,214,.50);
+  --n-b2:rgba(91,47,204,.10);
+  --n-b3:rgba(0,144,199,.38);
+  --n-card:linear-gradient(168deg,#ffffff,#f1f6ff);
+  --n-hi:rgba(255,255,255,.9);
+  --n-soft:rgba(60,90,150,.13);
+}
+
+/* ---------------------------------------------------------------------
+   1. LATAR — aurora + titik halus (statis)
+   --------------------------------------------------------------------- */
+body{
+  background:
+    radial-gradient(900px 520px at 10% -6%,rgba(47,125,255,.30),transparent 62%),
+    radial-gradient(760px 480px at 96% 2%,rgba(143,124,255,.22),transparent 62%),
+    radial-gradient(820px 520px at 62% 108%,rgba(0,212,255,.14),transparent 62%),
+    radial-gradient(rgba(150,180,255,.13) 1px,transparent 1.3px) 0 0/22px 22px,
+    var(--bg);
+  background-attachment:scroll;
+}
+body.formal-theme{
+  background:
+    radial-gradient(900px 520px at 8% -8%,rgba(24,87,214,.16),transparent 62%),
+    radial-gradient(760px 480px at 98% 0%,rgba(143,100,255,.13),transparent 62%),
+    radial-gradient(820px 520px at 60% 110%,rgba(0,170,220,.11),transparent 62%),
+    radial-gradient(rgba(24,87,214,.10) 1px,transparent 1.3px) 0 0/22px 22px,
+    var(--bg);
+  background-attachment:scroll;
+}
+html.lite body,html.lite body.formal-theme{background-attachment:scroll;}
+
+::selection{background:var(--accent);color:var(--accent-ink);}
+:focus-visible{outline:2px solid var(--accent-strong);outline-offset:2px;}
+body.formal-theme :focus-visible{outline-color:var(--accent);}
+
+/* ---------------------------------------------------------------------
+   2. HEADER — panel utama
+   --------------------------------------------------------------------- */
+header{
+  border:1px solid transparent;border-radius:26px;
+  background:
+    radial-gradient(520px 220px at 100% -20%,rgba(47,125,255,.34),transparent 65%),
+    radial-gradient(420px 200px at 0% 120%,rgba(0,212,255,.14),transparent 65%),
+    var(--n-card) padding-box,
+    var(--n-bd) border-box;
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.85),0 1px 0 var(--n-hi) inset;
+}
+body.formal-theme header{
+  background:
+    radial-gradient(520px 220px at 100% -20%,rgba(24,87,214,.16),transparent 65%),
+    var(--n-card) padding-box,
+    var(--n-bd) border-box;
+  box-shadow:0 24px 50px -32px rgba(16,40,100,.32),0 1px 0 #fff inset;
+}
+.glitch{letter-spacing:.04em;}
+.header-badge{
+  background:linear-gradient(135deg,var(--accent),var(--teal))!important;
+  color:#fff!important;border:0!important;
+  box-shadow:0 6px 16px -6px var(--accent);
+}
+.online-indicator{border-radius:999px;}
+.shift-indicator{
+  border:1px solid transparent;border-radius:18px;
+  background:
+    radial-gradient(360px 160px at 0% 50%,var(--accent-dim),transparent 70%),
+    linear-gradient(180deg,rgba(6,12,30,.72),rgba(10,18,40,.55)) padding-box,
+    var(--n-bd) border-box;
+  box-shadow:0 1px 0 var(--n-hi) inset;
+}
+body.formal-theme .shift-indicator{
+  background:
+    radial-gradient(360px 160px at 0% 50%,var(--accent-dim),transparent 70%),
+    linear-gradient(180deg,#fff,#f3f7ff) padding-box,
+    var(--n-bd) border-box;
+}
+.hamburger-btn,.hamburger-btn:hover{border-radius:14px;}
+
+/* ---------------------------------------------------------------------
+   3. KARTU STATISTIK — orb cahaya + garis gradient
+   --------------------------------------------------------------------- */
+#scheduleSection .stat-card{
+  position:relative;overflow:hidden;
+  border:1px solid transparent;border-radius:20px;
+  background:
+    radial-gradient(130px 90px at 100% 0%,var(--stat-tint,var(--accent-dim)),transparent 72%) padding-box,
+    var(--n-card) padding-box,
+    linear-gradient(150deg,var(--stat-color,var(--accent)),rgba(127,150,200,.10) 50%,var(--stat-color,var(--accent))) border-box;
+  box-shadow:0 18px 34px -26px var(--stat-color,var(--accent)),0 1px 0 var(--n-hi) inset;
+  transition:transform .25s var(--n-spring),box-shadow .25s;
+}
+#scheduleSection .stat-card::before{height:2px;opacity:.9;left:18%;right:18%;border-radius:0 0 4px 4px;}
+#scheduleSection .stat-card:hover{transform:translateY(-4px);box-shadow:0 22px 38px -22px var(--stat-color,var(--accent));}
+#scheduleSection .stat-value{letter-spacing:.02em;}
+.stat-icon{border-radius:14px;}
+
+/* ---------------------------------------------------------------------
+   4. PETUGAS HARI INI
+   --------------------------------------------------------------------- */
+.today-crew{
+  border:1px solid transparent!important;border-radius:var(--n-r)!important;
+  background:
+    radial-gradient(420px 160px at 0% 0%,var(--accent-dim),transparent 70%) padding-box,
+    var(--n-card) padding-box,
+    var(--n-bd) border-box!important;
+  box-shadow:0 26px 50px -34px rgba(0,0,0,.85),0 1px 0 var(--n-hi) inset!important;
+}
+.crew-card{
+  border-radius:16px;
+  background:
+    radial-gradient(140px 70px at 0% 0%,var(--n-soft),transparent 75%),
+    var(--surface-2);
+  border:1px solid var(--n-soft);
+  transition:transform .25s var(--n-spring),box-shadow .25s,border-color .25s;
+}
+.crew-card.active{border-color:var(--cc);}
+.crew-title{letter-spacing:.2em;}
+
+/* ---------------------------------------------------------------------
+   5. TICKER · PENCARIAN · NAVIGASI MINGGU — bentuk pil
+   --------------------------------------------------------------------- */
+.news-ticker{border-radius:999px;border:1px solid var(--n-soft);}
+.live-indicator{border-radius:999px 0 0 999px;}
+.staff-search-input{border-radius:999px;border:1px solid var(--n-soft);padding-left:46px;}
+.staff-search-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-dim),0 0 26px -8px var(--accent);}
+.quick-nav-row{border-radius:999px;border:1px solid var(--n-soft);padding:4px;}
+.quick-nav-btn{border-radius:50%;}
+
+/* ---------------------------------------------------------------------
+   6. TABEL JADWAL — hanya bingkai & garis; warna shift TETAP
+   --------------------------------------------------------------------- */
+.table-wrapper{
+  border:1px solid transparent;border-radius:var(--n-r);
+  background:var(--n-card) padding-box,var(--n-bd) border-box;
+  box-shadow:0 34px 60px -38px rgba(0,0,0,.9),0 1px 0 var(--n-hi) inset;
+}
+body.formal-theme .table-wrapper{box-shadow:0 26px 50px -34px rgba(16,40,100,.34);}
+.table-wrapper::before{height:2px;opacity:.9;}
+th{
+  font-size:10px;letter-spacing:.14em;
+  border-bottom:1px solid var(--border-strong);
+}
+th,td{border-bottom-color:var(--n-soft);}
+tbody tr:last-child td{border-bottom:0;}
+td.nama-cell{border-right-color:var(--n-soft);}
+.staff-avatar{box-shadow:0 0 0 2px var(--surface-2),0 0 0 3.5px rgba(111,180,255,.55);}
+body.formal-theme .staff-avatar{box-shadow:0 0 0 2px #fff,0 0 0 3.5px rgba(24,87,214,.45);}
+.today-tag{border-radius:999px;padding:2px 8px;font-size:7.5px;}
+th.today-col{box-shadow:inset 0 3px 0 var(--accent);}
+td.today-col{box-shadow:inset 1.5px 0 0 var(--accent),inset -1.5px 0 0 var(--accent),inset 0 0 22px -8px var(--accent);}
+
+/* ---------------------------------------------------------------------
+   7. LEGENDA · PROGRESS · KEGIATAN · FOOTER
+   --------------------------------------------------------------------- */
+.legend-bar{border-radius:18px;border:1px solid var(--n-soft);}
+.legend-badge{letter-spacing:.02em;}
+.week-progress-bar{height:10px;border-radius:999px;}
+.week-progress-fill{border-radius:999px;}
+.kegiatan-section{
+  border:1px solid transparent!important;border-radius:var(--n-r)!important;
+  background:var(--n-card) padding-box,var(--n-bd) border-box!important;
+  box-shadow:0 24px 46px -34px rgba(0,0,0,.85);overflow:hidden;
+}
+.kegiatan-header-bar{background:transparent;}
+footer.cyber-signature{
+  border:1px solid transparent!important;border-radius:var(--n-r)!important;
+  background:var(--n-card) padding-box,var(--n-bd) border-box!important;
+}
+
+/* ---------------------------------------------------------------------
+   8. MENU SAMPING (PC) & MENU GESER (HP)
+   --------------------------------------------------------------------- */
+.hamburger-menu{
+  background:
+    radial-gradient(420px 220px at 0% 0%,rgba(47,125,255,.22),transparent 70%),
+    linear-gradient(180deg,var(--bg-elevated),var(--bg));
+}
+.sb-brand img{border-radius:15px;}
+.hmenu-btn{transition:background .18s,border-color .18s,transform .18s var(--n-spring),box-shadow .18s;}
+.hmenu-btn:hover{transform:translateX(3px);}
+.hmenu-sec{letter-spacing:.2em;}
+
+/* ---------------------------------------------------------------------
+   9. CHAT FAB & TOMBOL ATAS
+   --------------------------------------------------------------------- */
+.chat-fab{box-shadow:0 14px 30px -10px var(--accent),0 0 0 1px rgba(255,255,255,.14) inset;}
+#scrollTopBtn{border-radius:14px;}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;}
+}
+
+/* =====================================================================
+   PC (>= 1100px)
+   ===================================================================== */
+@media (min-width:1100px){
+  header{padding:22px 32px;margin-bottom:20px;}
+  .cyber-clock .ck-time{font-size:34px;}
+  #scheduleSection{gap:20px;}
+  #scheduleSection .stat-card{padding:20px 22px 18px 20px;}
+  #scheduleSection .stat-value{font-size:46px;}
+  th{padding:18px 6px 15px;}
+  td{height:64px;}
+  td.nama-cell{font-size:14.5px;}
+  .hmenu-btn:hover{box-shadow:inset 3px 0 0 var(--accent);}
+}
+
+/* =====================================================================
+   HP (<= 768px) — aplikasi native-feel
+   ===================================================================== */
+@media (max-width:768px){
+  body{padding:12px 12px 112px;}
+  header{border-radius:24px;padding:14px;}
+  #scheduleSection .stat-card,
+  #scheduleSection .stat-card.stat-off,
+  #scheduleSection .stat-card.stat-total{border-radius:16px;}
+  .table-wrapper{border-radius:20px;}
+  .today-crew{border-radius:22px!important;}
+  .news-ticker{height:40px;}
+
+  /* dock bawah: kaca melayang */
+  .mobile-bottom-nav{
+    left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));
+    border-radius:26px;padding:7px;border:1px solid transparent;
+    background:linear-gradient(180deg,rgba(26,40,80,.92),rgba(9,15,34,.96)) padding-box,var(--n-bd) border-box;
+    box-shadow:0 18px 38px -12px rgba(0,0,0,.85),0 1px 0 var(--n-hi) inset;
+  }
+  body.formal-theme .mobile-bottom-nav{
+    background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(240,246,255,.96)) padding-box,var(--n-bd) border-box;
+    box-shadow:0 16px 34px -12px rgba(16,40,100,.35);
+  }
+  .mobile-nav-item{border-radius:18px;padding:7px 2px;position:relative;transition:background .2s,transform .2s var(--n-spring);}
+  .mobile-nav-item:active{transform:scale(.92);}
+  .mobile-nav-item.active{
+    background:linear-gradient(160deg,var(--accent-dim),rgba(0,212,255,.10));
+    box-shadow:0 0 0 1px var(--accent) inset,0 8px 18px -10px var(--accent);
+  }
+  .mobile-nav-item span{font-size:9.5px;font-weight:700;letter-spacing:.01em;}
+  .chat-fab{bottom:96px;right:14px;}
+  #scrollTopBtn{bottom:152px;}
+}
+@media (max-width:360px){
+  .mobile-nav-item span{font-size:8.5px;}
+}
+
+/* =====================================================================
+   MODE HEMAT — dibuat agar website terasa ringan di semua perangkat
+   Membuang semua efek yang membuat GPU/CPU bekerja terus-menerus.
+   Yang dipertahankan: ticker LIVE, titik LIVE, loading screen.
+   ===================================================================== */
+/* 1. tanpa blur kaca (sangat berat di HP & PC lama) */
+*,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+/* 2. tanpa bayangan-filter (drop-shadow) */
+.glitch,.shift-gauge,.mobile-nav-item i{filter:none!important;}
+/* 3. latar bergerak & garis menyapu dimatikan */
+body::after{display:none!important;animation:none!important;}
+header::before,.table-wrapper::before,.week-progress-fill::after,
+.online-dot::after,.chat-fab::after,.stat-card::after,.crew-card::after,.kegiatan-card::after{animation:none!important;}
+header::after{display:none;}
+.crew-card.active,.shift-gauge,.chat-badge.pulse,.sync-chip i,.staff-avatar.on-duty::after{animation:none!important;}
+.crew-card.active{box-shadow:0 0 0 1px var(--cc) inset;}
+/* 4. hover cukup ganti warna, tanpa mengangkat kartu */
+#scheduleSection .stat-card:hover,.crew-card:hover{transform:none;}
+/* 5. bayangan besar -> kecil (cat ulang lebih cepat) */
+header,.today-crew,.table-wrapper,.kegiatan-section,
+#scheduleSection .stat-card{box-shadow:0 1px 0 var(--n-hi) inset,0 8px 18px -12px rgba(0,0,0,.6)!important;}
+.mobile-bottom-nav{box-shadow:0 8px 18px -8px rgba(0,0,0,.7)!important;}
+.chat-fab{box-shadow:0 6px 14px -6px var(--accent)!important;}
+/* 6. kartu di luar layar tidak dirender sampai didekati */
+.kegiatan-section,footer.cyber-signature,.legend-bar,.week-progress-wrap{content-visibility:auto;contain-intrinsic-size:auto 140px;}
+
+/* =====================================================================
+   TOMBOL INSTAL MODERN (ikon SVG) · BANNER HP · PIL OFFLINE
+   ===================================================================== */
+.ic-dl{width:1.3em;height:1.3em;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+@keyframes dlBob{0%,100%{transform:translateY(0);}50%{transform:translateY(2.4px);}}
+.ready .dl-arrow{animation:dlBob 1.5s ease-in-out infinite;}
+html.lite .dl-arrow{animation:none!important;}
+
+/* chip header (PC) */
+.install-chip{
+  gap:8px;padding:7px 14px 7px 8px;border-radius:999px;border:0;white-space:nowrap;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--teal));
+  box-shadow:0 6px 16px -8px var(--accent),0 0 0 1px rgba(255,255,255,.18) inset;
+}
+.install-chip:hover{background:linear-gradient(135deg,var(--accent-strong),var(--teal));color:#fff;transform:translateY(-1px);}
+.install-chip .ic-dl{width:20px;height:20px;padding:3px;border-radius:50%;background:rgba(255,255,255,.22);box-sizing:content-box;}
+body.formal-theme .install-chip{color:#fff;}
+@media (min-width:1100px){.glitch{font-size:clamp(22px,2vw,34px);}}
+/* kartu di menu */
+.install-btn .ib-ico{border-radius:13px;background:rgba(255,255,255,.3);}
+.install-btn .ib-ico .ic-dl{width:22px;height:22px;stroke-width:2.4;}
+.inst-ico .ic-dl{width:24px;height:24px;}
+
+/* banner HP / tablet */
+.inst-banner{
+  display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:10px 10px 10px 12px;border-radius:20px;
+  border:1px solid transparent;
+  background:linear-gradient(135deg,rgba(47,125,255,.22),rgba(0,212,255,.10)) padding-box,var(--n-bd) border-box;
+  color:var(--text);
+}
+body.formal-theme .inst-banner{background:linear-gradient(135deg,rgba(24,87,214,.10),rgba(0,144,199,.07)) padding-box,var(--n-bd) border-box;}
+.inst-banner[hidden]{display:none;}
+.inst-banner .ib-ic{
+  flex:none;width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--teal));box-shadow:0 6px 14px -6px var(--accent);
+}
+.inst-banner .ib-ic .ic-dl{width:22px;height:22px;stroke-width:2.4;}
+.inst-banner .ib-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.inst-banner .ib-tx b{font:700 14px/1.2 var(--font-display,"Segoe UI",Arial,sans-serif);}
+.inst-banner .ib-tx small{font-size:11.5px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inst-banner .ib-go{
+  flex:none;padding:9px 18px;border:0;border-radius:999px;cursor:pointer;font:700 13px/1 var(--font-display,"Segoe UI",Arial,sans-serif);
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--teal));box-shadow:0 6px 14px -8px var(--accent);
+}
+.inst-banner .ib-go:active{transform:scale(.95);}
+.inst-banner .ib-x{flex:none;width:30px;height:30px;border:0;border-radius:50%;cursor:pointer;font-size:20px;line-height:1;color:var(--text-dim);background:transparent;}
+.inst-banner .ib-x:hover{background:var(--n-soft);}
+
+/* pil status offline */
+@media (min-width:769px){.net-pill{bottom:20px;}}
+.net-pill{
+  position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:100001;max-width:calc(100% - 24px);
+  padding:8px 16px;border-radius:999px;font:700 12px/1.2 var(--font-display,"Segoe UI",Arial,sans-serif);text-align:center;
+  color:#3a2600;background:linear-gradient(135deg,#FFD25A,#FFAE00);box-shadow:0 8px 20px -8px rgba(0,0,0,.6);
+}

@@ -3,13 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Jadwal Admin Gudang 2026 - Sistem Manajemen Jadwal</title>
-<meta name="description" content="Website manajemen jadwal admin gudang — monitoring shift, pembagian tugas, dan serah terima secara efisien.">
-<meta property="og:title" content="Jadwal Admin Gudang 2026">
-<meta property="og:description" content="Sistem jadwal Admin Gudang terintegrasi berbasis cyber interface.">
-<meta property="og:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg">
-<meta name="theme-color" content="#070B18">
-<link rel="icon" href="favicon.png">
+<title>Jadwal Admin Gudang 2026 — Praktis, Teratur, dan Efisien</title>
+<meta name="description" content="Pantau shift Pagi, Sore &amp; Malam, serah terima, dan tugas kebersihan secara realtime. Bisa dipasang seperti aplikasi dan tetap jalan saat offline.">
+<link rel="canonical" href="https://web189.github.io/Jadwal-Admin/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jadwal Admin Gudang 2026">
+<meta property="og:locale" content="id_ID">
+<meta property="og:url" content="https://web189.github.io/Jadwal-Admin/">
+<meta property="og:title" content="Jadwal Admin Gudang 2026 — Praktis, Teratur, dan Efisien">
+<meta property="og:description" content="Cek jadwal shift, serah terima & tugas harian admin gudang dalam satu tampilan. Realtime, bisa dipasang di HP & PC, tetap bisa dibuka offline.">
+<meta property="og:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg?v=3">
+<meta property="og:image:secure_url" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg?v=3">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:image:alt" content="Jadwal Admin — Sistem Manajemen Jadwal &amp; Tugas Admin">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Jadwal Admin Gudang 2026 — Praktis, Teratur, dan Efisien">
+<meta name="twitter:description" content="Cek jadwal shift, serah terima & tugas harian admin gudang. Realtime, bisa dipasang di HP & PC, tetap jalan saat offline.">
+<meta name="twitter:image" content="https://web189.github.io/Jadwal-Admin/img/preview.jpg?v=3">
+<meta name="theme-color" content="#0A1F4A">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 
 <!-- PWA Manifest & Icons -->
 <link rel="manifest" href="manifest.json">
@@ -48,12 +63,13 @@
 <link rel="stylesheet" href="ultra2026.css">
 <link rel="stylesheet" href="desktop2026.css">
 <link rel="stylesheet" href="mobile2026.css">
+<link rel="stylesheet" href="next2026.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 </head>
 <body class="formal-theme">
 
-<!-- ===== LOADING SCREEN (5 detik) ===== -->
+<!-- ===== LOADING SCREEN (4 detik) ===== -->
 <div id="cyberLoader" role="status" aria-live="polite">
   <div class="ld-grid" aria-hidden="true"></div>
   <div class="loader-content">
@@ -112,7 +128,7 @@
       Jadwal Admin Gudang
       <span class="header-badge">2026</span>
     </h1>
-    <button type="button" id="installHeaderBtn" class="install-chip" hidden><i class="fas fa-download"></i><span>Instal Aplikasi</span></button>
+    <button type="button" id="installHeaderBtn" class="install-chip" hidden><svg class="ic-dl" viewBox="0 0 24 24" aria-hidden="true"><g class="dl-arrow"><path d="M12 3.5v10.5"/><path d="M7.6 9.8 12 14.2l4.4-4.4"/></g><path d="M4.5 15.5v1.6A2.4 2.4 0 0 0 6.9 19.5h10.2a2.4 2.4 0 0 0 2.4-2.4v-1.6"/></svg><span>Instal Aplikasi</span></button>
   </div>
 
   <div class="header-row-2">
@@ -165,7 +181,7 @@
   <div class="hmenu-body">
     <div class="install-card" id="installCard" hidden>
       <button type="button" id="installAppBtn" class="install-btn">
-        <span class="ib-ico"><i class="fas fa-download"></i></span>
+        <span class="ib-ico"><svg class="ic-dl" viewBox="0 0 24 24" aria-hidden="true"><g class="dl-arrow"><path d="M12 3.5v10.5"/><path d="M7.6 9.8 12 14.2l4.4-4.4"/></g><path d="M4.5 15.5v1.6A2.4 2.4 0 0 0 6.9 19.5h10.2a2.4 2.4 0 0 0 2.4-2.4v-1.6"/></svg></span>
         <span class="ib-txt"><b>Instal Aplikasi</b><small id="installSub">Buka seperti aplikasi desktop</small></span>
       </button>
     </div>
@@ -508,6 +524,25 @@ const firebaseConfig = {
 };
 
 const V = "https://www.gstatic.com/firebasejs/10.12.0/";
+
+/* ===== MODE OFFLINE: data Firebase terakhir disimpan di HP/PC ===== */
+const CK = "fbc1:";
+const ckey = (r) => CK + String(r).replace(/^https?:\/\/[^/]+\/?/, "");
+const cached = (r) => {
+  let v = null;
+  try { const t = localStorage.getItem(ckey(r)); if (t) v = JSON.parse(t); } catch (e) {}
+  return { exists: () => v !== null && v !== undefined, val: () => v, __offline: true };
+};
+const store = (r, s) => {
+  try {
+    const v = s.val();
+    if (v === null || v === undefined) { localStorage.removeItem(ckey(r)); return; }
+    const j = JSON.stringify(v);
+    if (j.length < 150000) localStorage.setItem(ckey(r), j);
+  } catch (e) {}
+};
+window.__offlineGet = cached;
+
 (async () => {
   try {
     const [appMod, dbMod] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-database.js")]);
@@ -515,8 +550,14 @@ const V = "https://www.gstatic.com/firebasejs/10.12.0/";
     window.db = dbMod.getDatabase(app);
     window.firebaseRef = dbMod.ref;
     window.firebaseSet = dbMod.set;
-    window.firebaseGet = dbMod.get;
     window.firebaseRemove = dbMod.remove;
+    const rawGet = dbMod.get;
+    window.firebaseGet = (r) => {
+      if (navigator.onLine === false) return Promise.resolve(cached(r));
+      return Promise.race([rawGet(r), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 8000))])
+        .then((s) => { store(r, s); return s; })
+        .catch((err) => { const c = cached(r); if (c.exists()) return c; throw err; });
+    };
     window.firebaseReady = true;
 
     // Firebase Auth (berat) hanya dimuat setelah halaman tampil / saat login
@@ -528,19 +569,25 @@ const V = "https://www.gstatic.com/firebasejs/10.12.0/";
       window.onAuthStateChangedFirebase = m.onAuthStateChanged;
       window.dispatchEvent(new Event("firebase-auth-ready"));
     }));
-  } catch (err) { console.error("Firebase gagal dimuat:", err); }
+  } catch (err) {
+    console.error("Firebase gagal dimuat (mode offline):", err);
+    window.db = {}; window.firebaseRef = (d, p) => p;
+    window.firebaseGet = (r) => Promise.resolve(cached(r));
+    window.firebaseSet = window.firebaseRemove = () => Promise.reject(new Error("offline"));
+    window.firebaseReady = true; window.__fbOffline = true;
+  }
 })();
 </script>
 
-<!-- INLINE BOOT SCRIPT — intro 5 detik, ringan (progress via CSS + 1 penghitung persen) -->
+<!-- INLINE BOOT SCRIPT — intro 4 detik, ringan (progress via CSS + 1 penghitung persen) -->
 <script>
 window.__loaderStart = Date.now();
-/* Intro 5 detik hanya saat pertama dibuka; buka ulang/refresh dalam sesi yang sama cukup ~1,2 detik */
-window.__LOADER_MS = 5000;
+/* Intro 4 detik hanya saat pertama dibuka; buka ulang/refresh dalam sesi yang sama cukup ~1,2 detik */
+window.__LOADER_MS = 4000;
 try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sessionStorage.setItem("ldSeen", "1"); } catch (e) {}
 (function() {
   const MIN_MS = window.__LOADER_MS;  /* lama loading screen minimal */
-  const FAILSAFE_MS = 9000;   /* jaring pengaman bila app.js gagal dimuat */
+  const FAILSAFE_MS = 7000;   /* jaring pengaman bila app.js gagal dimuat */
   const progEl = document.getElementById("loaderProgress");
   const textEl = document.getElementById("loaderText");
   const liquidEl = document.getElementById("loaderLiquid");
@@ -551,7 +598,7 @@ try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sess
   if (progEl) requestAnimationFrame(() => { progEl.style.transitionDuration = MIN_MS + "ms"; progEl.style.width = "100%"; });
   if (liquidEl) requestAnimationFrame(() => { liquidEl.style.transitionDuration = MIN_MS + "ms"; liquidEl.style.height = "100%"; });
 
-  /* persen + teks status + langkah, semuanya mengikuti waktu 5 detik */
+  /* persen + teks status + langkah, semuanya mengikuti waktu 4 detik */
   let lastMsg = -1, lastStep = -1, rafId = 0;
   function tick() {
     const t = Math.min(1, (Date.now() - window.__loaderStart) / MIN_MS);
@@ -568,7 +615,7 @@ try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sess
   window.__finishLoader = function() {
     const loader = document.getElementById("cyberLoader");
     if (!loader || loader.dataset.closed) return;
-    /* jangan pernah menutup sebelum 5 detik penuh */
+    /* jangan pernah menutup sebelum 4 detik penuh */
     const wait = Math.max(0, MIN_MS - (Date.now() - window.__loaderStart));
     if (wait > 0) { setTimeout(window.__finishLoader, wait); return; }
     loader.dataset.closed = "1";
@@ -673,7 +720,7 @@ try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sess
 <div id="installHelp" class="inst-modal" hidden role="dialog" aria-modal="true" aria-labelledby="installHelpTitle">
   <div class="inst-box">
     <div class="inst-head">
-      <span class="inst-ico"><i class="fas fa-download"></i></span>
+      <span class="inst-ico"><svg class="ic-dl" viewBox="0 0 24 24" aria-hidden="true"><g class="dl-arrow"><path d="M12 3.5v10.5"/><path d="M7.6 9.8 12 14.2l4.4-4.4"/></g><path d="M4.5 15.5v1.6A2.4 2.4 0 0 0 6.9 19.5h10.2a2.4 2.4 0 0 0 2.4-2.4v-1.6"/></svg></span>
       <div><h3 id="installHelpTitle">Instal Jadwal Admin</h3><p>Buka langsung dari desktop, tanpa membuka browser.</p></div>
       <button type="button" id="installHelpClose" class="inst-x" aria-label="Tutup"><i class="fas fa-times"></i></button>
     </div>

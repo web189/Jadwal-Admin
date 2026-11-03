@@ -3,7 +3,8 @@
    Fungsi:
    1) Memenuhi syarat PWA supaya bisa di-"Install" seperti WhatsApp Web
       (Chrome/Edge di Windows 7 s.d. versi 109 juga mendukung).
-   2) Tetap bisa dibuka walau internet putus (tampilan terakhir dipakai).
+   2) Tetap bisa dibuka walau internet putus (tampilan & data terakhir dipakai).
+   4) Saat online lagi, versi terbaru otomatis diunduh & dipasang (lihat pwa.js).
    3) TIDAK menyentuh data Firebase/API — semua tetap langsung ke server,
       jadi data realtime tidak pernah "basi".
    Strategi:
@@ -14,9 +15,11 @@
    ============================================================ */
 'use strict';
 
-var CACHE_VERSION = '2026-10-26.1';
+/* >>> NAIKKAN angka ini setiap kali Anda mengunggah perubahan ke GitHub.
+   Semua pengguna otomatis mendapat versi baru saat online. <<< */
+var CACHE_VERSION = '2026-11-04.2';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
-var CDN_CACHE = 'jadwal-admin-cdn-' + CACHE_VERSION;
+var CDN_CACHE = 'jadwal-admin-cdn-v1';   /* pustaka CDN tidak perlu diunduh ulang tiap versi */
 
 /* File inti yang di-cache saat pemasangan (relatif terhadap lokasi sw.js) */
 var PRECACHE = [
@@ -25,6 +28,9 @@ var PRECACHE = [
   "manifest.json",
   "icon-192.png",
   "icon-512.png",
+  "icon-maskable-192.png",
+  "icon-maskable-512.png",
+  "index.html",
   "apple-touch-icon.png",
   "style.css",
   "ui2026.css",
@@ -34,6 +40,7 @@ var PRECACHE = [
   "desktop2026.css",
   "desktop2026.js",
   "mobile2026.css",
+  "next2026.css",
   "sakit2026.js",
   "app.js",
   "notif-promo.js",
@@ -55,6 +62,10 @@ self.addEventListener('install', function (event) {
       }));
     }).then(function () { return self.skipWaiting(); })
   );
+});
+
+self.addEventListener('message', function (e) {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', function (event) {

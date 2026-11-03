@@ -12,14 +12,66 @@
   var KEY = 'pwaInstallDismissed:' + location.pathname;
   var SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 
-  /* ---- 1. Service worker ---- */
+  /* ---- 1. Service worker + UPDATE OTOMATIS + indikator offline ---- */
+  var hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+  var reloading = false;
+
+  function toast(msg, type) {
+    try { if (typeof window.showToast === 'function') { window.showToast(msg, type || 'info', 3500); return; } } catch (e) {}
+  }
+  function busy() {   /* jangan reload saat pengguna sedang mengetik / membuka jendela */
+    var a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+    return !!document.querySelector('.modal.active');
+  }
+  function reloadNow() { if (reloading) return; reloading = true; location.reload(); }
+  function applyUpdate() {
+    toast('Versi terbaru terpasang, memuat ulang\u2026', 'success');
+    var tries = 0;
+    (function go() { if (busy() && tries++ < 20) return setTimeout(go, 3000); setTimeout(reloadNow, 900); })();
+  }
+
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (hadController) applyUpdate();      /* kunjungan pertama: tidak perlu reload */
+    });
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function (err) {
+      navigator.serviceWorker.register('sw.js').then(function (reg) {
+        var check = function () { if (navigator.onLine !== false) reg.update().catch(function () {}); };
+        check();
+        setInterval(check, 30 * 60 * 1000);
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        window.addEventListener('online', check);
+      }).catch(function (err) {
         if (window.console) console.warn('[PWA] service worker gagal didaftarkan:', err);
       });
     });
   }
+
+  /* pil status offline + sinkron otomatis saat kembali online */
+  var pill = null;
+  function setPill(off) {
+    if (off && !pill) {
+      pill = document.createElement('div');
+      pill.className = 'net-pill';
+      pill.setAttribute('role', 'status');
+      pill.textContent = 'Mode offline \u00b7 menampilkan data tersimpan terakhir';
+      document.body.appendChild(pill);
+    } else if (!off && pill) { pill.parentNode && pill.parentNode.removeChild(pill); pill = null; }
+  }
+  function resync() {
+    if (window.__fbOffline) { reloadNow(); return; }       /* Firebase belum sempat dimuat -> muat ulang */
+    try {
+      var w = parseInt((document.getElementById('weekSelect') || {}).value || 0, 10);
+      if (w && typeof window.renderSchedule === 'function') window.renderSchedule(w);
+      if (typeof window.loadSerahTerima === 'function') window.loadSerahTerima();
+      if (typeof window.loadKegiatan === 'function') window.loadKegiatan();
+    } catch (e) {}
+    toast('Kembali online \u2014 data diperbarui', 'success');
+  }
+  window.addEventListener('offline', function () { setPill(true); });
+  window.addEventListener('online', function () { setPill(false); setTimeout(resync, 600); });
+  if (navigator.onLine === false) { if (document.body) setPill(true); else document.addEventListener('DOMContentLoaded', function () { setPill(true); }); }
 
   /* ---- 2. Tombol pasang ---- */
   var deferred = null;
