@@ -17,7 +17,7 @@
 
 /* >>> NAIKKAN angka ini setiap kali Anda mengunggah perubahan ke GitHub.
    Semua pengguna otomatis mendapat versi baru saat online. <<< */
-var CACHE_VERSION = '2026-11-04.3';
+var CACHE_VERSION = '2026-11-04.5';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
 var CDN_CACHE = 'jadwal-admin-cdn-v1';   /* pustaka CDN tidak perlu diunduh ulang tiap versi */
 

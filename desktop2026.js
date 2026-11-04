@@ -97,6 +97,41 @@
              n: 'Windows 7 didukung sampai Chrome 109. Setelah terpasang, aplikasi terbuka di jendela sendiri.' };
   }
 
+
+  /* ---------- diagnosa: kenapa dialog instal belum muncul ---------- */
+  function runDiag() {
+    var ul = $('installDiag'); if (!ul) return;
+    var rows = [];
+    function add(ok, text) { rows.push('<li class="' + (ok === null ? 'dg-w' : ok ? 'dg-ok' : 'dg-no') + '"><i>' + (ok === null ? '!' : ok ? '✓' : '✕') + '</i><span>' + text + '</span></li>'); }
+    function paint() { ul.innerHTML = rows.join(''); }
+    var desktopMode = !/Android|iPhone|iPad|iPod/.test(ua) && (navigator.maxTouchPoints || 0) > 0;
+    var secure = location.protocol === 'https:' || location.hostname === 'localhost';
+    add(secure, 'Alamat aman (HTTPS)');
+    if (desktopMode) add(false, 'Chrome HP sedang mode <b>Situs desktop</b> — matikan di menu ⋮, lalu muat ulang');
+    add(!(window.pwaIsInstalled && window.pwaIsInstalled() && !standalone()) ? true : null, (window.pwaIsInstalled && window.pwaIsInstalled()) ? 'Tercatat sudah pernah terpasang di perangkat ini' : 'Belum tercatat terpasang');
+    add(!!(window.pwaCanInstall && window.pwaCanInstall()), 'Chrome mengirim izin instal' + ((window.pwaCanInstall && window.pwaCanInstall()) ? '' : ' — belum diterima'));
+    paint();
+    var p = [];
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+      p.push(navigator.serviceWorker.getRegistration().then(function (r) {
+        add(!!(r && r.active), 'Service worker ' + (r && r.active ? 'aktif' : 'belum aktif — muat ulang halaman 1–2 kali'));
+      }).catch(function () {}));
+    } else add(false, 'Browser tidak mendukung service worker');
+    var ml = doc.querySelector('link[rel="manifest"]');
+    if (ml && window.fetch) {
+      p.push(fetch(ml.href, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (m) {
+        var s = {}; (m.icons || []).forEach(function (i) { s[i.sizes] = 1; });
+        add(!!(s['192x192'] && s['512x512'] && m.start_url && m.display === 'standalone'), 'Manifest & ikon 192/512 valid');
+      }).catch(function () { add(false, 'Manifest gagal dimuat'); }));
+    }
+    if (navigator.getInstalledRelatedApps) {
+      p.push(navigator.getInstalledRelatedApps().then(function (a) {
+        add(a && a.length ? null : true, a && a.length ? 'Aplikasi SUDAH terpasang — buka dari layar utama / daftar aplikasi' : 'Belum ada aplikasi terpasang');
+      }).catch(function () {}));
+    }
+    if (window.Promise) Promise.all(p).then(paint);
+  }
+
   function openHelp(installed) {
     if (!modal) return;
     var d = steps(), html = '', i;
@@ -110,6 +145,7 @@
     $('installSteps').innerHTML = html;
     $('installNote').textContent = d.n;
     modal.hidden = false;
+    try { runDiag(); } catch (e) {}
     var ok = $('installHelpOk'); if (ok && ok.focus) ok.focus();
   }
   function closeHelp() { if (modal) modal.hidden = true; }

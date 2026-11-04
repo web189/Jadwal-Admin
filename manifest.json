@@ -73,5 +73,11 @@
       "form_factor": "narrow",
       "label": "Jadwal dan petugas shift di HP"
     }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://web189.github.io/Jadwal-Admin/manifest.json"
+    }
   ]
 }

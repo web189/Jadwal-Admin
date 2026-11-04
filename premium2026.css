@@ -248,3 +248,12 @@ html:not(.lite) .week-progress-fill::after{
 /* mode ringan (Windows lama / HP lemah): tanpa gradasi teks & garis ekstra */
 html.lite .table-wrapper::after{display:none;}
 html.lite .shift-indicator::before,html.lite .shift-indicator::after{display:none;}
+
+/* diagnosa pemasangan (di dalam dialog panduan) */
+.inst-diag{list-style:none;margin:0 0 14px;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.4;color:var(--text-dim);}
+.inst-diag:empty{display:none;}
+.inst-diag li{display:flex;gap:8px;align-items:flex-start;}
+.inst-diag i{flex:none;width:16px;height:16px;border-radius:50%;font:700 10px/16px var(--font-mono,monospace);font-style:normal;text-align:center;color:#04122E;}
+.inst-diag .dg-ok i{background:var(--green);}
+.inst-diag .dg-no i{background:var(--red);}
+.inst-diag .dg-w i{background:var(--amber);}

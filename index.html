@@ -588,9 +588,8 @@ window.__offlineGet = cached;
 <!-- INLINE BOOT SCRIPT — intro 4 detik, ringan (progress via CSS + 1 penghitung persen) -->
 <script>
 window.__loaderStart = Date.now();
-/* Intro 4 detik hanya saat pertama dibuka; buka ulang/refresh dalam sesi yang sama cukup ~1,2 detik */
+/* Loading screen SELALU 4 detik, setiap kali halaman dibuka */
 window.__LOADER_MS = 4000;
-try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sessionStorage.setItem("ldSeen", "1"); } catch (e) {}
 (function() {
   const MIN_MS = window.__LOADER_MS;  /* lama loading screen minimal */
   const FAILSAFE_MS = 7000;   /* jaring pengaman bila app.js gagal dimuat */
@@ -732,6 +731,7 @@ try { if (sessionStorage.getItem("ldSeen")) window.__LOADER_MS = 1200; else sess
     </div>
     <ol class="inst-steps" id="installSteps"></ol>
     <p class="inst-note" id="installNote"></p>
+    <ul class="inst-diag" id="installDiag" aria-label="Diagnosa pemasangan"></ul>
     <button type="button" id="installHelpOk" class="install-btn inst-ok"><span class="ib-txt"><b>Mengerti</b></span></button>
   </div>
 </div>
