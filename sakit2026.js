@@ -83,6 +83,7 @@
       .observe(doc.body, { childList: true, subtree: true });
     var t = 0, iv = setInterval(function () { if (ready() || ++t > 40) { clearInterval(iv); load(); } }, 500);
     setInterval(load, 60000);
+    window.addEventListener('app-resync', load);
   }
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init); else init();
 })();

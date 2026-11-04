@@ -345,3 +345,4 @@ body.formal-theme .inst-banner{background:linear-gradient(135deg,rgba(24,87,214,
   padding:8px 16px;border-radius:999px;font:700 12px/1.2 var(--font-display,"Segoe UI",Arial,sans-serif);text-align:center;
   color:#3a2600;background:linear-gradient(135deg,#FFD25A,#FFAE00);box-shadow:0 8px 20px -8px rgba(0,0,0,.6);
 }
+.net-pill.sync{color:#04213a;background:linear-gradient(135deg,#7DE3FF,#2FB4FF);}

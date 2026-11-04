@@ -48,30 +48,117 @@
     })();
   }
 
-  /* pil status offline + sinkron otomatis saat kembali online */
-  var pill = null;
-  function setPill(off) {
-    if (off && !pill) {
+  /* ---- pil status: offline / mengantre / menyinkronkan ---- */
+  var pill = null, lastOnline = navigator.onLine !== false, resyncTimer = null;
+  function OS() { return window.OfflineSync || null; }
+  function pend() { var o = OS(); return o ? o.pending() : 0; }
+  function renderPill() {
+    var o = OS(), st = o ? o.state() : { online: navigator.onLine !== false, pending: 0, syncing: false };
+    var n = st.pending, txt = '', cls = 'net-pill';
+    if (!st.online) {
+      txt = 'Mode offline \u00b7 ' + (n ? n + ' perubahan tersimpan, dikirim otomatis saat online' : 'menampilkan data tersimpan terakhir');
+    } else if (st.syncing) {
+      txt = 'Menyinkronkan ' + n + ' perubahan\u2026'; cls += ' sync';
+    } else if (n) {
+      txt = n + ' perubahan menunggu dikirim \u00b7 ketuk untuk kirim sekarang'; cls += ' sync';
+    }
+    if (!txt) { if (pill && pill.parentNode) pill.parentNode.removeChild(pill); pill = null; return; }
+    if (!document.body) { document.addEventListener('DOMContentLoaded', renderPill); return; }
+    if (!pill) {
       pill = document.createElement('div');
-      pill.className = 'net-pill';
       pill.setAttribute('role', 'status');
-      pill.textContent = 'Mode offline \u00b7 menampilkan data tersimpan terakhir';
+      pill.style.cursor = 'pointer';
+      pill.addEventListener('click', function () { var x = OS(); if (x && !x.isOffline()) x.flush().then(function () { resync(true); }); });
       document.body.appendChild(pill);
-    } else if (!off && pill) { pill.parentNode && pill.parentNode.removeChild(pill); pill = null; }
+    }
+    pill.className = cls;
+    pill.textContent = txt;
   }
-  function resync() {
+  function whenIdle(fn) {
+    var tries = 0;
+    (function go() { if (busy() && tries++ < 20) return setTimeout(go, 3000); fn(); })();
+  }
+  /* muat ulang semua data dari server tanpa reload halaman */
+  function resync(quiet) {
     if (window.__fbOffline) { reloadNow(); return; }       /* Firebase belum sempat dimuat -> muat ulang */
-    try {
-      var w = parseInt((document.getElementById('weekSelect') || {}).value || 0, 10);
-      if (w && typeof window.renderSchedule === 'function') window.renderSchedule(w);
-      if (typeof window.loadSerahTerima === 'function') window.loadSerahTerima();
-      if (typeof window.loadKegiatan === 'function') window.loadKegiatan();
-    } catch (e) {}
-    toast('Kembali online \u2014 data diperbarui', 'success');
+    whenIdle(function () {
+      try {
+        var w = parseInt((document.getElementById('weekSelect') || {}).value || 0, 10);
+        if (typeof window.loadRotationOverrides === 'function') {
+          var p = window.loadRotationOverrides();
+          if (p && p.then) p.then(function () { if (w && typeof window.renderSchedule === 'function') window.renderSchedule(w); }, function () {});
+          else if (w && typeof window.renderSchedule === 'function') window.renderSchedule(w);
+        } else if (w && typeof window.renderSchedule === 'function') window.renderSchedule(w);
+        if (typeof window.loadSerahTerima === 'function') window.loadSerahTerima();
+        if (typeof window.loadKegiatan === 'function') window.loadKegiatan();
+        if (typeof window.loadChatMessages === 'function') window.loadChatMessages();
+      } catch (e) {}
+      try { window.dispatchEvent(new CustomEvent('app-resync')); } catch (e) {}
+      if (!quiet) toast('Kembali online \u2014 data diperbarui', 'success');
+    });
   }
-  window.addEventListener('offline', function () { setPill(true); });
-  window.addEventListener('online', function () { setPill(false); setTimeout(resync, 600); });
-  if (navigator.onLine === false) { if (document.body) setPill(true); else document.addEventListener('DOMContentLoaded', function () { setPill(true); }); }
+  function goOnline() {
+    lastOnline = true; renderPill();
+    clearTimeout(resyncTimer);
+    resyncTimer = setTimeout(function () {
+      var o = OS();
+      /* kirim dulu perubahan yang mengantre, baru tarik data terbaru (supaya tidak saling menimpa) */
+      var p = (o && o.pending()) ? o.flush() : Promise.resolve();
+      p.then(function () { resync(false); }, function () { resync(false); });
+    }, 800);
+  }
+  window.addEventListener('offline', function () { lastOnline = false; renderPill(); toast('Anda offline \u2014 perubahan disimpan di perangkat', 'info'); });
+  window.addEventListener('online', goOnline);
+  window.addEventListener('offline-sync-state', renderPill);
+  window.addEventListener('offline-sync-queued', function (e) {
+    toast('\ud83d\udce5 Disimpan di perangkat \u2014 akan dikirim otomatis saat online', 'info');
+  });
+  window.addEventListener('offline-sync-done', function (e) {
+    var d = e.detail || {};
+    if (d.sent) toast('\u2705 ' + d.sent + ' perubahan offline berhasil disinkronkan', 'success');
+    if (d.dropped) toast('\u26a0\ufe0f ' + d.dropped + ' perubahan ditolak server (cek login admin)', 'error');
+    if (d.sent) resync(true);
+  });
+  window.addEventListener('offline-sync-blocked', function () { toast('\u26a0\ufe0f Perubahan ditolak server \u2014 login ulang sebagai admin untuk mengirim', 'error'); });
+  window.addEventListener('offline-sync-connection', function (e) {
+    if (e.detail && e.detail.online && !lastOnline) goOnline();
+    lastOnline = !!(e.detail && e.detail.online);
+  });
+  if (navigator.onLine === false) { lastOnline = false; renderPill(); }
+
+  /* ---- 1b. UPDATE OTOMATIS tanpa perlu menaikkan CACHE_VERSION ----
+     Setiap kali online (dan tiap 5 menit / saat aplikasi dibuka kembali) file inti dicek
+     lewat HEAD (ETag/Last-Modified). Bila berubah -> service worker diperbarui dan halaman dimuat ulang. */
+  var WATCH = ['index.html', 'app.js', 'offline-sync.js', 'pro2026.js', 'desktop2026.js', 'sakit2026.js', 'notif-promo.js', 'pwa.js', 'style.css'];
+  var baseSig = null;   /* tanda versi saat halaman ini dibuka (per sesi halaman, bukan disimpan) */
+  function contentSig() {
+    return Promise.all(WATCH.map(function (f) {
+      return fetch(f, { method: 'HEAD', cache: 'no-cache' }).then(function (r) {
+        return r.ok ? (r.headers.get('etag') || r.headers.get('last-modified') || r.headers.get('content-length') || '') : '';
+      }).catch(function () { return ''; });
+    })).then(function (a) { return a.join('|'); });
+  }
+  var checkingContent = false;
+  function checkContent() {
+    if (checkingContent || navigator.onLine === false || location.protocol === 'file:') return;
+    checkingContent = true;
+    contentSig().then(function (sig) {
+      if (!sig.replace(/\|/g, '')) return;                 /* server tidak memberi header -> lewati */
+      if (baseSig === null) { baseSig = sig; return; }
+      if (baseSig !== sig) {
+        baseSig = sig;
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+          navigator.serviceWorker.getRegistration().then(function (r) { if (r) r.update().catch(function () {}); }).catch(function () {});
+        }
+        /* jika service worker tidak berubah, controllerchange tidak terjadi -> muat ulang sendiri */
+        applyUpdate();
+      }
+    }).catch(function () {}).then(function () { checkingContent = false; });
+  }
+  window.addEventListener('load', function () { setTimeout(checkContent, 6000); });
+  setInterval(checkContent, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(checkContent, 1500); });
+  window.addEventListener('online', function () { setTimeout(checkContent, 2500); });
 
   /* ---- 2. Tombol pasang ---- */
   var deferred = null;

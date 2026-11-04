@@ -517,6 +517,9 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();win
 
 <!-- ===== SCRIPTS ===== -->
 
+<!-- ANTREAN OFFLINE (harus dimuat sebelum modul Firebase) -->
+<script src="offline-sync.js"></script>
+
 <!-- FIREBASE SDK -->
 <script type="module">
 const firebaseConfig = {
@@ -531,23 +534,9 @@ const firebaseConfig = {
 
 const V = "https://www.gstatic.com/firebasejs/10.12.0/";
 
-/* ===== MODE OFFLINE: data Firebase terakhir disimpan di HP/PC ===== */
-const CK = "fbc1:";
-const ckey = (r) => CK + String(r).replace(/^https?:\/\/[^/]+\/?/, "");
-const cached = (r) => {
-  let v = null;
-  try { const t = localStorage.getItem(ckey(r)); if (t) v = JSON.parse(t); } catch (e) {}
-  return { exists: () => v !== null && v !== undefined, val: () => v, __offline: true };
-};
-const store = (r, s) => {
-  try {
-    const v = s.val();
-    if (v === null || v === undefined) { localStorage.removeItem(ckey(r)); return; }
-    const j = JSON.stringify(v);
-    if (j.length < 150000) localStorage.setItem(ckey(r), j);
-  } catch (e) {}
-};
-window.__offlineGet = cached;
+/* ===== MODE OFFLINE: cache baca + antrean tulis ada di offline-sync.js ===== */
+const OS = window.OfflineSync;
+window.__offlineGet = (r) => OS.cached(r);
 
 (async () => {
   try {
@@ -555,15 +544,17 @@ window.__offlineGet = cached;
     const app = appMod.initializeApp(firebaseConfig);
     window.db = dbMod.getDatabase(app);
     window.firebaseRef = dbMod.ref;
-    window.firebaseSet = dbMod.set;
-    window.firebaseRemove = dbMod.remove;
-    const rawGet = dbMod.get;
-    window.firebaseGet = (r) => {
-      if (navigator.onLine === false) return Promise.resolve(cached(r));
-      return Promise.race([rawGet(r), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 8000))])
-        .then((s) => { store(r, s); return s; })
-        .catch((err) => { const c = cached(r); if (c.exists()) return c; throw err; });
-    };
+    /* tulis & baca lewat OfflineSync: offline -> diantre & dicerminkan ke cache, online -> terkirim otomatis */
+    OS.init({
+      rawSet: (r, v) => (v === null || v === undefined) ? dbMod.remove(r) : dbMod.set(r, v),
+      rawGet: dbMod.get,
+      makeRef: (p) => dbMod.ref(window.db, p)
+    });
+    window.firebaseSet = (r, v) => OS.set(r, v);
+    window.firebaseRemove = (r) => OS.set(r, null);
+    window.firebaseGet = (r) => OS.get(r);
+    /* status koneksi sungguhan ke server Firebase (bukan sekadar "ada wifi") */
+    try { dbMod.onValue(dbMod.ref(window.db, ".info/connected"), (s) => OS.setConnected(s.val() === true)); } catch (e) {}
     window.firebaseReady = true;
 
     // Firebase Auth (berat) hanya dimuat setelah halaman tampil / saat login
@@ -578,8 +569,11 @@ window.__offlineGet = cached;
   } catch (err) {
     console.error("Firebase gagal dimuat (mode offline):", err);
     window.db = {}; window.firebaseRef = (d, p) => p;
-    window.firebaseGet = (r) => Promise.resolve(cached(r));
-    window.firebaseSet = window.firebaseRemove = () => Promise.reject(new Error("offline"));
+    OS.init({ rawSet: () => Promise.reject(new Error("offline")), rawGet: () => Promise.reject(new Error("offline")), makeRef: (p) => p });
+    OS.setConnected(false);
+    window.firebaseGet = (r) => OS.get(r);
+    window.firebaseSet = (r, v) => OS.set(r, v);
+    window.firebaseRemove = (r) => OS.set(r, null);
     window.firebaseReady = true; window.__fbOffline = true;
   }
 })();

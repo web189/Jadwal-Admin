@@ -17,7 +17,7 @@
 
 /* >>> NAIKKAN angka ini setiap kali Anda mengunggah perubahan ke GitHub.
    Semua pengguna otomatis mendapat versi baru saat online. <<< */
-var CACHE_VERSION = '2026-11-04.5';
+var CACHE_VERSION = '2026-11-04.6';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
 var CDN_CACHE = 'jadwal-admin-cdn-v1';   /* pustaka CDN tidak perlu diunduh ulang tiap versi */
 
@@ -30,8 +30,6 @@ var PRECACHE = [
   "icon-512.png",
   "icon-maskable-192.png",
   "icon-maskable-512.png",
-  "img/screenshot-wide.jpg",
-  "img/screenshot-narrow.jpg",
   "index.html",
   "apple-touch-icon.png",
   "style.css",
@@ -46,8 +44,17 @@ var PRECACHE = [
   "premium2026.css",
   "sakit2026.js",
   "app.js",
+  "offline-sync.js",
   "notif-promo.js",
   "pwa.js"
+];
+
+/* Pustaka CDN yang wajib ada agar aplikasi bisa dibuka offline sejak kunjungan pertama */
+var CDN_PRECACHE = [
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css'
 ];
 
 /* Bagian situs lain di bawah folder yang sama — TIDAK boleh disentuh service worker ini */
@@ -58,12 +65,19 @@ var INDEX_URL = new URL('./', self.location).href;
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
-    caches.open(APP_CACHE).then(function (cache) {
-      /* add satu-satu: kalau ada 1 file gagal, pemasangan tidak ikut batal */
-      return Promise.all(PRECACHE.map(function (u) {
-        return cache.add(new Request(u, { cache: 'reload' })).catch(function () {});
-      }));
-    }).then(function () { return self.skipWaiting(); })
+    Promise.all([
+      caches.open(APP_CACHE).then(function (cache) {
+        /* add satu-satu: kalau ada 1 file gagal, pemasangan tidak ikut batal */
+        return Promise.all(PRECACHE.map(function (u) {
+          return cache.add(new Request(u, { cache: 'reload' })).catch(function () {});
+        }));
+      }),
+      caches.open(CDN_CACHE).then(function (cache) {
+        return Promise.all(CDN_PRECACHE.map(function (u) {
+          return cache.match(u).then(function (hit) { return hit || cache.add(u); }).catch(function () {});
+        }));
+      })
+    ]).then(function () { return self.skipWaiting(); })
   );
 });
 
@@ -89,12 +103,12 @@ function isCdn(url) {
   return false;
 }
 
-function fetchWithTimeout(req, ms) {
-  if (!ms) return fetch(req);
+function fetchWithTimeout(req, ms, init) {
+  if (!ms) return fetch(req, init);
   return new Promise(function (resolve, reject) {
     var done = false;
     var t = setTimeout(function () { if (!done) { done = true; reject(new Error('timeout')); } }, ms);
-    fetch(req).then(function (res) {
+    fetch(req, init).then(function (res) {
       if (!done) { done = true; clearTimeout(t); resolve(res); }
     }, function (err) {
       if (!done) { done = true; clearTimeout(t); reject(err); }
@@ -116,7 +130,10 @@ function networkFirst(event, isNav) {
   var req = event.request;
   return caches.open(APP_CACHE).then(function (cache) {
     return cache.match(req).then(function (cached) {
-      return fetchWithTimeout(req, cached ? NETWORK_TIMEOUT_MS : 0).then(function (res) {
+      var offlineNow = self.navigator && self.navigator.onLine === false;
+      var go = (offlineNow && cached) ? Promise.reject(new Error('offline'))
+        : fetchWithTimeout(req, cached ? NETWORK_TIMEOUT_MS : 0, { cache: 'no-cache' });
+      return go.then(function (res) {
         if (res && res.status === 200 && res.type === 'basic') {
           event.waitUntil(cache.put(req, res.clone()).catch(function () {}));
         }
