@@ -1,0 +1,250 @@
+/* =====================================================================
+   premium2026.css — lapisan tampilan "Command Deck" (dimuat PALING AKHIR)
+   ---------------------------------------------------------------------
+   • Warna shift di tabel (P / S / M / OFF / C) TIDAK disentuh sama sekali.
+   • Ringan untuk Windows 7 / Chrome 109: hanya gradient statis, border,
+     bayangan kecil. TANPA backdrop-filter, blur besar, :has(), color-mix().
+   • Animasi: hanya transform/opacity, satu kali, dan MATI di html.lite
+     (Windows lama / HP lemah) serta saat "kurangi gerak" aktif.
+   ===================================================================== */
+
+:root{
+  --pm-line:linear-gradient(90deg,transparent,var(--accent) 22%,var(--teal) 78%,transparent);
+  --pm-card:linear-gradient(170deg,rgba(28,44,90,.88),rgba(9,16,36,.96));
+  --pm-edge:rgba(120,165,255,.20);
+  --pm-ease:cubic-bezier(.22,1,.36,1);
+}
+body.formal-theme{
+  --pm-card:linear-gradient(170deg,#ffffff,#eef4ff);
+  --pm-edge:rgba(24,87,214,.16);
+}
+
+/* ---------------------------------------------------------------------
+   1. JUDUL & JAM — teks bergradasi
+   --------------------------------------------------------------------- */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .glitch{
+    background:linear-gradient(96deg,#ffffff 0%,#d6e8ff 34%,#86d9ff 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+    text-shadow:none!important;
+  }
+  body.formal-theme .glitch{background-image:linear-gradient(96deg,#0b1f4d 0%,#1857d6 55%,#0090c7 100%);}
+  .glitch .header-badge{-webkit-text-fill-color:#fff;}
+  .cyber-clock .ck-time{
+    background:linear-gradient(180deg,#ffffff 20%,#9fd2ff 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;text-shadow:none!important;
+  }
+  body.formal-theme .cyber-clock .ck-time{background-image:linear-gradient(180deg,#0e1b33,#1857d6);}
+}
+
+/* ---------------------------------------------------------------------
+   2. HEADER — panel kontrol dengan garis cahaya & sudut HUD
+   --------------------------------------------------------------------- */
+header{position:relative;}
+header .header-row-1{position:relative;}
+.shift-indicator{position:relative;}
+.shift-indicator::before,.shift-indicator::after{
+  content:"";position:absolute;width:14px;height:14px;pointer-events:none;opacity:.85;
+  border:0 solid var(--accent-strong);
+}
+.shift-indicator::before{left:7px;top:7px;border-width:2px 0 0 2px;border-top-left-radius:6px;}
+.shift-indicator::after{right:7px;bottom:7px;border-width:0 2px 2px 0;border-bottom-right-radius:6px;}
+body.formal-theme .shift-indicator::before,body.formal-theme .shift-indicator::after{border-color:var(--accent);}
+.shift-countdown{font-weight:800;letter-spacing:.01em;}
+.online-indicator{box-shadow:0 0 0 1px rgba(51,209,139,.28) inset;}
+
+/* ---------------------------------------------------------------------
+   3. KARTU STATISTIK — angka besar bergradasi, ikon dalam plakat
+   --------------------------------------------------------------------- */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  #scheduleSection .stat-value{
+    background:linear-gradient(180deg,#ffffff 8%,var(--stat-color,var(--accent-strong)) 96%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+  }
+  body.formal-theme #scheduleSection .stat-value{
+    background-image:linear-gradient(180deg,var(--stat-color,var(--accent)),var(--stat-color,var(--accent)));
+  }
+}
+#scheduleSection .stat-card{
+  background:
+    radial-gradient(160px 110px at 100% 0%,var(--stat-tint,var(--accent-dim)),transparent 72%) padding-box,
+    linear-gradient(0deg,rgba(255,255,255,.035),rgba(255,255,255,0) 46%) padding-box,
+    var(--pm-card) padding-box,
+    linear-gradient(150deg,var(--stat-color,var(--accent)),rgba(127,150,200,.10) 52%,var(--stat-color,var(--accent))) border-box!important;
+}
+.stat-icon{box-shadow:0 0 0 1px rgba(255,255,255,.07) inset,0 8px 16px -10px var(--stat-color,var(--accent));}
+.stat-label{letter-spacing:.14em;}
+
+/* ---------------------------------------------------------------------
+   4. PETUGAS HARI INI — kartu shift lebih tegas
+   --------------------------------------------------------------------- */
+.today-crew{position:relative;}
+.crew-title{display:inline-flex;align-items:center;gap:10px;}
+.crew-title::before{
+  content:"";width:22px;height:3px;border-radius:3px;background:var(--pm-line);flex:none;
+}
+.crew-card{position:relative;box-shadow:0 1px 0 rgba(255,255,255,.04) inset;}
+.crew-card.active{background:linear-gradient(160deg,rgba(51,209,139,.12),transparent 70%),var(--surface-2);}
+
+/* ---------------------------------------------------------------------
+   5. TABEL JADWAL — rapi, mudah dibaca (warna sel shift TIDAK diubah)
+   --------------------------------------------------------------------- */
+.table-wrapper{position:relative;}
+.table-wrapper::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:2px;pointer-events:none;background:var(--pm-line);opacity:.55;
+}
+#scheduleTable thead th{
+  background:linear-gradient(180deg,rgba(47,125,255,.16),rgba(47,125,255,.04));
+  text-transform:uppercase;
+}
+body.formal-theme #scheduleTable thead th{background:linear-gradient(180deg,rgba(24,87,214,.10),rgba(24,87,214,.02));}
+#scheduleTable tbody tr{transition:background-color .15s;}
+#scheduleTable tbody tr td.nama-cell{font-weight:700;letter-spacing:.01em;}
+#scheduleTable tbody tr:hover td.nama-cell{box-shadow:inset 3px 0 0 var(--accent);}
+td.nik-cell{font-variant-numeric:tabular-nums;color:var(--text-faint);}
+th.today-col{background:linear-gradient(180deg,rgba(47,125,255,.34),rgba(47,125,255,.12))!important;}
+.staff-avatar{box-shadow:0 0 0 2px var(--surface-2),0 0 0 3.5px rgba(111,180,255,.65),0 6px 12px -6px var(--accent);}
+
+/* ---------------------------------------------------------------------
+   6. TICKER · PENCARIAN · LEGENDA · PROGRESS
+   --------------------------------------------------------------------- */
+.news-ticker{background:var(--pm-card);box-shadow:0 1px 0 rgba(255,255,255,.04) inset;}
+.live-indicator{box-shadow:0 0 0 1px rgba(255,255,255,.12) inset;}
+.staff-search-input{background-color:var(--surface);}
+.legend-bar{background:var(--pm-card);}
+.legend-badge{box-shadow:0 1px 0 rgba(255,255,255,.12) inset;}
+.week-progress-fill{background:linear-gradient(90deg,var(--accent),var(--teal),#8f7cff)!important;}
+.week-progress-label{letter-spacing:.14em;}
+.kegiatan-header-bar{cursor:pointer;}
+.kegiatan-header-bar:hover .kegiatan-section-title{color:var(--accent-strong);}
+footer.cyber-signature{background:var(--pm-card)!important;}
+
+/* ---------------------------------------------------------------------
+   7. MENU, TOMBOL, SCROLLBAR
+   --------------------------------------------------------------------- */
+.hmenu-btn > i:first-child{box-shadow:0 0 0 1px rgba(255,255,255,.05) inset;}
+.hmenu-sec{position:relative;}
+.chat-fab{background:linear-gradient(135deg,var(--accent),var(--teal))!important;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--teal));}
+.modal-box{border:1px solid var(--pm-edge);}
+html{scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
+
+/* tombol instal: satu gaya, jelas bisa diketuk */
+.install-chip{min-height:38px;}
+.install-chip.ready{box-shadow:0 0 0 1px rgba(255,255,255,.25) inset,0 8px 20px -8px var(--accent);}
+.inst-banner{cursor:pointer;}
+.inst-banner .ib-x{cursor:pointer;}
+.inst-banner.ready .ib-go{box-shadow:0 0 0 3px rgba(111,180,255,.25),0 6px 14px -8px var(--accent);}
+
+/* ---------------------------------------------------------------------
+   8. ANIMASI HALUS (hanya perangkat kuat, sekali jalan, transform/opacity)
+   --------------------------------------------------------------------- */
+@keyframes pmRise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+@keyframes pmSheen{0%{transform:translateX(-120%);}100%{transform:translateX(320%);}}
+html.app-ready:not(.lite) #scheduleSection > *,
+html.app-ready:not(.lite) .kegiatan-section,
+html.app-ready:not(.lite) header{
+  animation:pmRise .55s var(--pm-ease) both;
+}
+html.app-ready:not(.lite) #scheduleSection > *:nth-child(2){animation-delay:.05s;}
+html.app-ready:not(.lite) #scheduleSection > *:nth-child(3){animation-delay:.10s;}
+html.app-ready:not(.lite) #scheduleSection > *:nth-child(4){animation-delay:.15s;}
+html.app-ready:not(.lite) #scheduleSection > *:nth-child(5){animation-delay:.20s;}
+html.app-ready:not(.lite) #scheduleSection > *:nth-child(n+6){animation-delay:.25s;}
+html:not(.lite) .week-progress-fill{position:relative;overflow:hidden;}
+html:not(.lite) .week-progress-fill::after{
+  content:"";position:absolute;top:0;bottom:0;left:0;width:28%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  animation:pmSheen 3.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion:reduce){
+  html.app-ready #scheduleSection > *,html.app-ready header,html.app-ready .kegiatan-section{animation:none!important;}
+  .week-progress-fill::after{animation:none!important;display:none;}
+}
+
+/* =====================================================================
+   PC (>= 1100px) — dashboard layar lebar
+   ===================================================================== */
+@media (min-width:1100px){
+  header{padding:26px 34px 24px;border-radius:26px;}
+  .header-row-1{flex-wrap:nowrap;}
+  .glitch{font-size:clamp(22px,1.95vw,34px);flex-wrap:nowrap;white-space:nowrap;}
+  .install-chip{flex:none;}
+  .cyber-clock .ck-time{font-size:38px;letter-spacing:3px;}
+  .shift-indicator{padding:14px 26px 14px 16px;}
+  .shift-gauge{width:84px;height:84px;}
+  .shift-countdown{font-size:20px;}
+
+  #scheduleSection .stat-card{padding:22px 24px 20px 22px;border-radius:22px;}
+  #scheduleSection .stat-value{font-size:52px;line-height:1;}
+  .stat-icon{width:54px;height:54px;border-radius:16px;font-size:22px;}
+
+  .today-crew{padding:22px 24px 20px;}
+  .crew-card{padding:16px 18px;}
+
+  #scheduleSection .table-wrapper{border-radius:24px;}
+  #scheduleTable thead th{padding:20px 6px 16px;}
+  #scheduleTable tbody td{height:68px;}
+  #scheduleTable tbody tr:hover td:not(.today-col){background:var(--accent-dim)!important;}
+
+  /* menu samping */
+  .hamburger-menu{box-shadow:10px 0 34px -18px rgba(0,0,0,.8)!important;}
+  .sb-brand{padding:24px 20px 16px;}
+  .sb-brand img{width:48px;height:48px;border-radius:15px;}
+  .sb-brand-text b{font-size:18px;}
+  .hmenu-btn:hover{transform:translateX(3px);}
+}
+
+
+/* PC sempit (1100–1399px): judul boleh turun baris, tombol instal & tema pindah ke baris bawahnya */
+@media (min-width:1100px) and (max-width:1399px){
+  .header-row-1{flex-wrap:wrap;row-gap:10px;}
+  .glitch{flex:1 1 100%;white-space:normal;font-size:clamp(20px,2.1vw,28px);}
+  .cyber-clock .ck-time{font-size:32px;}
+  .install-chip{margin-left:0;}
+  .glitch{flex:1 1 auto;}
+}
+
+/* PC sangat lebar: ruang lebih lega */
+@media (min-width:1800px){
+  body > header,body > main,body > footer.cyber-signature{max-width:1720px;}
+}
+
+/* =====================================================================
+   TABLET (769–1099px)
+   ===================================================================== */
+@media (min-width:769px) and (max-width:1099px){
+  header{padding:22px 24px;}
+  .glitch{font-size:clamp(22px,3.4vw,32px);}
+  #scheduleSection .stat-value{font-size:40px;}
+}
+
+/* =====================================================================
+   HP (<= 768px)
+   ===================================================================== */
+@media (max-width:768px){
+  header{padding:14px 14px 12px;}
+  .header-row-1 .glitch{font-size:clamp(13px,4.3vw,19px);letter-spacing:.02em;}
+  .cyber-clock .ck-time{font-size:19px;letter-spacing:1px;}
+  .shift-indicator::before,.shift-indicator::after{width:11px;height:11px;}
+  #scheduleSection .stat-value{font-size:27px;}
+  .crew-card{padding:10px 11px;}
+  #scheduleTable thead th{padding-top:13px;padding-bottom:11px;}
+  .mobile-bottom-nav{box-shadow:0 10px 22px -8px rgba(0,0,0,.75)!important;}
+  .mobile-nav-item.active i{color:var(--accent-strong);}
+  .mobile-nav-item.active span{color:var(--text);}
+  .inst-banner{border-radius:22px;padding:11px 11px 11px 12px;}
+  .inst-banner .ib-go{padding:10px 17px;}
+}
+@media (max-width:380px){
+  .header-row-1 .glitch{font-size:clamp(12px,4.1vw,15px);}
+  .header-badge{display:none;}
+  #scheduleSection .stat-value{font-size:23px;}
+}
+
+/* mode ringan (Windows lama / HP lemah): tanpa gradasi teks & garis ekstra */
+html.lite .table-wrapper::after{display:none;}
+html.lite .shift-indicator::before,html.lite .shift-indicator::after{display:none;}

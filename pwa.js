@@ -35,17 +35,17 @@
     navigator.serviceWorker.addEventListener('controllerchange', function () {
       if (hadController) applyUpdate();      /* kunjungan pertama: tidak perlu reload */
     });
-    window.addEventListener('load', function () {
+    (function registerSW() {
       navigator.serviceWorker.register('sw.js').then(function (reg) {
         var check = function () { if (navigator.onLine !== false) reg.update().catch(function () {}); };
-        check();
+        setTimeout(check, 4000);
         setInterval(check, 30 * 60 * 1000);
         document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
         window.addEventListener('online', check);
       }).catch(function (err) {
         if (window.console) console.warn('[PWA] service worker gagal didaftarkan:', err);
       });
-    });
+    })();
   }
 
   /* pil status offline + sinkron otomatis saat kembali online */
@@ -134,22 +134,64 @@
     document.body.appendChild(bar);
   }
 
-  /* bisa dipanggil dari tombol buatan sendiri di situs: onclick="pwaInstall()" */
+  /* ---- API instal (dipakai tombol di header, menu, dan banner) ---- */
+  var DONE_KEY = 'pwaInstalled:' + location.pathname;
+  function markInstalled(v) { try { if (v) localStorage.setItem(DONE_KEY, '1'); else localStorage.removeItem(DONE_KEY); } catch (e) {} }
+  function wasInstalled() { try { return localStorage.getItem(DONE_KEY) === '1'; } catch (e) { return false; } }
+
   window.pwaCanInstall = function () { return !!deferred; };
+  window.pwaIsInstalled = function () { return isStandalone() || wasInstalled(); };
+
+  /* Memunculkan dialog instal bawaan browser SEKARANG (harus dipanggil langsung dari klik). */
   window.pwaInstall = function () {
     if (!deferred) return false;
     var p = deferred; deferred = null; hide();
-    p.prompt();
-    if (p.userChoice && p.userChoice.then) p.userChoice.then(function (c) { if (c && c.outcome !== 'accepted') snooze(); });
+    try { p.prompt(); } catch (err) { return false; }
+    if (p.userChoice && p.userChoice.then) {
+      p.userChoice.then(function (c) {
+        if (c && c.outcome === 'accepted') { markInstalled(true); window.dispatchEvent(new CustomEvent('pwa-installed')); }
+        else { snooze(); }
+      }).catch(function () {});
+    }
     return true;
   };
 
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    deferred = e;
+  /* Seperti pwaInstall, tapi bila event instal belum datang, tunggu sebentar (maks. ~2,5 dtk)
+     lalu panggil. Mengembalikan Promise<boolean>. */
+  window.pwaInstallWait = function (ms) {
+    if (window.pwaInstall()) return Promise.resolve(true);
+    return new Promise(function (resolve) {
+      var done = false;
+      function fin(ok) { if (done) return; done = true; window.removeEventListener('pwa-installable', on); clearTimeout(t); resolve(ok); }
+      function on() { fin(window.pwaInstall()); }
+      var t = setTimeout(function () { fin(false); }, ms || 2500);
+      window.addEventListener('pwa-installable', on);
+    });
+  };
+
+  function gotPrompt(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    deferred = e || deferred;
+    markInstalled(false);
     window.dispatchEvent(new CustomEvent('pwa-installable'));
     if (document.readyState === 'complete') setTimeout(show, 2500);
     else window.addEventListener('load', function () { setTimeout(show, 2500); });
+  }
+  /* event yang sudah datang SEBELUM pwa.js selesai dimuat (ditangkap skrip kecil di <head>) */
+  if (window.__bip) { var early = window.__bip; window.__bip = null; gotPrompt(early); }
+  window.addEventListener('beforeinstallprompt', gotPrompt);
+  window.addEventListener('appinstalled', function () {
+    deferred = null; hide(); markInstalled(true);
+    window.dispatchEvent(new CustomEvent('pwa-installed'));
+    toast('Aplikasi berhasil dipasang', 'success');
   });
-  window.addEventListener('appinstalled', function () { deferred = null; hide(); });
+
+  /* Chrome Android/PC: cek apakah aplikasinya sudah terpasang di perangkat ini */
+  try {
+    if (navigator.getInstalledRelatedApps) {
+      navigator.getInstalledRelatedApps().then(function (apps) {
+        if (apps && apps.length) { markInstalled(true); window.dispatchEvent(new CustomEvent('pwa-installed')); }
+      }).catch(function () {});
+    }
+  } catch (e) {}
 })();

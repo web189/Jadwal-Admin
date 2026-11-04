@@ -46,6 +46,8 @@
       '<button type="button" class="ib-x" aria-label="Tutup">&times;</button>';
     hd.parentNode.insertBefore(banner, hd.nextSibling);
     banner.querySelector('.ib-go').addEventListener('click', onInstallClick);
+    banner.querySelector('.ib-ic').addEventListener('click', onInstallClick);
+    banner.querySelector('.ib-tx').addEventListener('click', onInstallClick);
     banner.querySelector('.ib-x').addEventListener('click', function () {
       try { localStorage.setItem(BKEY, String(Date.now())); } catch (e) {}
       banner.hidden = true;
@@ -95,9 +97,15 @@
              n: 'Windows 7 didukung sampai Chrome 109. Setelah terpasang, aplikasi terbuka di jendela sendiri.' };
   }
 
-  function openHelp() {
+  function openHelp(installed) {
     if (!modal) return;
     var d = steps(), html = '', i;
+    if (installed === true) {
+      d = { s: ['Aplikasi <b>Jadwal Admin</b> sudah terpasang di perangkat ini.',
+                isAndroid || isIOS ? 'Buka dari <b>layar utama</b> atau daftar aplikasi HP.' : 'Buka dari <b>Desktop</b>, <b>Start Menu</b>, atau ikon di bilah tugas.',
+                'Jika ikonnya sudah dihapus, bersihkan dulu pemasangan lama di pengaturan browser lalu coba lagi.'],
+            n: 'Membuka lewat aplikasi lebih cepat dan tampil layar penuh.' };
+    }
     for (i = 0; i < d.s.length; i++) html += '<li><span class="inst-n">' + (i + 1) + '</span><span>' + d.s[i] + '</span></li>';
     $('installSteps').innerHTML = html;
     $('installNote').textContent = d.n;
@@ -106,9 +114,15 @@
   }
   function closeHelp() { if (modal) modal.hidden = true; }
 
-  function onInstallClick() {
-    if (window.pwaInstall && window.pwaInstall()) return;   /* dialog bawaan browser */
-    openHelp();                                             /* tidak tersedia -> tampilkan panduan */
+  var busyClick = false;
+  function onInstallClick(ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
+    if (window.pwaInstall && window.pwaInstall()) return;      /* dialog instal bawaan browser, langsung */
+    if (window.pwaIsInstalled && window.pwaIsInstalled()) { openHelp(true); return; }
+    if (!window.pwaInstallWait || busyClick) { openHelp(); return; }
+    busyClick = true;                                          /* event instal belum datang: tunggu sebentar */
+    if (typeof window.showToast === 'function') { try { window.showToast('Menyiapkan instalasi\u2026', 'info', 2200); } catch (e) {} }
+    window.pwaInstallWait(2500).then(function (ok) { busyClick = false; if (!ok) openHelp(); });
   }
 
   btn.addEventListener('click', onInstallClick);
@@ -120,6 +134,7 @@
 
   window.addEventListener('pwa-installable', refresh);
   window.addEventListener('appinstalled', function () { setVisible(false); });
+  window.addEventListener('pwa-installed', function () { setVisible(false); });
   try {
     var mq = window.matchMedia('(display-mode: standalone)');
     if (mq.addEventListener) mq.addEventListener('change', refresh);

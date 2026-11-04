@@ -17,7 +17,7 @@
 
 /* >>> NAIKKAN angka ini setiap kali Anda mengunggah perubahan ke GitHub.
    Semua pengguna otomatis mendapat versi baru saat online. <<< */
-var CACHE_VERSION = '2026-11-04.2';
+var CACHE_VERSION = '2026-11-04.3';
 var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
 var CDN_CACHE = 'jadwal-admin-cdn-v1';   /* pustaka CDN tidak perlu diunduh ulang tiap versi */
 
@@ -30,6 +30,8 @@ var PRECACHE = [
   "icon-512.png",
   "icon-maskable-192.png",
   "icon-maskable-512.png",
+  "img/screenshot-wide.jpg",
+  "img/screenshot-narrow.jpg",
   "index.html",
   "apple-touch-icon.png",
   "style.css",
@@ -41,6 +43,7 @@ var PRECACHE = [
   "desktop2026.js",
   "mobile2026.css",
   "next2026.css",
+  "premium2026.css",
   "sakit2026.js",
   "app.js",
   "notif-promo.js",
