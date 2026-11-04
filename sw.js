@@ -1,216 +1,141 @@
-/* ============================================================
-   Service Worker — Jadwal Admin Gudang
-   Fungsi:
-   1) Memenuhi syarat PWA supaya bisa di-"Install" seperti WhatsApp Web
-      (Chrome/Edge di Windows 7 s.d. versi 109 juga mendukung).
-   2) Tetap bisa dibuka walau internet putus (tampilan & data terakhir dipakai).
-   4) Saat online lagi, versi terbaru otomatis diunduh & dipasang (lihat pwa.js).
-   3) TIDAK menyentuh data Firebase/API — semua tetap langsung ke server,
-      jadi data realtime tidak pernah "basi".
-   Strategi:
-   - Halaman, JS, CSS, JSON milik situs sendiri : jaringan dulu, cache = cadangan
-     (jadi update dari GitHub selalu langsung terbaca).
-   - Gambar & font milik situs                   : cache dulu, diperbarui di latar.
-   - Pustaka CDN (Font Awesome, Firebase SDK, Google Fonts): cache dulu.
-   ============================================================ */
-'use strict';
+/* ==========================================================================
+   SERVICE WORKER — jadwal  (offline-first + update otomatis, ala E-Book)
+   --------------------------------------------------------------------------
+   • File kode (html/css/js/json): jaringan dulu (maks. 3500 dtk) -> bila gagal pakai simpanan.
+     Jadi file yang diubah di GitHub otomatis terpakai, tanpa hapus cache.
+   • Gambar, font: simpanan dulu (hemat kuota & cepat).
+   • VERSION dibuat otomatis dari isi semua file (build) -> berubah = pembaruan terpasang.
+   • Firebase / situs lain TIDAK disentuh (data tetap langsung ke server).
+   ES5 — aman untuk Chrome 109 / Windows 7.
+   ========================================================================== */
+var VERSION = "e5821a9c8a";
+var APP = "jadwal";
+var SHELL = APP + "-shell-" + VERSION;
+var MEDIA = APP + "-media-v1";
+var TIMEOUT = 3500;
+var CORE = ["./index.html","./app.css","./favicon.png","./fonts/fa-solid.woff2","./icon-192.png","./jd.js","./manifest.json","./vendor/fb-auth.js","./vendor/fb-core.js","./vendor/fb-db.js"];          /* wajib ada, kalau gagal pembaruan dibatalkan (versi lama tetap utuh) */
+var OPTIONAL = ["./apple-touch-icon.png","./icon-512.png"];  /* dicoba, boleh gagal */
+var LATER = ["./fonts/big-shoulders-display-latin-700-normal.woff2","./fonts/big-shoulders-display-latin-800-normal.woff2","./fonts/inter-latin-wght-normal.woff2","./fonts/jetbrains-mono-latin-wght-normal.woff2","./fonts/space-grotesk-latin-wght-normal.woff2"];        /* diunduh pelan-pelan setelah halaman jalan */
+var BYPASS = [];      /* bagian situs lain di bawah folder yang sama */
 
-/* >>> NAIKKAN angka ini setiap kali Anda mengunggah perubahan ke GitHub.
-   Semua pengguna otomatis mendapat versi baru saat online. <<< */
-var CACHE_VERSION = '2026-11-04.6';
-var APP_CACHE = 'jadwal-admin-app-' + CACHE_VERSION;
-var CDN_CACHE = 'jadwal-admin-cdn-v1';   /* pustaka CDN tidak perlu diunduh ulang tiap versi */
+function fresh(u) { return fetch(new Request(u, { cache: "reload" })); }
 
-/* File inti yang di-cache saat pemasangan (relatif terhadap lokasi sw.js) */
-var PRECACHE = [
-  "./",
-  "favicon.png",
-  "manifest.json",
-  "icon-192.png",
-  "icon-512.png",
-  "icon-maskable-192.png",
-  "icon-maskable-512.png",
-  "index.html",
-  "apple-touch-icon.png",
-  "style.css",
-  "ui2026.css",
-  "pro2026.css",
-  "pro2026.js",
-  "ultra2026.css",
-  "desktop2026.css",
-  "desktop2026.js",
-  "mobile2026.css",
-  "next2026.css",
-  "premium2026.css",
-  "sakit2026.js",
-  "app.js",
-  "offline-sync.js",
-  "notif-promo.js",
-  "pwa.js"
-];
-
-/* Pustaka CDN yang wajib ada agar aplikasi bisa dibuka offline sejak kunjungan pertama */
-var CDN_PRECACHE = [
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css'
-];
-
-/* Bagian situs lain di bawah folder yang sama — TIDAK boleh disentuh service worker ini */
-var BYPASS_PATHS = [];
-
-var NETWORK_TIMEOUT_MS = 4500;
-var INDEX_URL = new URL('./', self.location).href;
-
-self.addEventListener('install', function (event) {
+self.addEventListener("install", function (event) {
   event.waitUntil(
-    Promise.all([
-      caches.open(APP_CACHE).then(function (cache) {
-        /* add satu-satu: kalau ada 1 file gagal, pemasangan tidak ikut batal */
-        return Promise.all(PRECACHE.map(function (u) {
-          return cache.add(new Request(u, { cache: 'reload' })).catch(function () {});
-        }));
-      }),
-      caches.open(CDN_CACHE).then(function (cache) {
-        return Promise.all(CDN_PRECACHE.map(function (u) {
-          return cache.match(u).then(function (hit) { return hit || cache.add(u); }).catch(function () {});
-        }));
-      })
-    ]).then(function () { return self.skipWaiting(); })
+    caches.open(SHELL).then(function (cache) {
+      var req = Promise.all(CORE.map(function (u) {
+        return fresh(u).then(function (res) {
+          if (!res || !res.ok) throw new Error("gagal " + u);
+          return cache.put(u, res);
+        });
+      }));
+      var opt = Promise.all(OPTIONAL.map(function (u) {
+        return fresh(u).then(function (res) { if (res && res.ok) return cache.put(u, res); }).catch(function () {});
+      }));
+      return Promise.all([req, opt]);
+    }).then(function () { return self.skipWaiting(); })
   );
 });
 
-self.addEventListener('message', function (e) {
-  if (e.data === 'SKIP_WAITING') self.skipWaiting();
-});
-
-self.addEventListener('activate', function (event) {
+self.addEventListener("activate", function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
-      return Promise.all(keys.map(function (k) {
-        var mine = k.indexOf('jadwal-admin-') === 0;
-        if (mine && k !== APP_CACHE && k !== CDN_CACHE) return caches.delete(k);
-      }));
+      return Promise.all(keys.filter(function (k) {
+        return k.indexOf(APP + "-") === 0 && k !== SHELL && k !== MEDIA;
+      }).map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); })
   );
 });
 
-function isCdn(url) {
-  if (url.hostname === 'cdnjs.cloudflare.com') return true;
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') return true;
-  if (url.hostname === 'www.gstatic.com' && url.pathname.indexOf('/firebasejs/') === 0) return true;
-  return false;
-}
-
-function fetchWithTimeout(req, ms, init) {
-  if (!ms) return fetch(req, init);
-  return new Promise(function (resolve, reject) {
-    var done = false;
-    var t = setTimeout(function () { if (!done) { done = true; reject(new Error('timeout')); } }, ms);
-    fetch(req, init).then(function (res) {
-      if (!done) { done = true; clearTimeout(t); resolve(res); }
-    }, function (err) {
-      if (!done) { done = true; clearTimeout(t); reject(err); }
-    });
+function broadcast(msg) {
+  return self.clients.matchAll({ includeUncontrolled: true, type: "window" }).then(function (list) {
+    list.forEach(function (c) { c.postMessage(msg); });
   });
 }
 
-function offlineResponse() {
-  var html = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<title>Tidak ada koneksi</title><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;' +
-    'background:#0b1220;color:#e8eefc;font-family:Segoe UI,Arial,sans-serif;text-align:center;padding:24px">' +
-    '<div><h2 style="margin:0 0 8px">Tidak ada koneksi internet</h2>' +
-    '<p style="margin:0 0 18px;opacity:.75">Halaman ini belum tersimpan untuk mode offline.<br>Periksa internet lalu coba lagi.</p>' +
-    '<button onclick="location.reload()" style="padding:10px 22px;border:0;border-radius:8px;background:#2f7dff;color:#fff;font-size:15px;cursor:pointer">Coba lagi</button></div>';
-  return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+self.addEventListener("message", function (event) {
+  var d = event.data || {};
+  if (d.type === "SKIP_WAITING") { self.skipWaiting(); return; }
+  if (d.type === "CACHE_ALL") {
+    event.waitUntil(caches.open(MEDIA).then(function (cache) {
+      var done = 0, total = LATER.length;
+      return Promise.all(LATER.map(function (u) {
+        return cache.match(u).then(function (hit) {
+          if (hit) return;
+          return fresh(u).then(function (res) { if (res && res.ok) return cache.put(u, res); }).catch(function () {});
+        }).then(function () { done++; });
+      })).then(function () { return broadcast({ type: "CACHE_DONE", version: VERSION, total: total }); });
+    }));
+  }
+});
+
+function isCode(url) { return /\.(?:html|css|js|json)$/i.test(url.pathname) || /\/$/.test(url.pathname); }
+function isBypass(url) { for (var i = 0; i < BYPASS.length; i++) if (url.pathname.indexOf(BYPASS[i]) !== -1) return true; return false; }
+
+function offlinePage() {
+  return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>' +
+    '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#050810;color:#e8f4ff;font-family:Segoe UI,Arial,sans-serif;text-align:center;padding:24px">' +
+    '<div><h2 style="margin:0 0 8px">Sedang offline</h2><p style="margin:0 0 18px;opacity:.75">Halaman ini belum tersimpan. Buka sekali saat online, setelah itu bisa dibuka tanpa internet.</p>' +
+    '<button onclick="location.reload()" style="padding:11px 24px;border:0;border-radius:12px;background:#0a8fa8;color:#fff;font-weight:700;font-size:15px;cursor:pointer">Coba lagi</button></div>',
+    { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
-function networkFirst(event, isNav) {
-  var req = event.request;
-  return caches.open(APP_CACHE).then(function (cache) {
-    return cache.match(req).then(function (cached) {
-      var offlineNow = self.navigator && self.navigator.onLine === false;
-      var go = (offlineNow && cached) ? Promise.reject(new Error('offline'))
-        : fetchWithTimeout(req, cached ? NETWORK_TIMEOUT_MS : 0, { cache: 'no-cache' });
-      return go.then(function (res) {
-        if (res && res.status === 200 && res.type === 'basic') {
-          event.waitUntil(cache.put(req, res.clone()).catch(function () {}));
-        }
-        return res;
-      }).catch(function () {
-        if (cached) return cached;
-        return cache.match(req, { ignoreSearch: true }).then(function (loose) {
-          if (loose) return loose;
-          if (isNav) {
-            return cache.match(INDEX_URL).then(function (idx) {
-              return idx || cache.match(INDEX_URL + 'index.html').then(function (i2) { return i2 || offlineResponse(); });
-            });
-          }
-          return Response.error();
+function networkFirst(key, ms) {
+  return caches.open(SHELL).then(function (cache) {
+    return new Promise(function (resolve) {
+      var settled = false, timer = null;
+      function useCache() {
+        return cache.match(key, { ignoreSearch: true }).then(function (hit) {
+          if (hit && !settled) { settled = true; resolve(hit); }
+          return hit;
         });
+      }
+      timer = setTimeout(useCache, ms);
+      fetch(key, { cache: "no-cache" }).then(function (res) {
+        clearTimeout(timer);
+        if (res && res.ok) {
+          cache.put(key, res.clone());
+          if (!settled) { settled = true; resolve(res); }
+        } else {
+          useCache().then(function (hit) { if (!hit && !settled) { settled = true; resolve(res); } });
+        }
+      }).catch(function () {
+        clearTimeout(timer);
+        useCache().then(function (hit) { if (!hit && !settled) { settled = true; resolve(offlinePage()); } });
       });
     });
   });
 }
 
-function staleWhileRevalidate(event, cacheName) {
-  var req = event.request;
-  return caches.open(cacheName).then(function (cache) {
-    return cache.match(req).then(function (cached) {
-      var net = fetch(req).then(function (res) {
-        if (res && (res.status === 200 || res.type === 'opaque')) {
-          event.waitUntil(cache.put(req, res.clone()).catch(function () {}));
-        }
-        return res;
-      }).catch(function () { return cached || Response.error(); });
-      return cached || net;
+function cacheFirst(req) {
+  return caches.match(req, { ignoreSearch: true }).then(function (hit) {
+    if (hit) return hit;
+    return fetch(req).then(function (res) {
+      if (res && res.ok && res.type === "basic") {
+        var copy = res.clone();
+        caches.open(MEDIA).then(function (c) { c.put(req, copy); });
+      }
+      return res;
     });
   });
 }
 
-function cacheFirst(event, cacheName) {
+self.addEventListener("fetch", function (event) {
   var req = event.request;
-  return caches.open(cacheName).then(function (cache) {
-    return cache.match(req).then(function (cached) {
-      if (cached) return cached;
-      return fetch(req).then(function (res) {
-        if (res && (res.status === 200 || res.type === 'opaque')) {
-          event.waitUntil(cache.put(req, res.clone()).catch(function () {}));
-        }
-        return res;
-      });
-    });
-  });
-}
-
-self.addEventListener('fetch', function (event) {
-  var req = event.request;
-  if (req.method !== 'GET') return;
-  if (req.headers.has('range')) return;            /* audio/video streaming: biarkan */
-
+  if (req.method !== "GET") return;
+  if (req.headers.has("range")) return;
   var url;
   try { url = new URL(req.url); } catch (e) { return; }
+  if (url.origin !== self.location.origin) return;
+  if (isBypass(url) || /\/sw\.js$/.test(url.pathname)) return;
 
-  if (url.origin === self.location.origin) {
-    for (var i = 0; i < BYPASS_PATHS.length; i++) {
-      if (url.pathname.indexOf(BYPASS_PATHS[i]) !== -1) return;
-    }
-    if (/\/sw\.js$/.test(url.pathname)) return;
-
-    if (req.mode === 'navigate') {
-      event.respondWith(networkFirst(event, true));
-    } else if (req.destination === 'image' || req.destination === 'font') {
-      event.respondWith(staleWhileRevalidate(event, APP_CACHE));
-    } else {
-      event.respondWith(networkFirst(event, false));
-    }
+  if (req.mode === "navigate") { event.respondWith(networkFirst("./index.html", TIMEOUT)); return; }
+  if (isCode(url)) {
+    var scope = new URL(self.registration.scope).pathname;
+    var rel = "./" + url.pathname.substring(scope.length);
+    if (rel === "./") rel = "./index.html";
+    event.respondWith(networkFirst(rel, TIMEOUT));
     return;
   }
-
-  if (isCdn(url)) {
-    if (url.hostname === 'fonts.googleapis.com') event.respondWith(staleWhileRevalidate(event, CDN_CACHE));
-    else event.respondWith(cacheFirst(event, CDN_CACHE));
-  }
-  /* selain itu (Firestore, Realtime DB, Auth, dsb.) → tidak dicegat sama sekali */
+  event.respondWith(cacheFirst(req));
 });

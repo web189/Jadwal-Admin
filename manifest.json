@@ -2,8 +2,8 @@
   "name": "Jadwal Admin Gudang 2026",
   "short_name": "Jadwal Admin",
   "description": "Pantau shift Pagi, Sore & Malam, serah terima, dan tugas kebersihan. Bisa dipasang seperti aplikasi dan tetap jalan saat offline.",
-  "start_url": ".",
-  "scope": ".",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#07183A",
@@ -35,7 +35,7 @@
       "purpose": "maskable"
     }
   ],
-  "id": "./",
+  "id": "/Jadwal-Admin/",
   "categories": [
     "business",
     "productivity"
@@ -56,28 +56,5 @@
   "display_override": [
     "standalone",
     "minimal-ui"
-  ],
-  "prefer_related_applications": false,
-  "screenshots": [
-    {
-      "src": "img/screenshot-wide.jpg",
-      "sizes": "1280x720",
-      "type": "image/jpeg",
-      "form_factor": "wide",
-      "label": "Jadwal dan petugas shift di layar lebar"
-    },
-    {
-      "src": "img/screenshot-narrow.jpg",
-      "sizes": "780x1560",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "Jadwal dan petugas shift di HP"
-    }
-  ],
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "https://web189.github.io/Jadwal-Admin/manifest.json"
-    }
   ]
 }

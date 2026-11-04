@@ -37,8 +37,6 @@
 <meta name="apple-mobile-web-app-title" content="Jadwal Admin">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <script>
 /* Tangkap event instal PWA sedini mungkin (bisa datang sebelum pwa.js selesai dimuat) */
 window.__bip=null;
@@ -55,23 +53,9 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();win
   if (lite) h.className += ' lite';
   window.__LITE = lite;
   window.__NOEMOJI = oldWin;   /* Windows <= 8.0 tidak punya font emoji berwarna */
-  if (!lite) {                 /* font web hanya di PC yang mampu, dimuat tanpa memblokir tampilan */
-    var f = document.createElement('link'); f.rel = 'stylesheet';
-    f.href = 'https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap';
-    document.head.appendChild(f);
-  }
 })();
 </script>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="ui2026.css">
-<link rel="stylesheet" href="pro2026.css">
-<link rel="stylesheet" href="ultra2026.css">
-<link rel="stylesheet" href="desktop2026.css">
-<link rel="stylesheet" href="mobile2026.css">
-<link rel="stylesheet" href="next2026.css">
-<link rel="stylesheet" href="premium2026.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link rel="stylesheet" href="app.css">
 </head>
 <body class="formal-theme">
 
@@ -518,66 +502,8 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();win
 <!-- ===== SCRIPTS ===== -->
 
 <!-- ANTREAN OFFLINE (harus dimuat sebelum modul Firebase) -->
-<script src="offline-sync.js"></script>
 
-<!-- FIREBASE SDK -->
-<script type="module">
-const firebaseConfig = {
-  apiKey: "AIzaSyAvJun21jAsquw8htCSBHK1N56T6Ld6jNY",
-  authDomain: "jadwal-admin-2026.firebaseapp.com",
-  databaseURL: "https://jadwal-admin-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "jadwal-admin-2026",
-  storageBucket: "jadwal-admin-2026.firebasestorage.app",
-  messagingSenderId: "638335464309",
-  appId: "1:638335464309:web:5094ebcd6bd082003c193c"
-};
 
-const V = "https://www.gstatic.com/firebasejs/10.12.0/";
-
-/* ===== MODE OFFLINE: cache baca + antrean tulis ada di offline-sync.js ===== */
-const OS = window.OfflineSync;
-window.__offlineGet = (r) => OS.cached(r);
-
-(async () => {
-  try {
-    const [appMod, dbMod] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-database.js")]);
-    const app = appMod.initializeApp(firebaseConfig);
-    window.db = dbMod.getDatabase(app);
-    window.firebaseRef = dbMod.ref;
-    /* tulis & baca lewat OfflineSync: offline -> diantre & dicerminkan ke cache, online -> terkirim otomatis */
-    OS.init({
-      rawSet: (r, v) => (v === null || v === undefined) ? dbMod.remove(r) : dbMod.set(r, v),
-      rawGet: dbMod.get,
-      makeRef: (p) => dbMod.ref(window.db, p)
-    });
-    window.firebaseSet = (r, v) => OS.set(r, v);
-    window.firebaseRemove = (r) => OS.set(r, null);
-    window.firebaseGet = (r) => OS.get(r);
-    /* status koneksi sungguhan ke server Firebase (bukan sekadar "ada wifi") */
-    try { dbMod.onValue(dbMod.ref(window.db, ".info/connected"), (s) => OS.setConnected(s.val() === true)); } catch (e) {}
-    window.firebaseReady = true;
-
-    // Firebase Auth (berat) hanya dimuat setelah halaman tampil / saat login
-    let authP = null;
-    window.ensureAuth = () => authP || (authP = import(V + "firebase-auth.js").then(m => {
-      window.auth = m.getAuth(app);
-      window.signInWithEmailAndPassword = m.signInWithEmailAndPassword;
-      window.signOutFirebase = m.signOut;
-      window.onAuthStateChangedFirebase = m.onAuthStateChanged;
-      window.dispatchEvent(new Event("firebase-auth-ready"));
-    }));
-  } catch (err) {
-    console.error("Firebase gagal dimuat (mode offline):", err);
-    window.db = {}; window.firebaseRef = (d, p) => p;
-    OS.init({ rawSet: () => Promise.reject(new Error("offline")), rawGet: () => Promise.reject(new Error("offline")), makeRef: (p) => p });
-    OS.setConnected(false);
-    window.firebaseGet = (r) => OS.get(r);
-    window.firebaseSet = (r, v) => OS.set(r, v);
-    window.firebaseRemove = (r) => OS.set(r, null);
-    window.firebaseReady = true; window.__fbOffline = true;
-  }
-})();
-</script>
 
 <!-- INLINE BOOT SCRIPT — intro 4 detik, ringan (progress via CSS + 1 penghitung persen) -->
 <script>
@@ -630,90 +556,7 @@ window.__LOADER_MS = 4000;
 })();
 </script>
 
-<script src="app.js" defer></script>
-
-<!-- ===== LIGHTWEIGHT UI ENHANCEMENTS ===== -->
-<script>
-(function() {
-  // Char counter for serah terima textarea
-  document.addEventListener("DOMContentLoaded", () => {
-    const ta = document.getElementById("serahTerimaInput");
-    const cc = document.getElementById("serahTerimaCharCount");
-    if (ta && cc) {
-      ta.addEventListener("input", () => {
-        cc.textContent = ta.value.length + " / 500";
-        ta.style.borderColor = ta.value.length > 450 ? "var(--red)" : "";
-      });
-    }
-    const inp = document.getElementById("staffSearchInput");
-    const clr = document.getElementById("searchClear");
-    if (inp && clr) {
-      inp.addEventListener("input", () => {
-        clr.style.display = inp.value ? "flex" : "none";
-      });
-    }
-  });
-
-  // Mobile bottom-nav active section (single scroll listener)
-  const navBtns = document.querySelectorAll('.mobile-nav-item');
-  const sections = ['header', 'scheduleSection', 'kegiatanSection'];
-  const scrollBtn = document.getElementById('scrollTopBtn');
-
-  function onScroll() {
-    const scroll = window.scrollY + window.innerHeight / 3;
-    sections.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const top = el.offsetTop, bot = top + el.offsetHeight;
-      if (scroll >= top && scroll < bot) {
-        navBtns.forEach(b => b.classList.remove('active'));
-        if (navBtns[i]) navBtns[i].classList.add('active');
-      }
-    });
-    if (scrollBtn) scrollBtn.classList.toggle('visible', window.scrollY > 300);
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  if (scrollBtn) {
-    scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  }
-
-  // ===== Hamburger slide-out menu =====
-  const hbBtn = document.getElementById('hamburgerBtn');
-  const hbMenu = document.getElementById('hamburgerMenu');
-  const hbOverlay = document.getElementById('hamburgerOverlay');
-  const hbClose = document.getElementById('hamburgerCloseBtn');
-
-  function openHamburger() {
-    if (!hbMenu || !hbOverlay) return;
-    hbMenu.classList.add('open');
-    hbOverlay.classList.add('open');
-    hbBtn?.classList.add('active');
-    hbBtn?.setAttribute('aria-expanded', 'true');
-    document.body.classList.add('hmenu-lock');
-  }
-  function closeHamburger() {
-    if (!hbMenu || !hbOverlay) return;
-    hbMenu.classList.remove('open');
-    hbOverlay.classList.remove('open');
-    hbBtn?.classList.remove('active');
-    hbBtn?.setAttribute('aria-expanded', 'false');
-    document.body.classList.remove('hmenu-lock');
-  }
-  hbBtn?.addEventListener('click', () => {
-    hbMenu?.classList.contains('open') ? closeHamburger() : openHamburger();
-  });
-  hbClose?.addEventListener('click', closeHamburger);
-  hbOverlay?.addEventListener('click', closeHamburger);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHamburger(); });
-
-  // Auto-close the menu after picking an action inside it (keeps flow snappy on mobile)
-  hbMenu?.addEventListener('click', e => {
-    const el = e.target.closest('#serahTerimaBtn, #historyBtn, #adminBtn, #logoutBtn, #themeToggle, #weekSelect, #rotationOrderBtn, #enableNotifBtn');
-    if (el && el.tagName !== 'SELECT') setTimeout(closeHamburger, 150);
-  });
-})();
-</script>
+<script src="jd.js" defer></script>
 
 <!-- ===== PANDUAN INSTAL APLIKASI ===== -->
 <div id="installHelp" class="inst-modal" hidden role="dialog" aria-modal="true" aria-labelledby="installHelpTitle">
@@ -730,11 +573,6 @@ window.__LOADER_MS = 4000;
   </div>
 </div>
 
-<script src="pro2026.js" defer></script>
-<script src="desktop2026.js" defer></script>
-<script src="sakit2026.js" defer></script>
-<script src="notif-promo.js" defer></script>
 
-<script src="pwa.js" data-app-name="Jadwal Admin Gudang" data-accent="#00f5ff" defer></script>
 </body>
 </html>
