@@ -1,0 +1,588 @@
+/* ==========================================================================
+   TEMA 2026 — lapisan desain profesional (dimuat SETELAH app.css)
+   - Warna shift di tabel (P / S / M / OFF / C / libur) TIDAK diubah.
+   - Tanpa blur / backdrop-filter / animasi berat  -> ringan di Windows 7.
+   - Satu bahasa desain: kartu putih/gelap bersih, garis tipis, bayangan lembut.
+   ========================================================================== */
+
+/* ---------- 1. TOKEN WARNA & UKURAN ---------- */
+html body {                                   /* GELAP */
+  --bg: #0a0e17;
+  --bg-elevated: #0f1522;
+  --surface: #111827;
+  --surface-2: #172033;
+  --border: #1f2a40;
+  --border-strong: #2b3a57;
+  --accent: #3b82f6;
+  --accent-dim: #3b82f61f;
+  --accent-strong: #7db0ff;
+  --accent-ink: #ffffff;
+  --text: #e8edf6;
+  --text-dim: #93a1ba;
+  --text-faint: #5d6b85;
+  --font-hero: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-display: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-body: "Inter", "Segoe UI", Arial, sans-serif;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md: 0 4px 14px rgba(0,0,0,.35);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.45);
+  --glow: 0 0 0 1px var(--accent-dim);
+  --glow-text: none;
+  --pro-line: #2b3a57;
+  --pro-line-2: #1f2a40;
+  --pro-card-a: #111827;
+  --pro-card-b: #111827;
+  --pro-hi: transparent;
+  --pro-shadow: 0 1px 2px rgba(0,0,0,.35);
+  --aurora-a: transparent;
+  --aurora-b: transparent;
+  --grid: transparent;
+  --t2-title: #f5f8ff;
+}
+html body.formal-theme {                      /* TERANG */
+  --bg: #f3f5f9;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f6f8fc;
+  --border: #e3e8f1;
+  --border-strong: #cfd8e6;
+  --accent: #1d5fe0;
+  --accent-dim: #1d5fe016;
+  --accent-strong: #174db8;
+  --accent-ink: #ffffff;
+  --text: #0f1b33;
+  --text-dim: #54647f;
+  --text-faint: #8a98b0;
+  --shadow-sm: 0 1px 2px rgba(15,27,51,.06);
+  --shadow-md: 0 4px 14px rgba(15,27,51,.08);
+  --shadow-lg: 0 12px 32px rgba(15,27,51,.12);
+  --pro-line: #cfd8e6;
+  --pro-line-2: #e3e8f1;
+  --pro-card-a: #ffffff;
+  --pro-card-b: #ffffff;
+  --pro-shadow: 0 1px 2px rgba(15,27,51,.06);
+  --t2-title: #0b1a3a;
+}
+
+/* ---------- 2. LATAR & TIPOGRAFI DASAR ---------- */
+html body {
+  background: var(--bg) !important;
+  font-family: var(--font-body);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+  letter-spacing: 0;
+}
+html body:before, html body:after { display: none !important; }   /* grid + aurora */
+html body * { text-shadow: none; }
+
+/* label kecil: dari gaya "terminal" menjadi label rapi */
+html body .crew-title, html body .away-title, html body .legend-title,
+html body .week-progress-label, html body .shift-label-text, html body .hmenu-sec,
+html body .stat-label, html body .hmenu-label, html body .st-ticks span,
+html body .st-ticks em, html body .loader-text, html body .quick-nav-label {
+  font-family: var(--font-body) !important;
+  letter-spacing: .06em !important;
+  font-weight: 700 !important;
+}
+html body .crew-title:before { display: none !important; }
+
+/* ---------- 3. HEADER ---------- */
+html body > header {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+html body > header:before, html body > header:after,
+html body .shift-indicator:before, html body .shift-indicator:after,
+html body .shift-gauge:before, html body .gauge-marker:after,
+html body .glitch:before, html body .glitch:after { display: none !important; }
+
+html body .glitch, html body .header-row-1 .glitch {
+  font-family: var(--font-hero) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.01em !important;
+  color: var(--t2-title) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-transform: uppercase;
+}
+html body .header-badge {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+}
+html body .cyber-clock .ck-time {
+  font-family: "JetBrains Mono", Consolas, monospace !important;
+  font-weight: 700 !important;
+  color: var(--t2-title) !important;
+  text-shadow: none !important;
+  letter-spacing: 1px !important;
+}
+html body .cyber-clock .ck-date, html body .cyber-clock .ck-day {
+  color: var(--text-dim) !important;
+  font-family: var(--font-body) !important;
+  letter-spacing: .02em !important;
+}
+html body .online-indicator {
+  background: var(--c-pagi-bg) !important;
+  border: 1px solid var(--c-pagi-line) !important;
+  color: var(--c-pagi) !important;
+  box-shadow: none !important;
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+}
+html body .online-dot, html body .online-dot:after { box-shadow: none !important; animation: none !important; }
+
+html body .hamburger-btn, html body #themeToggle.theme-btn,
+html body header .icon-btn, html body header button:not(.install-chip) {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+}
+html body .install-chip {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+}
+
+/* ---------- 4. SHIFT AKTIF ---------- */
+html body .shift-indicator {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+html body .shift-countdown, html body .shift-meta .shift-countdown {
+  font-family: var(--font-hero) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.005em !important;
+  text-shadow: none !important;
+}
+html body .gauge-center, html body .shift-gauge .gauge-center { box-shadow: none !important; }
+html body .shift-gauge { filter: none !important; box-shadow: none !important; }
+html body .st-bar { box-shadow: none !important; }
+html body .st-now { box-shadow: 0 0 0 3px var(--surface-2) !important; }
+html body .st-ticks span { color: var(--text-dim) !important; font-family: var(--font-body) !important; }
+html body .st-ticks em { color: var(--text-faint) !important; }
+
+/* ---------- 5. BANNER INSTAL ---------- */
+html body .install-card .install-btn, html body .install-btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.2) !important;
+  border-radius: 12px !important;
+}
+html body .install-btn .ib-ico { background: rgba(255,255,255,.18) !important; box-shadow: none !important; }
+
+/* ---------- 6. KARTU STATISTIK ---------- */
+html body #scheduleSection .stat-card,
+html body .stat-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: none !important;
+}
+html body .stat-card:before { display: none !important; }
+html body .stat-card:after { display: none !important; }
+html body .stat-card:hover { transform: none !important; box-shadow: var(--shadow-md) !important; }
+html body .stat-card .stat-value {
+  font-family: var(--font-hero) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.02em !important;
+  text-shadow: none !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+html body .stat-p .stat-value { color: var(--c-pagi) !important; }
+html body .stat-s .stat-value { color: var(--c-sore) !important; }
+html body .stat-m .stat-value { color: var(--c-malam) !important; }
+html body .stat-off .stat-value { color: var(--c-off) !important; }
+html body .stat-total .stat-value { color: var(--accent) !important; }
+html body .stat-card .stat-label { color: var(--text-dim) !important; text-transform: uppercase; font-size: 11px !important; }
+html body .stat-card .stat-icon { box-shadow: none !important; border: 0 !important; }
+html body .stat-card .stat-bar { opacity: .9; }
+
+/* ---------- 7. PETUGAS HARI INI ---------- */
+html body .today-crew {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+html body .crew-card {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+html body .crew-card:before, html body .crew-card:after { display: none !important; }
+html body .crew-card:hover { transform: none !important; border-color: var(--border-strong) !important; }
+html body .crew-card.active {
+  background: var(--surface) !important;
+  box-shadow: 0 0 0 2px var(--c-pagi), var(--shadow-sm) !important;
+  border-color: transparent !important;
+}
+html body .crew-card.crew-sore.active { box-shadow: 0 0 0 2px var(--c-sore), var(--shadow-sm) !important; }
+html body .crew-card.crew-malam.active { box-shadow: 0 0 0 2px var(--c-malam), var(--shadow-sm) !important; }
+html body .crew-top b { font-weight: 700 !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; }
+html body .crew-card li { font-weight: 600 !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; }
+html body .crew-live { border-radius: 999px !important; box-shadow: none !important; animation: none !important; font-family: var(--font-body) !important; letter-spacing: .05em !important; }
+html body .crew-share, html body .crew-head .crew-chev {
+  box-shadow: none !important;
+}
+html body .crew-share {
+  background: var(--accent-dim) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--accent) !important;
+  border-radius: 10px !important;
+}
+html body .away-chip {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+html body .away-chip:before, html body .away-chip:after { display: none !important; }
+html body .away-count { font-family: var(--font-body) !important; }
+
+/* ---------- 8. TICKER, CARI, WEEK ---------- */
+html body .news-ticker {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-sm) !important;
+  overflow: hidden;
+}
+html body .live-indicator {
+  background: #e5314f !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-family: var(--font-body) !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+}
+html body .live-dot { box-shadow: none !important; }
+html body .search-bar-wrap, html body .staff-search-input {
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+html body .search-bar-wrap {
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+}
+html body .staff-search-input { border: 0 !important; font-family: var(--font-body) !important; color: var(--text) !important; }
+html body .quick-nav-row {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+html body .quick-nav-btn {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+}
+html body .quick-nav-btn:hover { background: var(--accent) !important; color: #fff !important; }
+html body .quick-nav-label { color: var(--text) !important; }
+
+/* ---------- 9. TABEL JADWAL (warna shift tidak diubah) ---------- */
+html body .table-wrapper, html body #scheduleSection .table-wrapper {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+html body .table-wrapper:before, html body .table-wrapper:after { display: none !important; }
+html body #scheduleTable { border-collapse: separate; border-spacing: 0; }
+html body #scheduleTable thead th {
+  background: var(--surface-2) !important;
+  color: var(--text-dim) !important;
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+  border-bottom: 1px solid var(--border) !important;
+  text-shadow: none !important;
+}
+html body #scheduleTable thead th.today-col {
+  background: var(--accent-dim) !important;
+  color: var(--accent) !important;
+}
+html body #scheduleTable .today-tag {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  border-radius: 999px !important;
+  font-family: var(--font-body) !important;
+}
+html body #scheduleTable tbody td { border-bottom: 1px solid var(--border) !important; }
+html body #scheduleTable tbody tr:last-child td { border-bottom: 0 !important; }
+html body #scheduleTable td.nama-cell { background: var(--surface) !important; font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+html body #scheduleTable td.nik-cell { color: var(--text-faint) !important; font-family: "JetBrains Mono", Consolas, monospace !important; background: var(--surface) !important; }
+html body #scheduleTable tbody td.today-col { background: var(--accent-dim) !important; }
+html body #scheduleTable tbody tr:hover td:not(.today-col):not(.nama-cell):not(.nik-cell) { background: var(--accent-dim) !important; }
+html body .staff-avatar {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-family: var(--font-body) !important;
+  font-weight: 700 !important;
+}
+html body .staff-avatar.on-duty:after { display: none !important; }
+
+/* ---------- 10. KETERANGAN, PROGRESS, KEGIATAN ---------- */
+html body .legend-bar {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+html body .legend-badge { font-family: var(--font-body) !important; letter-spacing: 0 !important; box-shadow: none !important; }
+html body .week-progress-wrap { background: transparent !important; }
+html body .week-progress-bar { background: var(--border) !important; border-radius: 999px !important; box-shadow: none !important; height: 8px !important; }
+html body .week-progress-fill { background: var(--accent) !important; border-radius: 999px !important; box-shadow: none !important; }
+html body .week-progress-fill:after { display: none !important; }
+
+html body .kegiatan-section, html body .kegiatan-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+html body .kegiatan-card:after, html body .kegiatan-card:before { display: none !important; }
+html body .kegiatan-header-bar { background: transparent !important; font-family: var(--font-body) !important; }
+html body .kegiatan-section-icon { background: var(--accent) !important; box-shadow: none !important; }
+
+/* ---------- 11. MENU SAMPING (sidebar) ---------- */
+html body .hamburger-menu {
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+html body .hamburger-menu:after, html body .hamburger-menu:before { display: none !important; }
+html body .hmenu-btn {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+  font-family: var(--font-body) !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+}
+html body .hmenu-btn:hover { background: var(--surface-2) !important; transform: none !important; }
+html body .hmenu-btn i:first-child { box-shadow: none !important; }
+html body .hmenu-group { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; box-shadow: none !important; }
+html body .sb-status { background: var(--c-pagi-bg) !important; border: 1px solid var(--c-pagi-line) !important; color: var(--c-pagi) !important; border-radius: 999px !important; font-family: var(--font-body) !important; }
+html body .hamburger-overlay { background: rgba(5,10,20,.55) !important; }
+
+/* ---------- 12. NAVIGASI BAWAH (HP) ---------- */
+html body .mobile-bottom-nav {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 -2px 14px rgba(0,0,0,.18) !important;
+  border-radius: 20px !important;
+}
+html body .mobile-nav-item { color: var(--text-dim) !important; font-family: var(--font-body) !important; font-weight: 600 !important; }
+html body .mobile-nav-item.active { background: var(--accent-dim) !important; color: var(--accent) !important; box-shadow: none !important; border: 0 !important; }
+html body .mobile-nav-item.active:before, html body .mobile-nav-item:before { box-shadow: none !important; }
+
+/* ---------- 13. MODAL, CHAT, NOTIFIKASI ---------- */
+html body .modal-box, html body .chat-panel, html body .inst-box {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-radius: 18px !important;
+}
+html body .modal-title { font-family: var(--font-hero) !important; font-weight: 800 !important; letter-spacing: -.005em !important; }
+html body .btn-primary { background: var(--accent) !important; color: #fff !important; border: 0 !important; box-shadow: none !important; border-radius: 10px !important; }
+html body .btn-ghost { background: var(--surface-2) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 10px !important; box-shadow: none !important; }
+html body .chat-fab { background: var(--accent) !important; box-shadow: var(--shadow-md) !important; }
+html body .chat-fab:after { display: none !important; }
+html body .os-notif-popup { border-radius: 16px !important; box-shadow: var(--shadow-lg) !important; }
+html body .os-notif-promo:after { display: none !important; }
+
+/* ---------- 14. FOOTER ---------- */
+html body footer.cyber-signature {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html body footer.cyber-signature:before { display: none !important; }
+html body footer.cyber-signature .signature-text { font-family: var(--font-body) !important; letter-spacing: 0 !important; }
+
+/* ---------- 15. LOADING SCREEN (4 detik, minimalis) ---------- */
+html body #cyberLoader {
+  background: var(--bg) !important;
+}
+html body #cyberLoader .ld-grid, html body #cyberLoader .loader-glow,
+html body #cyberLoader .ld-ring, html body #cyberLoader .loader-content:before,
+html body #cyberLoader .bottle-bubble { display: none !important; }
+html body #cyberLoader .loader-content {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-radius: 24px !important;
+  width: min(340px, calc(100vw - 40px));
+}
+html body #cyberLoader .loader-title {
+  font-family: var(--font-hero) !important;
+  font-weight: 800 !important;
+  letter-spacing: -.01em !important;
+  color: var(--t2-title) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+html body #cyberLoader .loader-year { font-family: var(--font-body) !important; color: var(--text-dim) !important; letter-spacing: .2em !important; font-weight: 700; }
+html body #cyberLoader .loader-aqua-chip { background: var(--accent-dim) !important; color: var(--accent) !important; font-family: var(--font-body) !important; }
+html body #cyberLoader .ld-percent { font-family: var(--font-hero) !important; font-weight: 800 !important; color: var(--t2-title) !important; text-shadow: none !important; }
+html body #cyberLoader .loader-bar { background: var(--border) !important; height: 6px !important; border-radius: 999px !important; box-shadow: none !important; }
+html body #cyberLoader .loader-progress { background: var(--accent) !important; border-radius: 999px !important; box-shadow: none !important; }
+html body #cyberLoader .ld-steps li { font-family: var(--font-body) !important; letter-spacing: .04em !important; box-shadow: none !important; border-radius: 999px !important; }
+html body #cyberLoader .loader-dev-credit, html body #cyberLoader .loader-text { font-family: var(--font-body) !important; letter-spacing: .04em !important; }
+html body #cyberLoader .dev-name-shine { background: none !important; -webkit-text-fill-color: currentColor !important; color: var(--accent) !important; animation: none !important; }
+html body #cyberLoader .dev-name-shine:after { display: none !important; }
+
+/* ---------- 16. PERFORMA: matikan semua gerak dekoratif ---------- */
+html body .stat-card, html body .crew-card, html body .kegiatan-card,
+html body .hmenu-btn, html body .mobile-nav-item, html body .quick-nav-btn {
+  transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s !important;
+}
+html body .live-dot, html body .crew-live, html body .sync-chip i, html body .dl-arrow,
+html body .install-btn, html body .install-chip { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html body *, html body *:before, html body *:after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- 17. PENYEMPURNAAN HP ---------- */
+@media (max-width: 768px) {
+  html body { padding: 12px 12px 96px; }
+  html body #scheduleSection .stat-card .stat-label {
+    font-size: 9.5px !important; letter-spacing: .02em !important; white-space: nowrap; text-transform: none;
+  }
+  html body #scheduleSection .stat-card .stat-value { font-size: 26px !important; }
+  html body > header { border-radius: 16px !important; }
+  html body .hmenu-foot, html body .hf-esc { font-family: var(--font-body) !important; }
+  html body .mobile-bottom-nav { border-radius: 18px !important; }
+}
+html body .hmenu-foot, html body .hmenu-foot span { font-family: var(--font-body) !important; letter-spacing: 0 !important; }
+html body .sb-brand-text b { font-family: var(--font-hero) !important; letter-spacing: 0 !important; }
+html body .sb-brand-text span { font-family: var(--font-body) !important; letter-spacing: .04em !important; }
+html body #scheduleTable thead th { font-family: var(--font-body) !important; font-size: 10.5px !important; }
+html body .cyber-signature .sync-chip, html body .sync-chip { font-family: var(--font-body) !important; letter-spacing: 0 !important; }
+
+/* ---------- 18. BANNER PASANG APLIKASI & TAUTAN ---------- */
+html body .ib-banner, html body .install-banner, html body [class*="inst-banner"], html body .inst-bar {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 16px !important;
+}
+html body .ib-ic { background: var(--accent) !important; box-shadow: none !important; border-radius: 12px !important; }
+html body .ib-tx b { color: var(--text) !important; font-family: var(--font-body) !important; }
+html body .ib-tx small { color: var(--text-dim) !important; }
+html body .ib-go { background: var(--accent) !important; color: #fff !important; box-shadow: none !important; border: 0 !important; border-radius: 999px !important; }
+html body .ib-x { color: var(--text-dim) !important; }
+html body .cyber-link-btn, html body .cyber-link-btn-amber, html body .cyber-link-btn-green {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--text) !important;
+  border-radius: 10px !important;
+}
+html body .cyber-link-btn:hover { background: var(--surface-2) !important; }
+
+/* ==========================================================================
+   19. MODE TERANG — gradasi putih -> aqua (#00FFFF) tipis & profesional
+   ========================================================================== */
+html body.formal-theme {
+  --aq: 0,255,255;                         /* aqua 00FFFF */
+  --aq-line: rgba(0,190,205,.30);          /* garis tipis kebiruan-aqua */
+  --aq-glow: rgba(0,215,225,.28);
+  --border: #d5e9ee;
+  --border-strong: #bcdce4;
+  --pro-line: #bcdce4;
+  --pro-line-2: #d5e9ee;
+  --g-card: linear-gradient(135deg, #ffffff 0%, #ffffff 52%, rgba(0,255,255,.13) 100%);
+  --g-card-soft: linear-gradient(135deg, #ffffff 0%, rgba(0,255,255,.07) 100%);
+  --g-head: linear-gradient(120deg, #ffffff 0%, #ffffff 40%, rgba(0,255,255,.20) 100%);
+  --g-inner: linear-gradient(135deg, #f8ffff 0%, rgba(0,255,255,.12) 100%);
+  --shadow-sm: 0 1px 2px rgba(15,27,51,.05), 0 6px 18px -10px rgba(0,190,205,.35);
+  --shadow-md: 0 2px 6px rgba(15,27,51,.06), 0 12px 28px -12px rgba(0,190,205,.40);
+}
+html body.formal-theme {
+  background: linear-gradient(180deg, #ffffff 0%, #f2feff 38%, #e3fbfd 100%) !important;
+  background-color: #f2feff !important;
+}
+html body.formal-theme > header {
+  background: var(--g-head) !important;
+  border: 1px solid var(--aq-line) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+html body.formal-theme .shift-indicator {
+  background: var(--g-inner) !important;
+  border-color: var(--aq-line) !important;
+}
+@media (max-width: 768px) { html body.formal-theme .cyber-clock { background: linear-gradient(135deg,#fff 0%, rgba(0,255,255,.14) 100%) !important; border-color: var(--aq-line) !important; } }
+@media (min-width: 769px) { html body.formal-theme .cyber-clock { background: none !important; border: 0 !important; box-shadow: none !important; } }
+
+html body.formal-theme #scheduleSection .stat-card,
+html body.formal-theme .stat-card,
+html body.formal-theme .today-crew,
+html body.formal-theme .legend-bar,
+html body.formal-theme .kegiatan-section,
+html body.formal-theme .kegiatan-card,
+html body.formal-theme .news-ticker,
+html body.formal-theme .quick-nav-row,
+html body.formal-theme .search-bar-wrap,
+html body.formal-theme .inst-banner,
+html body.formal-theme .mobile-bottom-nav {
+  background: var(--g-card) !important;
+  border: 1px solid var(--aq-line) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+html body.formal-theme .table-wrapper, html body.formal-theme #scheduleSection .table-wrapper {
+  border-color: var(--aq-line) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+html body.formal-theme .crew-card { background: var(--g-card-soft) !important; border-color: #cfe7ec !important; }
+html body.formal-theme .crew-card.active { background: linear-gradient(135deg,#fff 0%, rgba(0,255,255,.16) 100%) !important; }
+html body.formal-theme .away-chip { background: var(--g-card-soft) !important; border-color: #cfe7ec !important; }
+
+/* tabel: kepala kolom bergradasi tipis, sel nama tetap putih bersih */
+html body.formal-theme #scheduleTable thead th { background: linear-gradient(180deg,#ffffff 0%, rgba(0,255,255,.14) 100%) !important; border-bottom-color: var(--aq-line) !important; }
+html body.formal-theme #scheduleTable thead th.today-col { background: linear-gradient(180deg, rgba(0,255,255,.22), rgba(0,255,255,.10)) !important; color: #0a5fa8 !important; }
+html body.formal-theme #scheduleTable tbody td { border-bottom-color: #dcedf1 !important; }
+html body.formal-theme #scheduleTable tbody td.today-col { background: rgba(0,255,255,.13) !important; }
+html body.formal-theme #scheduleTable tbody tr:hover td:not(.today-col):not(.nama-cell):not(.nik-cell) { background: rgba(0,255,255,.10) !important; }
+
+/* sidebar & menu */
+html body.formal-theme .hamburger-menu { background: linear-gradient(180deg,#ffffff 0%, #effeff 100%) !important; border-right-color: var(--aq-line) !important; }
+html body.formal-theme .hmenu-group { background: var(--g-card-soft) !important; border-color: #cfe7ec !important; }
+html body.formal-theme .hmenu-btn:hover { background: rgba(0,255,255,.14) !important; }
+
+/* progress, modal, chat */
+html body.formal-theme .week-progress-bar { background: #d5eef2 !important; }
+html body.formal-theme .week-progress-fill { background: linear-gradient(90deg, #1d5fe0 0%, #00c8e0 100%) !important; }
+html body.formal-theme .modal-box, html body.formal-theme .chat-panel, html body.formal-theme .inst-box { background: var(--g-card) !important; border-color: var(--aq-line) !important; }
+html body.formal-theme #cyberLoader { background: linear-gradient(180deg,#ffffff 0%, #e6fcff 100%) !important; }
+html body.formal-theme #cyberLoader .loader-content { background: var(--g-card) !important; border-color: var(--aq-line) !important; }
+html body.formal-theme #cyberLoader .loader-progress { background: linear-gradient(90deg, #1d5fe0, #00d4e6) !important; }
+html body.formal-theme .loader-bar { background: #d5eef2 !important; }

@@ -8,12 +8,12 @@
    • Firebase / situs lain TIDAK disentuh (data tetap langsung ke server).
    ES5 — aman untuk Chrome 109 / Windows 7.
    ========================================================================== */
-var VERSION = "e5821a9c8a";
+var VERSION = "43281e8657";
 var APP = "jadwal";
 var SHELL = APP + "-shell-" + VERSION;
 var MEDIA = APP + "-media-v1";
 var TIMEOUT = 3500;
-var CORE = ["./index.html","./app.css","./favicon.png","./fonts/fa-solid.woff2","./icon-192.png","./jd.js","./manifest.json","./vendor/fb-auth.js","./vendor/fb-core.js","./vendor/fb-db.js"];          /* wajib ada, kalau gagal pembaruan dibatalkan (versi lama tetap utuh) */
+var CORE = ["./index.html","./app.css","./tema2026.css","./favicon.png","./fonts/fa-solid.woff2","./icon-192.png","./jd.js","./manifest.json","./vendor/fb-auth.js","./vendor/fb-core.js","./vendor/fb-db.js"];          /* wajib ada, kalau gagal pembaruan dibatalkan (versi lama tetap utuh) */
 var OPTIONAL = ["./apple-touch-icon.png","./icon-512.png"];  /* dicoba, boleh gagal */
 var LATER = ["./fonts/big-shoulders-display-latin-700-normal.woff2","./fonts/big-shoulders-display-latin-800-normal.woff2","./fonts/inter-latin-wght-normal.woff2","./fonts/jetbrains-mono-latin-wght-normal.woff2","./fonts/space-grotesk-latin-wght-normal.woff2"];        /* diunduh pelan-pelan setelah halaman jalan */
 var BYPASS = [];      /* bagian situs lain di bawah folder yang sama */

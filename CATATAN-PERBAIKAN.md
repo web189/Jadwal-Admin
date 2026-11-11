@@ -15,3 +15,8 @@ Jika mengedit file langsung di GitHub, tidak perlu mengubah apa pun di sw.js.
 
 ## Mode ringan Jadwal Admin
 Otomatis di Windows XP-8 / PC spek rendah. Paksa: tambahkan ?lite=1 di alamat, matikan: ?lite=0.
+
+## v28 — Tema 2026
+- File baru `tema2026.css` (dimuat setelah app.css): tampilan bersih & profesional, tanpa blur/glow/animasi dekoratif.
+- Warna shift di tabel (P/S/M/OFF/C/libur) tidak diubah. Loading screen tetap 4 detik. jd.js tidak diubah.
+- Cara pasang: upload SEMUA isi folder ke GitHub (termasuk tema2026.css). sw.js sudah diperbarui.
