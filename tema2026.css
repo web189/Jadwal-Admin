@@ -619,3 +619,22 @@ html body.formal-theme .loader-bar { background: #d5eef2 !important; }
   }
   html body .today-crew .away-chip > * { min-width: 0; }
 }
+
+/* ---------- 21. TOMBOL MENU: ABSEN GPS TRACKING ---------- */
+html body .cyber-link-btn-gps > i.gps-ico:first-child {
+  background: linear-gradient(135deg, #00c2d6, #5ee7f5) !important;
+  color: #04323a !important;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+html body .cyber-link-btn-gps > i.gps-ico svg { width: 16px; height: 16px; display: block; }
+html body .cyber-link-btn-gps { border-color: rgba(0,200,215,.35) !important; }
+
+/* ---------- 22. NAV BAWAH HP: ABSEN GPS ---------- */
+html body .mobile-nav-item.nav-gps > i.gps-ico:first-child {
+  color: #22d3ee; display: block; font-size: 17px; line-height: 17px; height: 17px; width: 19px; text-align: center;
+}
+html body .mobile-nav-item.nav-gps > i.gps-ico svg { width: 19px; height: 19px; display: block; margin: -1px auto 0; }
+html body .mobile-nav-item.nav-gps .nav-ext-icon { color: #22d3ee !important; }
+html body .mobile-nav-item.nav-gps:hover { color: #22d3ee !important; }
+html body.formal-theme .mobile-nav-item.nav-gps > i.gps-ico:first-child,
+html body.formal-theme .mobile-nav-item.nav-gps .nav-ext-icon { color: #0891b2 !important; }

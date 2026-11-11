@@ -209,6 +209,10 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();win
       <i class="fas fa-clipboard-list"></i> Sistem DMS/Laporan
       <i class="fas fa-arrow-up-right-from-square link-ext-icon" aria-hidden="true"></i>
     </a>
+    <a href="https://benyoriki.github.io/Absensi/index.html" target="_blank" rel="noopener noreferrer" class="hmenu-btn cyber-link-btn cyber-link-btn-gps" title="Absen GPS Tracking">
+      <i class="gps-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-10.8a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.2" r="2.4"/></svg></i> Absen GPS Tracking
+      <i class="fas fa-arrow-up-right-from-square link-ext-icon" aria-hidden="true"></i>
+    </a>
 
     <div class="hmenu-foot"><span>Jadwal Admin Gudang 2026</span><span class="hf-esc">Tutup: <kbd>Esc</kbd></span></div>
   </div>
@@ -487,8 +491,9 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();win
   <button class="mobile-nav-item" onclick="scrollToSection('scheduleSection')">
     <i class="fas fa-calendar-alt"></i><span>Jadwal</span>
   </button>
-  <button class="mobile-nav-item" onclick="scrollToSection('kegiatanSection')">
-    <i class="fas fa-broom"></i><span>Kebersihan</span>
+  <button class="mobile-nav-item nav-gps" title="Absen GPS Tracking" aria-label="Absen GPS Tracking (buka di tab baru)" onclick="window.open('https://benyoriki.github.io/Absensi/index.html','_blank','noopener,noreferrer')">
+    <i class="gps-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-10.8a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.2" r="2.4"/></svg></i><span>Absen GPS</span>
+    <i class="fas fa-arrow-up-right-from-square nav-ext-icon" aria-hidden="true"></i>
   </button>
   <button class="mobile-nav-item nav-dms" title="Sistem DMS/Laporan" onclick="window.open('https://web189.github.io/E-Book/#/','_blank','noopener')">
     <i class="fas fa-clipboard-list"></i><span>DMS</span>
