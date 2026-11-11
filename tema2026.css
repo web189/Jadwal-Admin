@@ -586,3 +586,36 @@ html body.formal-theme #cyberLoader { background: linear-gradient(180deg,#ffffff
 html body.formal-theme #cyberLoader .loader-content { background: var(--g-card) !important; border-color: var(--aq-line) !important; }
 html body.formal-theme #cyberLoader .loader-progress { background: linear-gradient(90deg, #1d5fe0, #00d4e6) !important; }
 html body.formal-theme .loader-bar { background: #d5eef2 !important; }
+
+/* ==========================================================================
+   20. PC: "PETUGAS HARI INI" jadi SATU BARISAN  ->  Pagi | Sore | Malam | Tidak Bertugas
+   ========================================================================== */
+@media (min-width: 769px) {
+  html body .today-crew {
+    width: 100% !important; max-width: none !important; margin: 0 !important;
+    align-self: stretch !important; padding: 18px 20px 20px !important;
+  }
+  html body .today-crew .crew-body {
+    display: grid !important;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+  html body .today-crew .crew-grid { display: contents !important; }
+  html body .today-crew .crew-card { margin: 0 !important; height: 100%; padding: 14px 16px !important; }
+  html body .today-crew .crew-away {
+    margin: 0 !important; padding: 14px 16px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 14px !important;
+    background: var(--surface-2) !important;
+    min-width: 0;
+  }
+  html body.formal-theme .today-crew .crew-away { background: var(--g-card-soft) !important; border-color: #cfe7ec !important; }
+  html body .today-crew .away-head { margin-bottom: 10px; }
+  html body .today-crew .away-list { display: flex !important; flex-direction: column; gap: 8px; }
+  html body .today-crew .away-chip {
+    padding: 7px 9px !important; gap: 8px !important; flex-wrap: wrap; min-width: 0;
+  }
+  html body .today-crew .away-chip > * { min-width: 0; }
+}
