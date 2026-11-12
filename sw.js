@@ -8,7 +8,7 @@
    • Firebase / situs lain TIDAK disentuh (data tetap langsung ke server).
    ES5 — aman untuk Chrome 109 / Windows 7.
    ========================================================================== */
-var VERSION = "1b16402d9b";
+var VERSION = "6d98c61527";
 var APP = "jadwal";
 var SHELL = APP + "-shell-" + VERSION;
 var MEDIA = APP + "-media-v1";

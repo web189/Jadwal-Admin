@@ -638,3 +638,327 @@ html body .mobile-nav-item.nav-gps .nav-ext-icon { color: #22d3ee !important; }
 html body .mobile-nav-item.nav-gps:hover { color: #22d3ee !important; }
 html body.formal-theme .mobile-nav-item.nav-gps > i.gps-ico:first-child,
 html body.formal-theme .mobile-nav-item.nav-gps .nav-ext-icon { color: #0891b2 !important; }
+
+/* ==========================================================================
+   23. PETUGAS HARI INI & TIDAK BERTUGAS — desain ulang
+   Kartu shift: pita warna + header berwarna lembut + daftar nama bernomor.
+   Warna mengikuti warna shift yang sudah ada (tidak diubah).
+   ========================================================================== */
+html body .today-crew .crew-P { --sc: var(--c-pagi);  --sc-bg: var(--c-pagi-bg);  --sc-line: var(--c-pagi-line); }
+html body .today-crew .crew-S { --sc: var(--c-sore);  --sc-bg: var(--c-sore-bg);  --sc-line: var(--c-sore-line); }
+html body .today-crew .crew-M { --sc: var(--c-malam); --sc-bg: var(--c-malam-bg); --sc-line: var(--c-malam-line); }
+
+/* --- judul & tanggal --- */
+html body .today-crew .crew-title {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 12px !important; font-weight: 800 !important; letter-spacing: .1em !important;
+  color: var(--text) !important; text-shadow: none !important;
+}
+html body .today-crew .crew-title:before {
+  content: ""; display: inline-block !important; width: 4px; height: 16px; border-radius: 3px;
+  background: linear-gradient(180deg, var(--c-pagi), var(--c-sore) 50%, var(--c-malam)) !important;
+  box-shadow: none !important; position: static; transform: none; margin: 0;
+}
+html body .today-crew .crew-date {
+  font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important;
+  letter-spacing: 0 !important; color: var(--text-dim) !important;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 11px;
+}
+
+/* --- kartu shift --- */
+html body .today-crew .crew-card {
+  position: relative; display: flex !important; flex-direction: column; padding: 0 !important; overflow: hidden;
+  border-radius: 16px !important; border: 1px solid var(--border) !important;
+  background: var(--surface-2) !important; box-shadow: none !important;
+}
+html body .today-crew .crew-card:before {
+  content: "" !important; display: block !important; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: var(--sc) !important; opacity: .95; box-shadow: none !important; border: 0; transform: none;
+}
+html body .today-crew .crew-card:after { display: none !important; }
+html body .today-crew .crew-top {
+  display: flex; align-items: center; gap: 8px; margin: 0; padding: 15px 14px 11px;
+  background: var(--sc-bg); border-bottom: 1px solid var(--border);
+}
+html body .today-crew .crew-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sc) !important; box-shadow: none !important; flex: none; }
+html body .today-crew .crew-top b { font-size: 14px !important; font-weight: 800 !important; color: var(--text) !important; }
+html body .today-crew .crew-top em {
+  order: 3; margin-left: auto; font-style: normal; font-family: var(--font-body) !important;
+  font-size: 11px !important; font-weight: 700 !important; letter-spacing: .02em !important; color: var(--sc) !important;
+}
+html body .today-crew .crew-live {
+  order: 2; margin-left: 0 !important; font-family: var(--font-body) !important; font-size: 9.5px !important; font-weight: 800 !important;
+  letter-spacing: .06em !important; padding: 2px 8px !important; border-radius: 999px !important;
+  background: var(--sc) !important; color: var(--badge-ink) !important; box-shadow: none !important; animation: none !important;
+}
+html body .today-crew .crew-card ul {
+  list-style: none; margin: 0 !important; padding: 10px 12px 12px !important; flex: 1;
+  display: flex; flex-direction: column; gap: 6px; counter-reset: cr;
+}
+html body .today-crew .crew-card li {
+  counter-increment: cr; display: flex; align-items: center; gap: 9px; min-width: 0;
+  padding: 8px 10px; margin: 0 !important; border-radius: 10px; line-height: 1.25;
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: var(--font-body) !important; font-size: 13.5px !important; font-weight: 600 !important;
+  letter-spacing: 0 !important; color: var(--text) !important; text-transform: none;
+}
+html body .today-crew .crew-card li:before {
+  content: counter(cr); flex: none; width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--sc); background: var(--sc-bg); border: 1px solid var(--sc-line);
+  position: static; transform: none; box-shadow: none;
+}
+html body .today-crew .crew-card li.is-sick:before { color: var(--text-faint); background: var(--surface-2); border-color: var(--border); }
+html body .today-crew .crew-card li.crew-none {
+  justify-content: center; background: transparent; border-style: dashed; color: var(--text-faint) !important;
+}
+html body .today-crew .crew-card li.crew-none:before { display: none !important; }
+html body .today-crew .crew-note {
+  margin: -2px 14px 12px; font-size: 11px; font-style: italic; color: var(--text-dim); font-family: var(--font-body) !important; letter-spacing: 0;
+}
+/* kartu yang sedang aktif */
+html body .today-crew .crew-card.active {
+  border-color: var(--sc) !important;
+  box-shadow: 0 0 0 1px var(--sc), var(--shadow-md) !important;
+  background: var(--surface-2) !important;
+}
+html body .today-crew .crew-card.active:before { height: 4px; }
+html body.formal-theme .today-crew .crew-card { background: var(--g-card-soft) !important; border-color: #cfe7ec !important; }
+html body.formal-theme .today-crew .crew-card.active { border-color: var(--sc) !important; background: linear-gradient(135deg,#ffffff 0%, rgba(0,255,255,.10) 100%) !important; }
+html body.formal-theme .today-crew .crew-card li { background: #ffffff; border-color: #dcedf1; }
+html body.formal-theme .today-crew .crew-top { border-bottom-color: #dcedf1; }
+
+/* --- TIDAK BERTUGAS --- */
+html body .today-crew .crew-away {
+  position: relative; margin-top: 12px; padding: 0 !important; overflow: hidden;
+  border: 1px solid var(--border) !important; border-radius: 16px !important;
+  background: var(--surface-2) !important; box-shadow: none !important;
+}
+html body .today-crew .crew-away:before {
+  content: "" !important; display: block !important; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: var(--c-off) !important; opacity: .9; box-shadow: none !important; transform: none; border: 0;
+}
+html body .today-crew .crew-away:after { display: none !important; }
+html body .today-crew .away-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 !important;
+  padding: 15px 14px 11px; background: var(--c-off-bg); border-bottom: 1px solid var(--border);
+}
+html body .today-crew .away-title { font-size: 12px !important; font-weight: 800 !important; letter-spacing: .08em !important; color: var(--text) !important; }
+html body .today-crew .away-count {
+  min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 800 !important;
+  background: var(--c-off) !important; color: var(--badge-ink) !important; box-shadow: none !important;
+}
+html body .today-crew .away-list {
+  display: flex !important; flex-direction: column; gap: 6px; padding: 10px 12px 12px; margin: 0 !important;
+}
+html body .today-crew .away-chip {
+  --tc: #ff6b86; --tb: rgba(255,61,102,.16);
+  display: flex !important; align-items: center; flex-wrap: nowrap !important; gap: 9px; min-width: 0;
+  padding: 7px 10px 7px 11px !important; margin: 0 !important; border-radius: 12px !important;
+  background: var(--surface) !important; border: 1px solid var(--border) !important;
+  box-shadow: inset 3px 0 0 var(--tc) !important;
+}
+html body .today-crew .away-chip.cuti  { --tc: #f5d93a; --tb: rgba(245,217,58,.16); }
+html body .today-crew .away-chip.sakit { --tc: #f472b6; --tb: rgba(244,114,182,.16); }
+html body.formal-theme .today-crew .away-chip { --tc: #c21349; --tb: rgba(194,19,73,.10); background: #ffffff !important; border-color: #dcedf1 !important; }
+html body.formal-theme .today-crew .away-chip.cuti  { --tc: #8a5f00; --tb: rgba(138,95,0,.12); }
+html body.formal-theme .today-crew .away-chip.sakit { --tc: #be185d; --tb: rgba(190,24,93,.10); }
+html body .today-crew .away-av {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-body) !important; font-size: 11px !important; font-weight: 800 !important; letter-spacing: 0 !important;
+  background: var(--tb) !important; color: var(--tc) !important; border: 1.5px solid var(--tc) !important; box-shadow: none !important;
+}
+html body .today-crew .away-name {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: 0 !important; color: var(--text) !important;
+}
+html body .today-crew .away-tag {
+  flex: none; font-family: var(--font-body) !important; font-size: 9.5px !important; font-weight: 800 !important; letter-spacing: .06em !important;
+  padding: 3px 9px !important; border-radius: 999px !important; background: var(--tb) !important; color: var(--tc) !important; box-shadow: none !important; border: 0 !important;
+}
+html body.formal-theme .today-crew .crew-away { background: var(--g-card-soft) !important; border-color: #cfe7ec !important; }
+html body.formal-theme .today-crew .away-head { border-bottom-color: #dcedf1; }
+
+/* --- HP: lebih ringkas, tanpa nomor --- */
+@media (max-width: 768px) {
+  html body .today-crew .crew-grid { gap: 8px !important; }
+  html body .today-crew .crew-top { padding: 12px 10px 9px; gap: 6px; }
+  html body .today-crew .crew-top b { font-size: 13px !important; }
+  html body .today-crew .crew-card ul { padding: 8px 8px 10px !important; gap: 5px; }
+  html body .today-crew .crew-card li { padding: 7px 8px; font-size: 12px !important; border-left: 3px solid var(--sc); }
+  html body .today-crew .crew-card li:before { display: none !important; }
+  html body .today-crew .crew-away { margin-top: 12px !important; }
+}
+
+/* --- perbaikan 23b --- */
+html body .today-crew .crew-card li.is-sick { counter-increment: none; }
+html body .today-crew .crew-card li.is-sick:before { content: "" !important; }
+@media (max-width: 768px) {
+  html body .today-crew .crew-top { padding: 12px 8px 9px; gap: 5px; }
+  html body .today-crew .crew-live { font-size: 8.5px !important; padding: 1px 6px !important; letter-spacing: .04em !important; }
+  html body .today-crew .crew-card ul { padding: 6px 6px 8px !important; gap: 5px; }
+  html body .today-crew .crew-card li { padding: 6px 6px; font-size: 11.5px !important; line-height: 1.2; hyphens: none; word-break: normal; overflow-wrap: break-word; }
+  html body .today-crew .crew-card li.is-sick:after { font-size: 11px; }
+}
+
+/* --- perbaikan 23c: layar PC menengah & emoji sakit di HP --- */
+html body .today-crew .crew-card li { white-space: normal; overflow-wrap: break-word; }
+@media (min-width: 769px) and (max-width: 1399px) {
+  html body .today-crew .crew-card li { font-size: 12.5px !important; padding: 7px 8px; gap: 7px; }
+  html body .today-crew .crew-card li:before { width: 20px; height: 20px; font-size: 10px; }
+  html body .today-crew .crew-top { padding: 14px 11px 10px; gap: 6px; }
+  html body .today-crew .crew-top b { font-size: 13.5px !important; }
+  html body .today-crew .away-head { padding: 14px 11px 10px; }
+  html body .today-crew .away-av { display: none !important; }
+  html body .today-crew .away-chip { padding: 8px 9px 8px 11px !important; gap: 6px; }
+  html body .today-crew .away-name { font-size: 12.5px !important; }
+  html body .today-crew .away-tag { font-size: 9px !important; padding: 2px 7px !important; }
+}
+@media (max-width: 768px) {
+  html body .today-crew .crew-card li.is-sick:after { display: none; }
+}
+
+/* ==========================================================================
+   24. TIDAK BERTUGAS (Libur / Cuti / Sakit) — kartu orang, lebih ringan & rapi
+   ========================================================================== */
+html body .today-crew .crew-away:before { display: none !important; }
+html body .today-crew .crew-away { border-radius: 16px !important; }
+html body .today-crew .away-head {
+  background: transparent !important; border-bottom: 0 !important;
+  padding: 14px 14px 2px !important;
+}
+html body .today-crew .away-title {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 12px !important; font-weight: 800 !important; letter-spacing: .1em !important;
+}
+html body .today-crew .away-title:before {
+  content: ""; width: 4px; height: 16px; border-radius: 3px; flex: none;
+  background: linear-gradient(180deg, #ff6b86, #f5d93a 50%, #f472b6);
+}
+html body.formal-theme .today-crew .away-title:before { background: linear-gradient(180deg, #c21349, #b8860b 50%, #be185d); }
+html body .today-crew .away-count {
+  background: var(--c-off-bg) !important; color: var(--c-off) !important;
+  border: 1px solid var(--c-off-line) !important; min-width: 24px; height: 24px;
+}
+html body .today-crew .away-list {
+  display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
+  padding: 10px 12px 12px !important;
+}
+html body .today-crew .away-chip {
+  --ti: #3a0716;
+  display: grid !important; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "av name" "av tag";
+  column-gap: 11px; row-gap: 4px; align-items: center; align-content: center;
+  padding: 10px 12px !important; border-radius: 14px !important;
+  background: linear-gradient(135deg, var(--tb) 0%, var(--surface) 75%) !important;
+  border: 1px solid var(--border) !important; box-shadow: none !important;
+}
+html body .today-crew .away-chip.cuti  { --ti: #3a2e00; }
+html body .today-crew .away-chip.sakit { --ti: #3a0a26; }
+html body.formal-theme .today-crew .away-chip { --ti: #ffffff; background: linear-gradient(135deg, var(--tb) 0%, #ffffff 75%) !important; border-color: #dcedf1 !important; }
+html body .today-crew .away-av {
+  grid-area: av; width: 38px !important; height: 38px !important; font-size: 13px !important;
+  background: var(--tc) !important; color: var(--ti) !important; border: 0 !important;
+}
+html body .today-crew .away-name {
+  grid-area: name; align-self: end; font-size: 13.5px !important; line-height: 1.15;
+}
+html body .today-crew .away-tag {
+  grid-area: tag; justify-self: start; align-self: start; display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px !important; padding: 2px 8px 2px 7px !important;
+}
+html body .today-crew .away-tag:before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--tc); flex: none; }
+
+/* PC 4 kolom: satu kolom ke bawah; avatar tetap tampil */
+@media (min-width: 769px) {
+  html body .today-crew .away-list { grid-template-columns: 1fr; }
+  html body .today-crew .away-av { display: inline-flex !important; }
+}
+@media (min-width: 769px) and (max-width: 1399px) {
+  html body .today-crew .away-av { width: 34px !important; height: 34px !important; font-size: 12px !important; }
+  html body .today-crew .away-chip { padding: 9px 10px !important; column-gap: 9px; }
+  html body .today-crew .away-name { font-size: 12.5px !important; }
+  html body .today-crew .away-tag { font-size: 9px !important; }
+}
+
+/* --- 24b: nama tidak terpotong, judul tidak patah --- */
+html body .today-crew .away-name { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: break-word; }
+html body .today-crew .away-title { white-space: nowrap; }
+@media (max-width: 768px) {
+  html body .today-crew .away-av { width: 34px !important; height: 34px !important; font-size: 12px !important; }
+  html body .today-crew .away-chip { padding: 9px 10px !important; column-gap: 9px; }
+  html body .today-crew .away-name { font-size: 13px !important; }
+  html body .today-crew .away-list { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+}
+@media (min-width: 769px) and (max-width: 1399px) {
+  html body .today-crew .away-title { font-size: 11px !important; letter-spacing: .06em !important; gap: 7px; }
+  html body .today-crew .away-head { padding: 13px 11px 2px !important; }
+}
+
+/* ==========================================================================
+   25. BAGIAN BAWAH BERANDA — statistik, cari, minggu, ticker, keterangan, tombol atas
+   ========================================================================== */
+/* tombol ke atas: pindah ke kanan bawah, tidak lagi menimpa kolom cari */
+html body #scrollTopBtn {
+  left: auto !important; right: 16px !important;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+  width: 44px !important; height: 44px !important; border-radius: 50% !important;
+  background: var(--surface) !important; border: 1px solid var(--border-strong) !important;
+  color: var(--accent) !important; font-size: 18px; font-weight: 800; line-height: 1;
+  box-shadow: var(--shadow-md) !important;
+}
+@media (min-width: 769px) { html body #scrollTopBtn { right: 28px !important; bottom: 100px !important; } }
+
+/* kartu statistik: pita warna + tint sesuai shift */
+html body .stat-card { position: relative; overflow: hidden; }
+html body .stat-card.stat-p     { --sc: var(--c-pagi);  --sb: var(--c-pagi-bg); }
+html body .stat-card.stat-s     { --sc: var(--c-sore);  --sb: var(--c-sore-bg); }
+html body .stat-card.stat-m     { --sc: var(--c-malam); --sb: var(--c-malam-bg); }
+html body .stat-card.stat-off   { --sc: var(--c-off);   --sb: var(--c-off-bg); }
+html body .stat-card.stat-total { --sc: var(--accent);  --sb: var(--accent-dim); }
+html body #scheduleSection .stat-card.stat-p,
+html body #scheduleSection .stat-card.stat-s,
+html body #scheduleSection .stat-card.stat-m,
+html body #scheduleSection .stat-card.stat-off,
+html body #scheduleSection .stat-card.stat-total {
+  background: linear-gradient(180deg, var(--sb) 0%, var(--surface) 85%) !important;
+}
+html body #scheduleSection .stat-card:before {
+  content: "" !important; display: block !important; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: var(--sc, var(--accent)) !important; opacity: .95; border: 0; box-shadow: none; transform: none;
+}
+html body .stat-card .stat-label { font-weight: 700 !important; }
+
+/* kolom cari & navigasi minggu */
+html body .search-bar-wrap { min-height: 50px; transition: border-color .15s, box-shadow .15s; }
+html body .search-bar-wrap:focus-within { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-dim) !important; }
+html body .search-bar-wrap .search-icon { color: var(--accent) !important; }
+html body .quick-nav-row { min-height: 50px; padding: 6px 8px !important; gap: 8px !important; }
+html body .quick-nav-btn {
+  width: 36px !important; height: 36px !important; border-radius: 10px !important;
+  background: var(--accent-dim) !important; color: var(--accent) !important; border: 0 !important;
+}
+html body .quick-nav-btn:hover { background: var(--accent) !important; color: #fff !important; }
+html body .quick-nav-label { font-size: 14px !important; font-weight: 800 !important; letter-spacing: .04em !important; }
+
+/* ticker: teks memudar halus di tepi, tidak terpotong kasar di balik badge LIVE */
+html body .ticker-viewport {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 26px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 26px), transparent 100%);
+}
+html body .news-track { font-family: var(--font-body) !important; font-size: 13px; font-weight: 500; letter-spacing: 0; }
+html body .live-indicator { border-radius: 14px 0 0 14px !important; }
+
+/* header kolom tabel lebih rapat & terbaca */
+html body #scheduleTable thead th { font-size: 10.5px !important; letter-spacing: .02em !important; line-height: 1.4; }
+
+/* HP: keterangan membungkus (tidak perlu geser), lebih rapi */
+@media (max-width: 768px) {
+  html body .legend-bar { flex-wrap: wrap !important; overflow: visible !important; gap: 6px !important; padding: 12px !important; }
+  html body .legend-bar .legend-title { width: 100%; margin-bottom: 2px; }
+  html body .legend-bar .legend-badge { font-size: 11px !important; padding: 4px 10px !important; }
+}
+html body .news-track { padding-left: 16px; }
+html body #serahTerimaTicker #newsTrack { padding-left: 18px !important; }
+html body #serahTerimaTicker .ticker-viewport { -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 20px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 20px), transparent 100%); }
+html body #serahTerimaTicker .ticker-viewport { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%); mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 22px), transparent 100%); }
