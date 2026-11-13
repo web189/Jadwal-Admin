@@ -1,0 +1,465 @@
+/* ==========================================================================
+   TEMA PRO v29 — Terang & Gelap, satu bahasa desain untuk HP dan PC
+   Dimuat PALING AKHIR (setelah app.css dan tema2026.css). jd.js tidak diubah.
+   Prinsip:
+   1. Permukaan datar & netral (tanpa gradasi aqua / glow / blur).
+   2. Warna jenuh hanya untuk makna: P / S / M / OFF / C dan status "hari ini".
+   3. Satu skala sudut: panel 20 · isi 14 · tombol 12 · chip penuh.
+   4. Satu keluarga huruf untuk judul & angka (Space Grotesk), Inter untuk isi.
+   Hapus file ini + satu baris <link> di index.html untuk kembali ke tampilan lama.
+   ========================================================================== */
+
+/* ---------- 1. TOKEN ---------- */
+html:root:root:root body.pro26 {                                              /* GELAP */
+  --bg: #0b0f17;
+  --bg-elevated: #121826;
+  --surface: #121826;
+  --surface-2: #171f31;
+  --border: #222c42;
+  --border-strong: #2e3b58;
+  --accent: #7b97ff;
+  --accent-strong: #a6baff;
+  --accent-dim: rgba(123,151,255,.14);
+  --accent-ink: #0b1020;
+  --text: #eef2f9;
+  --text-dim: #a4b0c6;
+  --text-faint: #6f7c95;
+  --ok: #3ddc97; --ok-bg: rgba(61,220,151,.12); --ok-line: rgba(61,220,151,.35);
+  --live: #ef3b5d;
+  --today-line: rgba(123,151,255,.38);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md: 0 1px 2px rgba(0,0,0,.35), 0 10px 28px -14px rgba(0,0,0,.7);
+  --shadow-lg: 0 24px 60px -20px rgba(0,0,0,.8);
+  --font-hero: "Space Grotesk","Inter","Segoe UI",Arial,sans-serif;
+  --font-display: "Space Grotesk","Inter","Segoe UI",Arial,sans-serif;
+  --font-body: "Inter","Segoe UI",Arial,sans-serif;
+  --font-mono: "JetBrains Mono",Consolas,"Courier New",monospace;
+  --r-panel: 20px; --r-inner: 14px; --r-btn: 12px;
+  /* netralkan token gradasi dari lapisan lama */
+  --g-card: var(--surface); --g-card-soft: var(--surface-2); --g-head: var(--surface); --g-inner: var(--surface-2);
+  --aq-line: var(--border); --aq-glow: transparent;
+  --n-card: linear-gradient(var(--surface),var(--surface)); --pm-card: linear-gradient(var(--surface),var(--surface));
+  --n-bd: linear-gradient(var(--border),var(--border)); --n-soft: var(--border); --edge: var(--border);
+  --pro-line: var(--border); --pro-line-2: var(--border); --pro-card-a: var(--surface); --pro-card-b: var(--surface);
+  --pro-shadow: var(--shadow-sm); --pm-edge: var(--border);
+  color-scheme: dark;
+}
+html:root:root:root body.pro26.formal-theme {                                              /* TERANG */
+  --bg: #eef1f6;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f7fb;
+  --border: #e1e6ee;
+  --border-strong: #cbd3e0;
+  --accent: #2a56e6;
+  --accent-strong: #1d41b8;
+  --accent-dim: rgba(42,86,230,.09);
+  --accent-ink: #ffffff;
+  --text: #0f1828;
+  --text-dim: #4b5a74;
+  --text-faint: #8693aa;
+  --ok: #12805a; --ok-bg: rgba(18,128,90,.10); --ok-line: rgba(18,128,90,.30);
+  --live: #d92d4f;
+  --today-line: rgba(42,86,230,.32);
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.05);
+  --shadow-md: 0 1px 2px rgba(16,24,40,.05), 0 10px 28px -16px rgba(16,24,40,.18);
+  --shadow-lg: 0 24px 60px -24px rgba(16,24,40,.35);
+  color-scheme: light;
+}
+
+/* ---------- 2. LATAR, HURUF, FOKUS ---------- */
+html:root:root:root body.pro26 { background: var(--bg) !important; background-color: var(--bg) !important; font-family: var(--font-body); }
+html:root:root:root body.pro26:before, html:root:root:root body.pro26:after { display: none !important; }
+html:root:root:root body.pro26 > header, html:root:root:root body.pro26 > main, html:root:root:root body.pro26 > footer.cyber-signature { max-width: 1360px; }
+html:root:root:root body.pro26 #scheduleSection { display: flex !important; flex-direction: column; gap: 14px; }
+html:root:root:root body.pro26 #scheduleSection > * { order: 0 !important; grid-area: auto !important; grid-column: auto !important; width: auto; max-width: none; }
+html:root:root:root body.pro26 :focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px; border-radius: 10px; }
+html:root:root:root body.pro26 ::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* label kecil: dari HURUF BESAR menjadi kalimat biasa ("Petugas hari ini") */
+html:root:root:root body.pro26 .crew-title, html:root:root:root body.pro26 .away-title, html:root:root:root body.pro26 .legend-title, html:root:root:root body.pro26 .week-progress-label span:first-child,
+html:root:root:root body.pro26 .shift-label-text {
+  text-transform: lowercase !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+html:root:root:root body.pro26 .crew-title:first-letter, html:root:root:root body.pro26 .away-title:first-letter, html:root:root:root body.pro26 .legend-title:first-letter,
+html:root:root:root body.pro26 .week-progress-label span:first-child:first-letter, html:root:root:root body.pro26 .shift-label-text:first-letter { text-transform: uppercase !important; }
+html:root:root:root body.pro26 .crew-title, html:root:root:root body.pro26 .away-title, html:root:root:root body.pro26 .legend-title { display: block; }
+html:root:root:root body.pro26 .week-progress-label span:first-child, html:root:root:root body.pro26 .shift-label-text { display: block; }
+html:root:root:root body.pro26 .hmenu-label { display: flex; }
+html:root:root:root body.pro26 .crew-title:before, html:root:root:root body.pro26 .away-title:before, html:root:root:root body.pro26 .legend-title:before { display: none !important; }
+html:root:root:root body.pro26 .crew-top { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .away-head { background: transparent !important; }
+html:root:root:root body.pro26 .hmenu-sec { text-transform: none !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important; color: var(--text-faint) !important; }
+
+/* ---------- 3. PANEL: satu gaya untuk semua kartu ---------- */
+html:root:root:root body.pro26 > header, html:root:root:root body.pro26 .today-crew, html:root:root:root body.pro26 .table-wrapper, html:root:root:root body.pro26 .kegiatan-section, html:root:root:root body.pro26 footer.cyber-signature,
+html:root:root:root body.pro26 .holiday-info-box, html:root:root:root body.pro26 .week-progress-wrap {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-panel) !important;
+  box-shadow: var(--shadow-sm) !important;
+  animation: none !important;
+}
+html:root:root:root body.pro26 .week-progress-wrap { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 4px; }
+html:root:root:root body.pro26 > header:before, html:root:root:root body.pro26 > header:after, html:root:root:root body.pro26 .table-wrapper:before, html:root:root:root body.pro26 .table-wrapper:after,
+html:root:root:root body.pro26 footer.cyber-signature:before, html:root:root:root body.pro26 .shift-indicator:before, html:root:root:root body.pro26 .shift-indicator:after { display: none !important; content: none !important; }
+
+/* ---------- 4. HEADER ---------- */
+html:root:root:root body.pro26 > header { padding: 18px 22px !important; margin-bottom: 14px !important; }
+html:root:root:root body.pro26 .glitch {
+  font-family: var(--font-display) !important; text-transform: none !important; letter-spacing: -.015em !important;
+  font-weight: 700 !important; color: var(--text) !important; background: none !important;
+  -webkit-text-fill-color: currentColor !important; text-shadow: none !important; line-height: 1.1;
+}
+html:root:root:root body.pro26 .glitch .header-badge, html:root:root:root body.pro26 .header-badge {
+  background: var(--accent-dim) !important; color: var(--accent) !important; -webkit-text-fill-color: var(--accent) !important;
+  border: 0 !important; box-shadow: none !important; font-family: var(--font-body) !important; letter-spacing: .02em !important;
+  font-weight: 700 !important; border-radius: 999px !important; padding: 3px 10px !important;
+}
+html:root:root:root body.pro26 .hamburger-btn, html:root:root:root body.pro26 .theme-quick, html:root:root:root body.pro26 .crew-share, html:root:root:root body.pro26 .hmenu-close {
+  background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: none !important;
+  color: var(--text-dim) !important; border-radius: var(--r-btn) !important;
+}
+html:root:root:root body.pro26 .hamburger-btn:hover, html:root:root:root body.pro26 .theme-quick:hover, html:root:root:root body.pro26 .crew-share:hover { border-color: var(--accent) !important; color: var(--accent) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .hamburger-icon span { background: var(--text) !important; }
+html:root:root:root body.pro26 .online-indicator {
+  background: var(--ok-bg) !important; color: var(--ok) !important; border: 1px solid var(--ok-line) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; border-radius: 999px !important; box-shadow: none !important;
+}
+html:root:root:root body.pro26 .online-dot { background: var(--ok) !important; box-shadow: none !important; animation: none !important; }
+html:root:root:root body.pro26 .online-dot:after { display: none !important; }
+html:root:root:root body.pro26 .cyber-clock { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+html:root:root:root body.pro26 .cyber-clock .ck-time {
+  font-family: var(--font-mono) !important; font-weight: 600 !important; color: var(--text) !important; background: none !important;
+  -webkit-text-fill-color: currentColor !important; text-shadow: none !important; letter-spacing: .01em !important;
+  font-variant-numeric: tabular-nums;
+}
+html:root:root:root body.pro26 .cyber-clock .ck-date { color: var(--text-dim) !important; font-family: var(--font-body) !important; }
+
+/* indikator shift = elemen utama header */
+html:root:root:root body.pro26 .shift-indicator { background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: none !important; border-radius: var(--r-inner) !important; }
+html:root:root:root body.pro26 .gauge-center { background: var(--surface) !important; box-shadow: 0 0 0 1px var(--border) !important; }
+html:root:root:root body.pro26 .gauge-marker:after { background: var(--text) !important; box-shadow: 0 0 0 3px var(--surface-2) !important; }
+html:root:root:root body.pro26 .gauge-shift-num { font-family: var(--font-display) !important; font-weight: 700 !important; }
+html:root:root:root body.pro26 .shift-label-text { font-size: 12px !important; font-weight: 600 !important; color: var(--text-dim) !important; }
+html:root:root:root body.pro26 .shift-countdown {
+  font-family: var(--font-display) !important; color: var(--text) !important; font-weight: 700 !important;
+  letter-spacing: -.005em !important; font-size: 17px !important;
+}
+html:root:root:root body.pro26 .st-bar { background: var(--surface) !important; box-shadow: 0 0 0 1px var(--border) !important; }
+html:root:root:root body.pro26 .st-seg { opacity: .26 !important; }
+html:root:root:root body.pro26 .shift-timeline[data-active-shift="1"] .st-p, html:root:root:root body.pro26 .shift-timeline[data-active-shift="2"] .st-s,
+html:root:root:root body.pro26 .shift-timeline[data-active-shift="3"] .st-m1, html:root:root:root body.pro26 .shift-timeline[data-active-shift="3"] .st-m2 { opacity: 1 !important; }
+html:root:root:root body.pro26 .st-now { background: var(--text) !important; box-shadow: 0 0 0 2px var(--surface-2) !important; width: 3px !important; margin-left: -1.5px !important; }
+html:root:root:root body.pro26 .st-ticks, html:root:root:root body.pro26 .st-ticks span, html:root:root:root body.pro26 .st-ticks em { font-family: var(--font-body) !important; color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .st-ticks span { color: var(--text-dim) !important; font-weight: 600; }
+
+/* ---------- 5. PETUGAS HARI INI ---------- */
+html:root:root:root body.pro26 .today-crew { padding: 16px 18px 18px !important; }
+html:root:root:root body.pro26 .crew-title { font-family: var(--font-display) !important; font-size: 16px !important; font-weight: 700 !important; color: var(--text) !important; }
+html:root:root:root body.pro26 .crew-date {
+  background: var(--surface-2) !important; border: 1px solid var(--border) !important; color: var(--text-dim) !important;
+  border-radius: 999px !important; padding: 3px 11px !important; font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 500 !important;
+}
+html:root:root:root body.pro26 .crew-chev { border-color: var(--text-dim) !important; }
+html:root:root:root body.pro26 .crew-P { --cc: var(--c-pagi);  --cc-bg: var(--c-pagi-bg); }
+html:root:root:root body.pro26 .crew-S { --cc: var(--c-sore);  --cc-bg: var(--c-sore-bg); }
+html:root:root:root body.pro26 .crew-M { --cc: var(--c-malam); --cc-bg: var(--c-malam-bg); }
+html:root:root:root body.pro26 .crew-card {
+  background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: none !important;
+  border-radius: var(--r-inner) !important; transform: none !important; animation: none !important;
+}
+html:root:root:root body.pro26 .crew-card:before, html:root:root:root body.pro26 .crew-card:after { display: none !important; }
+html:root:root:root body.pro26 .crew-card.active { background: var(--cc-bg) !important; border-color: var(--cc) !important; box-shadow: 0 0 0 1px var(--cc) inset !important; }
+html:root:root:root body.pro26 .crew-top b { font-family: var(--font-display) !important; color: var(--cc) !important; font-weight: 700 !important; font-size: 15px !important; }
+html:root:root:root body.pro26 .crew-top em { font-family: var(--font-body) !important; color: var(--text-dim) !important; font-weight: 500 !important; margin-left: auto; }
+html:root:root:root body.pro26 .crew-dot { background: var(--cc) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .crew-live {
+  font-family: var(--font-body) !important; background: var(--cc) !important; color: var(--badge-ink) !important;
+  letter-spacing: .04em !important; border-radius: 999px !important; padding: 2px 8px !important; margin-left: 0 !important; box-shadow: none !important;
+}
+html:root:root:root body.pro26 .crew-card li { color: var(--text) !important; font-family: var(--font-body) !important; font-weight: 600 !important; background: var(--surface) !important; border: 1px solid var(--border) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .crew-card li.crew-none { background: transparent !important; border: 0 !important; color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .crew-note { font-family: var(--font-body) !important; color: var(--text-dim) !important; font-size: 11.5px !important; letter-spacing: 0 !important; }
+html:root:root:root body.pro26 .crew-away { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .away-title { font-family: var(--font-display) !important; font-weight: 700 !important; color: var(--text) !important; font-size: 14px !important; }
+html:root:root:root body.pro26 .away-count { background: var(--border-strong) !important; color: var(--text) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .away-chip { --ac: var(--c-off); --acb: var(--c-off-bg); background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .away-chip.cuti { --ac: var(--c-cuti); --acb: var(--c-cuti-bg); }
+html:root:root:root body.pro26 .away-chip:before, html:root:root:root body.pro26 .away-chip:after { display: none !important; }
+html:root:root:root body.pro26 .away-av { background: var(--acb) !important; color: var(--ac) !important; box-shadow: none !important; font-family: var(--font-body) !important; font-weight: 700 !important; }
+html:root:root:root body.pro26 .away-name { color: var(--text) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .away-tag { background: var(--acb) !important; color: var(--ac) !important; font-family: var(--font-body) !important; letter-spacing: .04em !important; border-radius: 999px !important; }
+html:root:root:root body.pro26 .crew-sick { background: var(--c-off-bg) !important; color: var(--c-off) !important; border: 1px dashed var(--c-off-line) !important; }
+
+/* ---------- 6. TICKER, CARI, PILIH MINGGU ---------- */
+html:root:root:root body.pro26 .news-ticker { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; box-shadow: var(--shadow-sm) !important; height: 42px !important; }
+html:root:root:root body.pro26 .live-indicator { background: var(--live) !important; color: #fff !important; border: 0 !important; box-shadow: none !important; font-family: var(--font-body) !important; letter-spacing: .06em !important; border-radius: 0 !important; }
+html:root:root:root body.pro26 .live-dot { background: #fff !important; animation: none !important; }
+html:root:root:root body.pro26 .news-track { color: var(--text-dim) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .staff-search-input {
+  background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; box-shadow: var(--shadow-sm) !important;
+  color: var(--text) !important; font-family: var(--font-body) !important; font-size: 14px !important; min-height: 46px;
+}
+html:root:root:root body.pro26 .staff-search-input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-dim) !important; }
+html:root:root:root body.pro26 .search-icon { color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .quick-nav-row { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; box-shadow: var(--shadow-sm) !important; }
+html:root:root:root body.pro26 .quick-nav-btn { background: var(--surface-2) !important; border: 0 !important; color: var(--text) !important; border-radius: 10px !important; }
+html:root:root:root body.pro26 .quick-nav-btn:hover { background: var(--accent) !important; color: var(--accent-ink) !important; }
+html:root:root:root body.pro26 .quick-nav-label { font-family: var(--font-display) !important; font-weight: 700 !important; color: var(--text) !important; letter-spacing: 0 !important; }
+html:root:root:root body.pro26 .quick-nav-label[data-range]:after { font-family: var(--font-body) !important; color: var(--text-dim) !important; font-weight: 500 !important; }
+
+/* ---------- 7. TABEL JADWAL ---------- */
+html:root:root:root body.pro26 .table-wrapper { overflow-x: auto; }
+html:root:root:root body.pro26 #scheduleTable th {
+  background: var(--surface-2) !important; color: var(--text-dim) !important; font-family: var(--font-body) !important;
+  font-size: 11.5px !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important;
+  border-bottom: 1px solid var(--border) !important; box-shadow: none !important; line-height: 1.45;
+}
+html:root:root:root body.pro26 #scheduleTable th.today-col { background: var(--accent-dim) !important; color: var(--accent) !important; box-shadow: inset 0 2px 0 var(--accent) !important; }
+html:root:root:root body.pro26 #scheduleTable th.holiday-ln { color: var(--c-off) !important; background: var(--c-off-bg) !important; }
+html:root:root:root body.pro26 #scheduleTable th.holiday-cb { color: var(--c-cuti) !important; background: var(--c-cuti-bg) !important; }
+html:root:root:root body.pro26 .today-tag { background: var(--accent) !important; color: var(--accent-ink) !important; box-shadow: none !important; font-family: var(--font-body) !important; letter-spacing: .04em !important; border-radius: 999px !important; font-size: 8.5px !important; padding: 2px 8px !important; }
+html:root:root:root body.pro26 #scheduleTable tbody td { background: transparent !important; border-bottom: 1px solid var(--border) !important; color: var(--text) !important; }
+html:root:root:root body.pro26 #scheduleTable tbody tr:last-child td { border-bottom: 0 !important; }
+html:root:root:root body.pro26 #scheduleTable tbody td.nama-cell, html:root:root:root body.pro26 #scheduleTable th.nama-col-header { background: var(--surface) !important; border-right: 1px solid var(--border) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 #scheduleTable th.nama-col-header { background: var(--surface-2) !important; }
+html:root:root:root body.pro26 #scheduleTable tbody td.today-col { background: var(--accent-dim) !important; box-shadow: inset 1px 0 0 var(--today-line), inset -1px 0 0 var(--today-line) !important; }
+html:root:root:root body.pro26 #scheduleTable tbody tr:hover td:not(.today-col):not(.nama-cell) { background: var(--surface-2) !important; }
+html:root:root:root body.pro26 #scheduleTable tbody tr:hover td.nama-cell { background: var(--surface-2) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 td.nama-cell { font-family: var(--font-body) !important; font-weight: 600 !important; }
+html:root:root:root body.pro26 td.nik-cell, html:root:root:root body.pro26 #scheduleTable td:first-child { color: var(--text-faint) !important; font-family: var(--font-body) !important; font-variant-numeric: tabular-nums; }
+html:root:root:root body.pro26 .staff-avatar {
+  background: var(--accent-dim) !important; color: var(--accent) !important; box-shadow: none !important;
+  font-family: var(--font-body) !important; font-weight: 700 !important;
+}
+/* chip shift: P/S/M penuh (yang bekerja), OFF/C lembut (yang tidak) */
+html:root:root:root body.pro26 .shift-label {
+  font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: .02em !important;
+  border-radius: 10px !important; box-shadow: none !important; border: 1px solid transparent; min-width: 52px;
+}
+html:root:root:root body.pro26 td.shift-P .shift-label, html:root:root:root body.pro26 .shift-P .shift-label { background: var(--c-pagi) !important; color: var(--badge-ink) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 td.shift-S .shift-label, html:root:root:root body.pro26 .shift-S .shift-label { background: var(--c-sore) !important; color: var(--badge-ink) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 td.shift-M .shift-label, html:root:root:root body.pro26 .shift-M .shift-label { background: var(--c-malam) !important; color: var(--badge-ink) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 td.shift-OFF .shift-label, html:root:root:root body.pro26 .shift-OFF .shift-label { background: var(--c-off-bg) !important; color: var(--c-off) !important; border-color: var(--c-off-line) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 td.shift-C .shift-label, html:root:root:root body.pro26 .shift-C .shift-label { background: var(--c-cuti-bg) !important; color: var(--c-cuti) !important; border-color: var(--c-cuti-line) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 td[data-shift]:hover:after { font-family: var(--font-body) !important; background: var(--text) !important; color: var(--bg) !important; border: 0 !important; border-radius: 8px !important; }
+html:root:root:root body.pro26 .holiday-info-box { border-left: 4px solid var(--c-off) !important; padding: 12px 16px !important; font-size: 13px; }
+html:root:root:root body.pro26 .holiday-info-box strong { font-family: var(--font-body) !important; letter-spacing: 0 !important; font-size: 12px !important; }
+
+/* ---------- 8. KETERANGAN & RINGKASAN ---------- */
+html:root:root:root body.pro26 .legend-bar { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; box-shadow: var(--shadow-sm) !important; }
+html:root:root:root body.pro26 .legend-title { font-weight: 600 !important; font-size: 12px !important; color: var(--text-dim) !important; }
+html:root:root:root body.pro26 .legend-badge, html:root:root:root body.pro26 .legend-badge.lb-P, html:root:root:root body.pro26 .legend-badge.lb-S, html:root:root:root body.pro26 .legend-badge.lb-M, html:root:root:root body.pro26 .legend-badge.lb-OFF, html:root:root:root body.pro26 .legend-badge.lb-C, html:root:root:root body.pro26 .legend-badge.lb-LN, html:root:root:root body.pro26 .legend-badge.lb-CB {
+  background: var(--surface-2) !important; color: var(--text) !important; border: 1px solid var(--border) !important;
+  font-family: var(--font-body) !important; font-weight: 600 !important; font-size: 12px !important; letter-spacing: 0 !important;
+  border-radius: 999px !important; box-shadow: none !important; transform: none !important;
+}
+html:root:root:root body.pro26 .legend-badge:before { box-shadow: none !important; width: 9px !important; height: 9px !important; border-radius: 3px !important; }
+html:root:root:root body.pro26 .legend-badge.lb-P:before { background: var(--c-pagi) !important; }
+html:root:root:root body.pro26 .legend-badge.lb-S:before { background: var(--c-sore) !important; }
+html:root:root:root body.pro26 .legend-badge.lb-M:before { background: var(--c-malam) !important; }
+html:root:root:root body.pro26 .legend-badge.lb-OFF:before { background: var(--c-off-bg) !important; box-shadow: 0 0 0 1px var(--c-off) inset !important; }
+html:root:root:root body.pro26 .legend-badge.lb-C:before { background: var(--c-cuti-bg) !important; box-shadow: 0 0 0 1px var(--c-cuti) inset !important; }
+html:root:root:root body.pro26 .legend-badge.lb-LN:before, html:root:root:root body.pro26 .legend-badge.lb-CB:before { display: none !important; }
+html:root:root:root body.pro26 .legend-badge.lb-LN span { color: var(--c-off) !important; }
+html:root:root:root body.pro26 .legend-badge.lb-CB span { color: var(--c-cuti) !important; }
+
+html:root:root:root body.pro26 #scheduleSection .stat-card {
+  background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important;
+  box-shadow: var(--shadow-sm) !important; transform: none !important; animation: none !important; overflow: hidden;
+}
+html:root:root:root body.pro26 #scheduleSection .stat-card:before, html:root:root:root body.pro26 #scheduleSection .stat-card:after { display: none !important; }
+html:root:root:root body.pro26 #scheduleSection .stat-icon { background: var(--stat-tint, var(--accent-dim)) !important; color: var(--stat-color, var(--accent)) !important; box-shadow: none !important; border-radius: 12px !important; }
+html:root:root:root body.pro26 #scheduleSection .stat-value {
+  font-family: var(--font-display) !important; font-weight: 700 !important; color: var(--text) !important; background: none !important;
+  -webkit-text-fill-color: currentColor !important; text-shadow: none !important; letter-spacing: -.01em !important;
+}
+html:root:root:root body.pro26 #scheduleSection .stat-label { font-family: var(--font-body) !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--text-dim) !important; font-weight: 600 !important; }
+html:root:root:root body.pro26 #scheduleSection .stat-bar { background: var(--border) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 #scheduleSection .stat-bar b { background: var(--stat-color, var(--accent)) !important; }
+html:root:root:root body.pro26 .week-progress-label { font-family: var(--font-body) !important; font-size: 12px !important; font-weight: 600 !important; color: var(--text-dim) !important; letter-spacing: 0 !important; }
+html:root:root:root body.pro26 .week-progress-bar { background: var(--border) !important; border: 0 !important; box-shadow: none !important; height: 8px !important; border-radius: 999px !important; }
+html:root:root:root body.pro26 .week-progress-fill { background: var(--accent) !important; box-shadow: none !important; border-radius: 999px !important; }
+html:root:root:root body.pro26 .week-progress-fill:after { display: none !important; }
+
+/* ---------- 9. KEGIATAN, FOOTER ---------- */
+html:root:root:root body.pro26 .kegiatan-header-bar { background: transparent !important; border-bottom: 0; }
+html:root:root:root body.pro26 .kegiatan-section.open .kegiatan-header-bar, html:root:root:root body.pro26 .kegiatan-body.open { border-top: 0; }
+html:root:root:root body.pro26 .kegiatan-section-icon { background: var(--accent-dim) !important; color: var(--accent) !important; box-shadow: none !important; border-radius: 12px !important; }
+html:root:root:root body.pro26 .kegiatan-section-title { font-family: var(--font-display) !important; font-size: 15px !important; font-weight: 700 !important; }
+html:root:root:root body.pro26 .kegiatan-card { background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: none !important; transform: none !important; }
+html:root:root:root body.pro26 .kegiatan-avatar { background: var(--accent-dim) !important; color: var(--accent) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .kegiatan-nama { font-family: var(--font-body) !important; font-weight: 600 !important; }
+html:root:root:root body.pro26 .kg-chip { background: var(--accent-dim) !important; border: 0 !important; color: var(--text) !important; }
+html:root:root:root body.pro26 footer.cyber-signature { margin-top: 18px !important; padding: 18px !important; }
+html:root:root:root body.pro26 .signature-text { font-family: var(--font-body) !important; font-size: 12px !important; color: var(--text-faint) !important; line-height: 1.8; }
+html:root:root:root body.pro26 .sync-chip { background: var(--ok-bg) !important; border: 1px solid var(--ok-line) !important; color: var(--ok) !important; font-family: var(--font-body) !important; font-weight: 600 !important; }
+html:root:root:root body.pro26 .sync-chip i { background: var(--ok) !important; box-shadow: none !important; animation: none !important; }
+html:root:root:root body.pro26 .hacker-name { color: var(--accent) !important; font-family: var(--font-body) !important; }
+
+/* ---------- 10. MENU SAMPING / LACI ---------- */
+html:root:root:root body.pro26 .hamburger-menu { background: var(--surface) !important; border-color: var(--border) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .hamburger-menu:after { display: none !important; }
+html:root:root:root body.pro26 .hamburger-menu.open { box-shadow: var(--shadow-lg) !important; }
+html:root:root:root body.pro26 .hmenu-header { background: transparent !important; }
+html:root:root:root body.pro26 .hmenu-header:after { display: none !important; }
+html:root:root:root body.pro26 .hmenu-title { font-family: var(--font-display) !important; }
+html:root:root:root body.pro26 .hmenu-title i { background: var(--accent-dim) !important; color: var(--accent) !important; }
+html:root:root:root body.pro26 .sb-brand-text b { font-family: var(--font-display) !important; letter-spacing: 0 !important; font-weight: 700 !important; }
+html:root:root:root body.pro26 .sb-brand-text span { color: var(--text-dim) !important; font-family: var(--font-body) !important; letter-spacing: 0 !important; text-transform: none !important; }
+html:root:root:root body.pro26 .sb-status { background: var(--ok-bg) !important; border-color: var(--ok-line) !important; color: var(--ok) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .sb-dot { background: var(--ok) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .hmenu-group { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; }
+html:root:root:root body.pro26 .hmenu-label { text-transform: none !important; letter-spacing: 0 !important; font-family: var(--font-body) !important; font-size: 12px !important; color: var(--text-dim) !important; }
+html:root:root:root body.pro26 .hmenu-btn, html:root:root:root body.pro26 .hmenu-btn.cyber-link-btn, html:root:root:root body.pro26 .hmenu-btn.cyber-link-btn-amber, html:root:root:root body.pro26 .hmenu-btn.cyber-link-btn-green, html:root:root:root body.pro26 .hmenu-btn.btn-outline {
+  background: transparent !important; color: var(--text) !important; border: 1px solid transparent !important; box-shadow: none !important;
+  border-radius: var(--r-btn) !important; font-family: var(--font-body) !important; transform: none !important;
+}
+html:root:root:root body.pro26 .hmenu-btn:hover { background: var(--surface-2) !important; border-color: var(--border) !important; box-shadow: none !important; transform: none !important; }
+html:root:root:root body.pro26 .hmenu-btn > i:first-child { background: var(--accent-dim) !important; color: var(--accent) !important; box-shadow: none !important; border-radius: 10px !important; }
+html:root:root:root body.pro26 .hmenu-btn.cyber-link-btn-amber > i:first-child { background: var(--c-sore-bg) !important; color: var(--c-sore) !important; }
+html:root:root:root body.pro26 .hmenu-btn.cyber-link-btn-green > i:first-child { background: var(--c-pagi-bg) !important; color: var(--c-pagi) !important; }
+html:root:root:root body.pro26 .hmenu-btn.cyber-link-btn-gps > i.gps-ico:first-child { background: var(--accent-dim) !important; color: var(--accent) !important; }
+html:root:root:root body.pro26 .hmenu-btn.btn-danger { background: var(--c-off-bg) !important; border-color: var(--c-off-line) !important; color: var(--c-off) !important; }
+html:root:root:root body.pro26 .hmenu-btn.btn-danger > i:first-child { background: transparent !important; color: var(--c-off) !important; }
+html:root:root:root body.pro26 .hmenu-btn.btn-success { background: var(--c-pagi-bg) !important; border-color: var(--c-pagi-line) !important; color: var(--c-pagi) !important; }
+html:root:root:root body.pro26 .hmenu-btn.btn-success > i:first-child { background: transparent !important; color: var(--c-pagi) !important; }
+html:root:root:root body.pro26 .hmenu-foot, html:root:root:root body.pro26 .hmenu-foot span { font-family: var(--font-body) !important; color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .install-btn, html:root:root:root body.pro26 .install-chip, html:root:root:root body.pro26 .install-chip.ready, html:root:root:root body.pro26 .install-btn.ready {
+  background: var(--accent) !important; color: var(--accent-ink) !important; box-shadow: none !important; border: 0 !important;
+}
+html:root:root:root body.pro26 .install-btn:hover, html:root:root:root body.pro26 .install-chip:hover { filter: brightness(1.08); background: var(--accent) !important; color: var(--accent-ink) !important; transform: none !important; }
+html:root:root:root body.pro26 .install-btn .ib-ico, html:root:root:root body.pro26 .install-chip .ic-dl { background: rgba(255,255,255,.22) !important; color: inherit !important; }
+html:root:root:root body.pro26 .inst-banner { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-inner) !important; box-shadow: var(--shadow-sm) !important; }
+html:root:root:root body.pro26 .inst-banner .ib-ic, html:root:root:root body.pro26 .inst-banner .ib-go { background: var(--accent) !important; color: var(--accent-ink) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .inst-banner .ib-tx b { color: var(--text) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .inst-banner .ib-tx small { color: var(--text-dim) !important; }
+
+/* ---------- 11. NAV BAWAH HP, TOMBOL MENGAMBANG ---------- */
+html:root:root:root body.pro26 .mobile-bottom-nav { background: var(--surface) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-md) !important; border-radius: 22px !important; }
+html:root:root:root body.pro26 .mobile-nav-item, html:root:root:root body.pro26 .mobile-nav-item > i:first-child, html:root:root:root body.pro26 .mobile-nav-item.nav-gps > i.gps-ico:first-child { color: var(--text-dim) !important; }
+html:root:root:root body.pro26 .mobile-nav-item span { font-family: var(--font-body) !important; font-weight: 600 !important; font-size: 10px !important; letter-spacing: 0 !important; }
+html:root:root:root body.pro26 .mobile-nav-item .nav-ext-icon { color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .mobile-nav-item.active { background: var(--accent-dim) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .mobile-nav-item.active, html:root:root:root body.pro26 .mobile-nav-item.active > i:first-child, html:root:root:root body.pro26 .mobile-nav-item.active span { color: var(--accent) !important; }
+html:root:root:root body.pro26 .mobile-nav-item.active:before { display: none !important; }
+html:root:root:root body.pro26 .mobile-badge, html:root:root:root body.pro26 .chat-badge { background: var(--live) !important; border-color: var(--surface) !important; }
+html:root:root:root body.pro26 .chat-fab { background: var(--accent) !important; color: var(--accent-ink) !important; box-shadow: var(--shadow-md) !important; border: 0 !important; }
+html:root:root:root body.pro26 #scrollTopBtn { background: var(--surface) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-md) !important; border-radius: 12px !important; color: var(--text) !important; }
+
+/* ---------- 12. MODAL, CHAT, NOTIFIKASI ---------- */
+html:root:root:root body.pro26 .modal, html:root:root:root body.pro26 .inst-modal, html:root:root:root body.pro26 .sakit-modal { background: rgba(8,12,20,.58) !important; backdrop-filter: none !important; }
+html:root:root:root body.pro26 .modal-box, html:root:root:root body.pro26 .chat-panel, html:root:root:root body.pro26 .inst-box, html:root:root:root body.pro26 .sakit-box {
+  background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--r-panel) !important; box-shadow: var(--shadow-lg) !important; color: var(--text) !important;
+}
+html:root:root:root body.pro26 .modal-title { font-family: var(--font-display) !important; font-weight: 700 !important; }
+html:root:root:root body.pro26 .btn-primary { background: var(--accent) !important; color: var(--accent-ink) !important; box-shadow: none !important; border: 0 !important; }
+html:root:root:root body.pro26 .btn-ghost { border-color: var(--border) !important; }
+html:root:root:root body.pro26 .chat-panel-header, html:root:root:root body.pro26 .chat-input-row, html:root:root:root body.pro26 .reply-preview { background: var(--surface-2) !important; border-color: var(--border) !important; }
+html:root:root:root body.pro26 .chat-header-avatar, html:root:root:root body.pro26 .chat-avatar { background: var(--accent-dim) !important; color: var(--accent) !important; }
+html:root:root:root body.pro26 .chat-bubble-wrap.me .chat-bubble { background: var(--accent) !important; color: var(--accent-ink) !important; }
+html:root:root:root body.pro26 .chat-bubble-wrap.me .chat-sender { color: inherit !important; opacity: .75; }
+html:root:root:root body.pro26 .chat-send-btn { background: var(--accent) !important; color: var(--accent-ink) !important; }
+
+/* notifikasi mengambang (termasuk promo): netral & rapi */
+html:root:root:root body.pro26 .os-notif-popup {
+  background: var(--surface) !important; color: var(--text) !important; border: 1px solid var(--border) !important;
+  border-left: 4px solid var(--accent) !important; border-radius: 16px !important; box-shadow: var(--shadow-lg) !important; font-family: var(--font-body) !important;
+}
+html:root:root:root body.pro26 .os-notif-popup.os-notif-chat { border-left-color: #25d366 !important; }
+html:root:root:root body.pro26 .os-notif-popup.os-notif-serahterima { border-left-color: var(--c-sore) !important; }
+html:root:root:root body.pro26 .os-notif-site, html:root:root:root body.pro26 .os-notif-title, html:root:root:root body.pro26 .os-notif-promo-title, html:root:root:root body.pro26 .os-notif-line b { color: var(--text) !important; }
+html:root:root:root body.pro26 .os-notif-line, html:root:root:root body.pro26 .os-notif-time, html:root:root:root body.pro26 .os-notif-more { color: var(--text-dim) !important; }
+html:root:root:root body.pro26 .os-notif-actions button { color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .os-notif-actions button:hover { background: var(--surface-2) !important; color: var(--text) !important; }
+html:root:root:root body.pro26 .os-notif-promo-badge { background: var(--accent-dim) !important; color: var(--accent) !important; letter-spacing: .04em; }
+html:root:root:root body.pro26 .os-notif-promo-icon { background: var(--accent-dim) !important; color: var(--accent) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .os-notif-cta { background: var(--accent) !important; color: var(--accent-ink) !important; box-shadow: none !important; border-radius: 10px !important; }
+html:root:root:root body.pro26 .os-notif-later { background: var(--surface-2) !important; color: var(--text-dim) !important; border-radius: 10px !important; }
+html:root:root:root body.pro26 .os-notif-promo:after { background: var(--accent) !important; opacity: .6; }
+html:root:root:root body.pro26 .toast-notif, html:root:root:root body.pro26 .pw-toast, html:root:root:root body.pro26 .pw-upd { background: var(--surface) !important; color: var(--text) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-lg) !important; }
+
+/* ---------- 13. LOADING SCREEN (durasi tetap 4 detik) ---------- */
+html:root:root:root body.pro26 #cyberLoader { background: var(--bg) !important; }
+html:root:root:root body.pro26 .ld-grid, html:root:root:root body.pro26 .ld-ring, html:root:root:root body.pro26 .loader-glow, html:root:root:root body.pro26 .loader-content:before { display: none !important; }
+html:root:root:root body.pro26 .loader-content { background: var(--surface) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-lg) !important; border-radius: 28px !important; }
+html:root:root:root body.pro26 .loader-title { background: none !important; -webkit-text-fill-color: currentColor !important; color: var(--text) !important; font-family: var(--font-display) !important; letter-spacing: -.01em !important; text-transform: none !important; font-size: 22px !important; }
+html:root:root:root body.pro26 .loader-year { color: var(--accent) !important; font-family: var(--font-body) !important; letter-spacing: .12em !important; }
+html:root:root:root body.pro26 .loader-aqua-chip { background: var(--accent-dim) !important; color: var(--accent) !important; font-family: var(--font-body) !important; }
+html:root:root:root body.pro26 .ld-percent { font-family: var(--font-display) !important; color: var(--text) !important; }
+html:root:root:root body.pro26 .ld-percent small { color: var(--accent) !important; }
+html:root:root:root body.pro26 .loader-bar { background: var(--border) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .loader-progress { background: var(--accent) !important; box-shadow: none !important; }
+html:root:root:root body.pro26 .ld-steps li { font-family: var(--font-body) !important; text-transform: none !important; letter-spacing: 0 !important; border-color: var(--border) !important; color: var(--text-faint) !important; }
+html:root:root:root body.pro26 .ld-steps li.on { color: var(--ok) !important; background: var(--ok-bg) !important; border-color: var(--ok-line) !important; }
+html:root:root:root body.pro26 .loader-text, html:root:root:root body.pro26 .loader-dev-credit { font-family: var(--font-body) !important; color: var(--text-dim) !important; letter-spacing: 0 !important; text-transform: none !important; }
+html:root:root:root body.pro26 .loader-dev-credit .dev-name-shine { color: var(--accent) !important; text-shadow: none !important; }
+html:root:root:root body.pro26 .loader-dev-credit .dev-name-shine:after { display: none !important; }
+
+html:root:root:root body.pro26 #scheduleSection .stat-card, html:root:root:root body.pro26 #scheduleSection .stat-card.stat-off, html:root:root:root body.pro26 #scheduleSection .stat-card.stat-total { grid-column: auto !important; }
+
+/* ---------- 14. TATA LETAK: PC ---------- */
+@media (min-width: 769px) {
+  html:root:root:root body.pro26 > header { padding: 22px 28px !important; }
+  html:root:root:root body.pro26 .glitch { font-size: clamp(26px, 2.4vw, 34px) !important; }
+  html:root:root:root body.pro26 .cyber-clock .ck-time { font-size: 30px !important; }
+  html:root:root:root body.pro26 .shift-gauge { width: 72px; height: 72px; }
+  html:root:root:root body.pro26 .shift-countdown { font-size: 19px !important; }
+  html:root:root:root body.pro26 .stats-dashboard { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 12px !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-card { flex-flow: row wrap !important; align-items: center !important; justify-content: flex-start !important; padding: 16px 18px !important; gap: 0 12px !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-icon { width: 42px !important; height: 42px !important; font-size: 18px !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-value { font-size: 34px !important; margin-left: auto; line-height: 1 !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-label { flex-basis: 100% !important; margin-top: 12px !important; font-size: 13px !important; text-align: left !important; }
+  html:root:root:root body.pro26 #scheduleTable tbody td { height: 62px !important; }
+  html:root:root:root body.pro26 td.nama-cell { font-size: 14px !important; }
+  html:root:root:root body.pro26 .shift-label { min-width: 56px !important; padding: 7px 0 !important; font-size: 12.5px !important; }
+}
+@media (min-width: 1100px) {
+  html:root:root:root body.pro26 { padding-top: 24px !important; }
+  html:root:root:root body.pro26 #scheduleSection .today-crew .crew-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+/* satu kolom lebar rapi di layar sangat besar (tanpa grid dua kolom lama) */
+@media (min-width: 1560px) {
+  html:root:root:root body.pro26 #scheduleSection { display: flex !important; }
+  html:root:root:root body.pro26 #todayCrew .crew-grid { display: contents !important; }
+}
+@media (min-width: 769px) and (max-width: 1099px) {
+  html:root:root:root body.pro26 .stats-dashboard { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+}
+
+/* ---------- 15. TATA LETAK: HP ---------- */
+@media (max-width: 768px) {
+  html:root:root:root body.pro26 { padding: 12px 12px 108px !important; }
+  html:root:root:root body.pro26 > header { border-radius: 20px !important; padding: 14px !important; margin-bottom: 12px !important; }
+  html:root:root:root body.pro26 .glitch { font-size: clamp(16px, 5vw, 20px) !important; }
+  html:root:root:root body.pro26 .cyber-clock .ck-time { font-size: 18px !important; }
+  html:root:root:root body.pro26 .cyber-clock { align-items: flex-end !important; }
+  html:root:root:root body.pro26 .shift-countdown { font-size: 15px !important; }
+  html:root:root:root body.pro26 .today-crew { padding: 14px 12px 14px !important; }
+  html:root:root:root body.pro26 .crew-card { padding: 10px 10px !important; }
+  html:root:root:root body.pro26 .stats-dashboard { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-card, html:root:root:root body.pro26 #scheduleSection .stat-card.stat-off, html:root:root:root body.pro26 #scheduleSection .stat-card.stat-total {
+    background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 14px !important;
+    padding: 10px 2px 9px !important; gap: 2px !important;
+  }
+  html:root:root:root body.pro26 #scheduleSection .stat-card .stat-value { font-size: 22px !important; color: var(--text) !important; background: none !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-card .stat-label { font-size: 10.5px !important; font-family: var(--font-body) !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--text-dim) !important; font-weight: 600 !important; }
+  html:root:root:root body.pro26 #scheduleSection .stat-card .stat-label:before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 2px; margin-right: 4px; vertical-align: 1px; background: var(--stat-color, var(--accent)); }
+  html:root:root:root body.pro26 #scheduleTable th:first-child, html:root:root:root body.pro26 #scheduleTable td:first-child { display: none !important; }
+  html:root:root:root body.pro26 td.nama-cell { font-size: 12px !important; }
+  html:root:root:root body.pro26 #scheduleTable th { font-size: 10.5px !important; }
+  html:root:root:root body.pro26 .shift-label { min-width: 40px !important; font-size: 11px !important; padding: 5px 6px !important; }
+  html:root:root:root body.pro26 .schedule-toolbar { margin: 0 !important; }
+  html:root:root:root body.pro26 .legend-bar { padding: 10px 12px !important; }
+  html:root:root:root body.pro26 .os-notif-popup { bottom: 104px !important; left: 12px !important; right: 12px !important; }
+}
+@media (max-width: 380px) {
+  html:root:root:root body.pro26 .glitch { font-size: clamp(14px, 4.6vw, 16px) !important; }
+}
+
+/* ---------- 16. GERAK ---------- */
+@keyframes p26in { from { opacity: 0; } to { opacity: 1; } }
+html.app-ready body.pro26 > main { animation: p26in .35s ease both !important; }
+@media (prefers-reduced-motion: reduce) { html:root:root:root body.pro26 *, html:root:root:root body.pro26 *:before, html:root:root:root body.pro26 *:after { animation: none !important; transition: none !important; } }
