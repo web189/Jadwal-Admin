@@ -43,3 +43,10 @@ Otomatis di Windows XP-8 / PC spek rendah. Paksa: tambahkan ?lite=1 di alamat, m
 - Layar PC/laptop sempit (±770–1339 px): kolom "Tidak bertugas" kini di bawah 3 kartu shift (sebelumnya di samping dan kartu jadi sempit, nama terpotong).
 - Layar ≥1340 px: 3 kartu shift + kolom "Tidak bertugas" di samping.
 - Penyebab: aturan lama `grid-auto-flow:column` di tema2026.css; kini dibatalkan di tema-nova.css.
+
+## v30.2 — Sistem offline & update otomatis
+Hasil uji: halaman terbuka normal tanpa internet (jadwal, Petugas hari ini, font, tema, pill "Mode offline") dan otomatis memuat versi baru saat internet kembali.
+- sw.js: batas tunggu jaringan 3,5 dtk -> 2 dtk (sinyal lemah tetap cepat); font disimpan sesaat setelah aktif; file inti diperbarui "semua-atau-tidak-sama-sekali" (tidak ada versi campur); Periodic Background Sync (PWA terpasang) menyegarkan file tiap ±12 jam walau aplikasi tidak dibuka. VERSION v30nova0003.
+- File baru offline-plus.js: (1) prefetch data jadwal minggu -2..+4 saat online agar bisa dibuka offline; (2) cek versi otomatis begitu online kembali (perbaikan celah: update yang terbit saat Anda offline sebelumnya tidak terdeteksi); (3) penanda "Siap dipakai tanpa internet" sekali; (4) peringatan penyimpanan hampir penuh.
+- jd.js: daftar pantauan update diperluas ke semua file tema & offline-plus.js.
+- Catatan: perubahan data (tulis) saat offline sudah antre otomatis (OfflineSync) dan dikirim saat online — tidak diubah.

@@ -8,12 +8,12 @@
    • Firebase / situs lain TIDAK disentuh (data tetap langsung ke server).
    ES5 — aman untuk Chrome 109 / Windows 7.
    ========================================================================== */
-var VERSION = "v30nova0002";
+var VERSION = "v30nova0003";
 var APP = "jadwal";
 var SHELL = APP + "-shell-" + VERSION;
 var MEDIA = APP + "-media-v1";
-var TIMEOUT = 3500;
-var CORE = ["./index.html","./app.css","./tema2026.css","./tema-pro.css","./tema-nova.css","./favicon.png","./fonts/fa-solid.woff2","./icon-192.png","./jd.js","./manifest.json","./vendor/fb-auth.js","./vendor/fb-core.js","./vendor/fb-db.js"];          /* wajib ada, kalau gagal pembaruan dibatalkan (versi lama tetap utuh) */
+var TIMEOUT = 2000;   /* sinyal lemah: pakai simpanan setelah 2 dtk (sambil tetap mengunduh versi baru di belakang) */
+var CORE = ["./index.html","./app.css","./tema2026.css","./tema-pro.css","./tema-nova.css","./offline-plus.js","./favicon.png","./fonts/fa-solid.woff2","./icon-192.png","./jd.js","./manifest.json","./vendor/fb-auth.js","./vendor/fb-core.js","./vendor/fb-db.js"];          /* wajib ada, kalau gagal pembaruan dibatalkan (versi lama tetap utuh) */
 var OPTIONAL = ["./apple-touch-icon.png","./icon-512.png"];  /* dicoba, boleh gagal */
 var LATER = ["./fonts/big-shoulders-display-latin-700-normal.woff2","./fonts/big-shoulders-display-latin-800-normal.woff2","./fonts/inter-latin-wght-normal.woff2","./fonts/jetbrains-mono-latin-wght-normal.woff2","./fonts/space-grotesk-latin-wght-normal.woff2"];        /* diunduh pelan-pelan setelah halaman jalan */
 var BYPASS = [];      /* bagian situs lain di bawah folder yang sama */
@@ -44,7 +44,36 @@ self.addEventListener("activate", function (event) {
         return k.indexOf(APP + "-") === 0 && k !== SHELL && k !== MEDIA;
       }).map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); })
+      .then(function () { return cacheLater(); })
   );
+});
+
+/* Font & aset pelengkap: disimpan segera setelah aktif (bukan menunggu halaman meminta) agar offline langsung tampil sempurna */
+function cacheLater() {
+  return caches.open(MEDIA).then(function (cache) {
+    return Promise.all(LATER.map(function (u) {
+      return cache.match(u).then(function (hit) {
+        if (hit) return;
+        return fresh(u).then(function (res) { if (res && res.ok) return cache.put(u, res); }).catch(function () {});
+      });
+    }));
+  }).catch(function () {});
+}
+
+/* Segarkan seluruh file inti SEKALIGUS: semua berhasil -> ditulis semua; satu gagal -> tidak ada yang berubah
+   (mencegah versi campur-aduk antara index.html baru dan jd.js lama). Dipakai oleh Periodic Sync & tombol cek. */
+function refreshShell() {
+  return caches.open(SHELL).then(function (cache) {
+    return Promise.all(CORE.map(function (u) {
+      return fresh(u).then(function (res) { if (!res || !res.ok) throw new Error("gagal " + u); return [u, res]; });
+    })).then(function (pairs) {
+      return Promise.all(pairs.map(function (p) { return cache.put(p[0], p[1]); }));
+    }).then(function () { return broadcast({ type: "SHELL_REFRESHED", version: VERSION, at: Date.now() }); });
+  }).catch(function () {});
+}
+
+self.addEventListener("periodicsync", function (event) {
+  if (event.tag === "jadwal-refresh") event.waitUntil(refreshShell());
 });
 
 function broadcast(msg) {
@@ -56,6 +85,7 @@ function broadcast(msg) {
 self.addEventListener("message", function (event) {
   var d = event.data || {};
   if (d.type === "SKIP_WAITING") { self.skipWaiting(); return; }
+  if (d.type === "REFRESH_SHELL") { event.waitUntil(refreshShell()); return; }
   if (d.type === "CACHE_ALL") {
     event.waitUntil(caches.open(MEDIA).then(function (cache) {
       var done = 0, total = LATER.length;
@@ -74,9 +104,9 @@ function isBypass(url) { for (var i = 0; i < BYPASS.length; i++) if (url.pathnam
 
 function offlinePage() {
   return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title>' +
-    '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#050810;color:#e8f4ff;font-family:Segoe UI,Arial,sans-serif;text-align:center;padding:24px">' +
+    '<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0f17;color:#eef2f9;font-family:Segoe UI,Arial,sans-serif;text-align:center;padding:24px">' +
     '<div><h2 style="margin:0 0 8px">Sedang offline</h2><p style="margin:0 0 18px;opacity:.75">Halaman ini belum tersimpan. Buka sekali saat online, setelah itu bisa dibuka tanpa internet.</p>' +
-    '<button onclick="location.reload()" style="padding:11px 24px;border:0;border-radius:12px;background:#0a8fa8;color:#fff;font-weight:700;font-size:15px;cursor:pointer">Coba lagi</button></div>',
+    '<button onclick="location.reload()" style="padding:11px 24px;border:0;border-radius:12px;background:#4f63e8;color:#fff;font-weight:700;font-size:15px;cursor:pointer">Coba lagi</button></div>',
     { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
