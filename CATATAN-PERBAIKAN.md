@@ -29,3 +29,12 @@ Otomatis di Windows XP-8 / PC spek rendah. Paksa: tambahkan ?lite=1 di alamat, m
 - Teks footer "SYSTEM CORE ... cyber interface" diganti teks yang lebih wajar.
 - Kembali ke tampilan lama: hapus baris `<link ... tema-pro.css>` di index.html dan class `pro26` di <body>.
 - Pasang: upload SEMUA isi folder ke GitHub (termasuk `tema-pro.css`, `sw.js`, `index.html`).
+
+## v30 — Tema Nova (terang & gelap, HP & PC)
+- File baru `tema-nova.css` (dimuat paling akhir) + class `nova` di <body>. Tanpa blur/backdrop-filter; aman Chrome 109 (Windows 7). Mode ringan (?lite=1) otomatis menghapus latar gradasi.
+- Identitas baru: "pita 3-shift" (hijau Pagi, jingga Sore, ungu Malam) di header & footer; kartu ringkasan berpita warna; progres tahun tiga warna.
+- Petugas hari ini: kartu "papan jaga" — ikon shift, jam kerja, avatar inisial, kartu AKTIF berbingkai gradasi + bilah progres shift. HP: tiap shift satu baris (nama tidak meluber). PC: 3 shift + kolom "Tidak bertugas".
+- jd.js diubah kecil (4 tempat): jam shift, atribut inisial `data-i`, elemen `.crew-prog`, dan pengisian progres di fungsi E(). Loading screen tetap 4 detik.
+- sw.js: ditambah `tema-nova.css`, VERSION v30nova0001.
+- Kembali ke v29: hapus <link> tema-nova.css & class `nova` (jd.js tetap kompatibel).
+- Pasang: upload SEMUA isi folder ke GitHub.

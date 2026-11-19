@@ -1,0 +1,204 @@
+/* ==========================================================================
+   TEMA NOVA v30 — terang & gelap, HP & PC. Dimuat PALING AKHIR.
+   Identitas: "pita 3-shift" (hijau Pagi · jingga Sore · ungu Malam).
+   Ringan: tanpa blur / backdrop-filter / animasi berat. Aman Chrome 109 (Win 7).
+   Hapus file ini + 1 baris <link> + class "nova" di <body> untuk kembali ke v29.
+   ========================================================================== */
+
+/* ---------- 1. TOKEN ---------- */
+html:root:root:root:root body.pro26.nova {                                                  /* GELAP */
+  --bg:#070a13; --bg-elevated:#0f1424; --surface:#0f1424; --surface-2:#151b30;
+  --border:#1f2843; --border-strong:#2e3a5e;
+  --accent:#8ea2ff; --accent-strong:#b8c3ff; --accent-dim:rgba(142,162,255,.14); --accent-ink:#0a1030;
+  --text:#eef1fb; --text-dim:#a8b2cf; --text-faint:#6e7a9c;
+  --ok:#3ddc97; --ok-bg:rgba(61,220,151,.13); --ok-line:rgba(61,220,151,.35);
+  --nv-hi:rgba(255,255,255,.05);
+  --nv-panel:linear-gradient(180deg,#131a2e,#0f1424);
+  --nv-mesh:radial-gradient(900px 520px at 8% -8%,rgba(99,102,241,.22),transparent 62%),radial-gradient(760px 460px at 100% 0,rgba(56,189,248,.10),transparent 60%);
+  --nv-shadow:0 1px 0 var(--nv-hi) inset,0 18px 40px -22px rgba(0,0,0,.85);
+  --shadow-sm:0 1px 0 var(--nv-hi) inset,0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 14px 34px -16px rgba(0,0,0,.8);
+}
+html:root:root:root:root body.pro26.nova.formal-theme {                                     /* TERANG */
+  --bg:#eef1f9; --bg-elevated:#fff; --surface:#fff; --surface-2:#f5f7fd;
+  --border:#e1e6f3; --border-strong:#c9d2e8;
+  --accent:#3b4fe0; --accent-strong:#2a3bb8; --accent-dim:rgba(59,79,224,.09); --accent-ink:#fff;
+  --text:#0d1426; --text-dim:#45516f; --text-faint:#8792ae;
+  --ok:#0f7f58; --ok-bg:rgba(15,127,88,.10); --ok-line:rgba(15,127,88,.30);
+  --nv-hi:rgba(255,255,255,.9);
+  --nv-panel:linear-gradient(180deg,#fff,#fbfcff);
+  --nv-mesh:radial-gradient(900px 520px at 6% -8%,rgba(99,102,241,.16),transparent 62%),radial-gradient(760px 460px at 100% 0,rgba(14,165,233,.11),transparent 60%);
+  --nv-shadow:0 1px 0 var(--nv-hi) inset,0 1px 2px rgba(13,20,38,.05),0 18px 38px -22px rgba(48,66,160,.30);
+  --shadow-sm:0 1px 2px rgba(13,20,38,.06);
+  --shadow-md:0 14px 30px -16px rgba(48,66,160,.35);
+}
+html:root:root:root:root body.pro26.nova {
+  background-color:var(--bg) !important; background-image:var(--nv-mesh) !important;
+  background-repeat:no-repeat !important; background-size:100% 720px !important;
+}
+html.lite:root:root:root:root body.pro26.nova { background-image:none !important; --nv-shadow:0 1px 2px rgba(0,0,0,.12); --nv-panel:linear-gradient(var(--surface),var(--surface)); }
+
+/* ---------- 2. PANEL ---------- */
+html:root:root:root:root body.pro26.nova > header, html:root:root:root:root body.pro26.nova .today-crew, html:root:root:root:root body.pro26.nova .table-wrapper, html:root:root:root:root body.pro26.nova .kegiatan-section, html:root:root:root:root body.pro26.nova footer.cyber-signature, html:root:root:root:root body.pro26.nova .holiday-info-box {
+  background:var(--nv-panel) !important; border:1px solid var(--border) !important;
+  border-radius:26px !important; box-shadow:var(--nv-shadow) !important;
+}
+html:root:root:root:root body.pro26.nova .legend-bar, html:root:root:root:root body.pro26.nova .news-ticker, html:root:root:root:root body.pro26.nova .quick-nav-row, html:root:root:root:root body.pro26.nova .staff-search-input, html:root:root:root:root body.pro26.nova .inst-banner {
+  border-radius:18px !important; box-shadow:var(--nv-shadow) !important; background:var(--nv-panel) !important;
+}
+html:root:root:root:root body.pro26.nova .holiday-info-box { border-radius:18px !important; }
+
+/* ---------- 3. HEADER + pita 3-shift ---------- */
+html:root:root:root:root body.pro26.nova > header { position:relative; overflow:hidden; }
+html:root:root:root:root body.pro26.nova > header:before {
+  display:block !important; content:"" !important; position:absolute; left:0; right:0; top:0; height:5px; z-index:1;
+  background:linear-gradient(90deg,var(--c-pagi) 0,var(--c-pagi) 33.33%,var(--c-sore) 33.33%,var(--c-sore) 66.66%,var(--c-malam) 66.66%,var(--c-malam) 100%) !important;
+}
+html:root:root:root:root body.pro26.nova .glitch { font-size:clamp(20px,5.2vw,30px) !important; letter-spacing:-.025em !important; }
+html:root:root:root:root body.pro26.nova .header-badge, html:root:root:root:root body.pro26.nova .glitch .header-badge {
+  background:linear-gradient(135deg,var(--accent),var(--c-malam)) !important; color:#fff !important; -webkit-text-fill-color:#fff !important;
+  padding:3px 10px !important; font-size:.42em !important; vertical-align:middle; letter-spacing:.04em !important;
+}
+html:root:root:root:root body.pro26.nova .cyber-clock .ck-time { letter-spacing:-.01em !important; }
+html:root:root:root:root body.pro26.nova .shift-indicator { border-radius:20px !important; background:var(--surface-2) !important; }
+html:root:root:root:root body.pro26.nova .st-bar { height:12px !important; border-radius:99px !important; }
+html:root:root:root:root body.pro26.nova .st-seg { opacity:.28 !important; }
+html:root:root:root:root body.pro26.nova .st-now { height:24px !important; width:4px !important; border-radius:4px !important; }
+html:root:root:root:root body.pro26.nova .shift-countdown { letter-spacing:-.02em !important; }
+html:root:root:root:root body.pro26.nova .online-indicator { padding:5px 12px !important; }
+html:root:root:root:root body.pro26.nova .hamburger-btn, html:root:root:root:root body.pro26.nova .theme-quick, html:root:root:root:root body.pro26.nova .crew-share { border-radius:14px !important; }
+
+/* ---------- 4. PETUGAS HARI INI — "papan jaga" ---------- */
+html:root:root:root:root body.pro26.nova #todayCrew { padding:20px !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-bar { display:flex !important; align-items:center; gap:10px; margin-bottom:16px !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-head { flex:1; min-width:0; display:flex !important; align-items:center; gap:12px; margin:0 !important; padding:0 !important; background:none !important; border:0 !important; box-shadow:none !important; text-align:left; cursor:pointer; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-title { display:block !important; text-transform:lowercase !important; font:700 20px/1.1 var(--font-display) !important; letter-spacing:-.02em !important; color:var(--text) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-head:before { content:""; flex:none; width:9px; height:9px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 4px var(--ok-bg); margin-right:2px; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-title:first-letter { text-transform:uppercase !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-date { margin-left:auto; padding:6px 12px !important; border-radius:999px !important; background:var(--surface-2) !important; border:1px solid var(--border) !important; font:600 12.5px var(--font-body) !important; color:var(--text-dim) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-share { width:40px; height:40px; flex:none; display:grid; place-items:center; padding:0 !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-body { display:grid !important; gap:14px; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-grid { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:14px !important; }
+
+html:root:root:root:root body.pro26.nova #todayCrew .crew-P { --cc:var(--c-pagi); --cc-bg:var(--c-pagi-bg); --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='4.2'/%3E%3Cpath d='M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9' stroke='black' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E"); }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-S { --cc:var(--c-sore); --cc-bg:var(--c-sore-bg); --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 16a5.5 5.5 0 0 1 11 0z'/%3E%3Cpath d='M12 5v2.4M4.4 9.4l1.7 1.7M19.6 9.4l-1.7 1.7M2.5 16h19M5 20h14' stroke='black' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E"); }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-M { --cc:var(--c-malam); --cc-bg:var(--c-malam-bg); --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5 8.6 8.6 0 1 0 20.5 14.6z'/%3E%3Ccircle cx='18' cy='6' r='1.3'/%3E%3C/svg%3E"); }
+
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card {
+  position:relative; overflow:hidden; display:flex !important; flex-direction:column; gap:16px;
+  padding:18px 16px 16px !important; min-height:0 !important; border-radius:22px !important;
+  background:var(--surface-2) !important; border:1px solid var(--border) !important; box-shadow:none !important;
+}
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card:before { display:block !important; content:"" !important; position:absolute; left:18px; right:18px; top:0; height:4px; border-radius:0 0 6px 6px; background:var(--cc) !important; opacity:.5; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card:after  { display:block !important; content:"" !important; position:absolute; left:auto !important; top:auto !important; right:-16px; bottom:-20px; width:120px; height:120px; background:var(--cc) !important; opacity:.055; pointer-events:none;
+  -webkit-mask:var(--glyph) center/contain no-repeat; mask:var(--glyph) center/contain no-repeat; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card.active {
+  border:2px solid transparent !important; padding:17px 15px 15px !important;
+  background:linear-gradient(180deg,var(--cc-bg),rgba(0,0,0,0) 70%) padding-box,linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(150deg,var(--cc),var(--cc-bg) 55%,var(--cc)) border-box !important;
+  box-shadow:0 16px 34px -18px var(--cc) !important;
+}
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card.active:before { opacity:1; }
+
+html:root:root:root:root body.pro26.nova #todayCrew .crew-top { display:grid !important; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"ic nm" "ic tm" "st st"; column-gap:12px; row-gap:2px; align-items:center; padding:0 !important; margin:0 !important; background:none !important; border:0 !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-dot { grid-area:ic; position:relative; display:block !important; width:46px; height:46px; border-radius:15px; background:var(--cc-bg) !important; box-shadow:none !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-dot:before { content:""; position:absolute; top:11px; right:11px; bottom:11px; left:11px; background:var(--cc);
+  -webkit-mask:var(--glyph) center/contain no-repeat; mask:var(--glyph) center/contain no-repeat; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-top b { grid-area:nm; align-self:end; font:700 18px/1.1 var(--font-display) !important; letter-spacing:-.02em !important; color:var(--text) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-top em { display:block !important; white-space:nowrap; grid-area:tm; align-self:start; margin:0 !important; font:500 12px/1.2 var(--font-mono) !important; font-style:normal; color:var(--text-dim) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-live { grid-area:st; justify-self:start; margin-top:10px; display:none !important; align-items:center; gap:6px; padding:5px 10px !important; border-radius:999px !important; background:var(--cc) !important; color:var(--badge-ink) !important; font:800 10.5px var(--font-body) !important; letter-spacing:.08em !important; border:0 !important; box-shadow:none !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card.active .crew-live { display:inline-flex !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-live:before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; animation:nvPulse 1.6s ease-in-out infinite; }
+
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card ul { list-style:none; margin:0 !important; padding:0 !important; display:flex; flex-direction:column; gap:8px; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card li {
+  display:flex !important; align-items:center; gap:10px; min-width:0; padding:5px 14px 5px 5px !important; border-radius:999px !important;
+  background:var(--surface) !important; border:1px solid var(--border) !important; box-shadow:none !important;
+  font:600 13.5px/1.25 var(--font-body) !important; color:var(--text) !important; white-space:normal !important; overflow:visible !important; overflow-wrap:break-word; word-break:normal !important;
+}
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card li:before {
+  content:attr(data-i) !important; display:grid !important; place-items:center; flex:none; width:32px !important; height:32px !important; border-radius:50% !important; position:static !important;
+  background:var(--cc-bg) !important; color:var(--cc) !important; border:0 !important; box-shadow:none !important; font:700 12px var(--font-display) !important; text-decoration:none !important; transform:none !important;
+}
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card li.crew-none { background:transparent !important; border:1px dashed var(--border-strong) !important; color:var(--text-faint) !important; justify-content:center; padding:9px 14px !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card li.crew-none:before { display:none !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card li.is-sick { opacity:.6; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-note { align-self:flex-start; padding:4px 10px; border-radius:999px; background:var(--cc-bg) !important; color:var(--cc) !important; font:600 11px var(--font-body) !important; letter-spacing:0 !important; margin:0 !important; }
+
+html:root:root:root:root body.pro26.nova #todayCrew .crew-prog { display:none; margin-top:auto; counter-set:pn var(--pn,0); }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-card.active .crew-prog { display:block; }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-prog b { display:block; position:relative; height:7px; border-radius:99px; overflow:hidden; background:var(--cc-bg); }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-prog b:before { content:""; position:absolute; left:0; top:0; bottom:0; width:var(--prog,0%); border-radius:99px; background:var(--cc); }
+html:root:root:root:root body.pro26.nova #todayCrew .crew-prog:after { content:"Shift berjalan " counter(pn) "%"; display:block; margin-top:8px; font:600 11.5px var(--font-body); color:var(--text-dim); }
+
+html:root:root:root:root body.pro26.nova #todayCrew .crew-away { display:flex !important; flex-direction:column; gap:12px; padding:16px !important; border-radius:22px !important; background:transparent !important; border:1.5px dashed var(--border-strong) !important; box-shadow:none !important; margin:0 !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-head { display:flex !important; align-items:center; gap:10px; padding:0 !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-title { font:700 15px var(--font-display) !important; color:var(--text) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-count { margin-left:auto; min-width:26px; height:26px; display:grid; place-items:center; border-radius:50% !important; background:var(--c-off-bg) !important; color:var(--c-off) !important; font:700 12px var(--font-body) !important; border:0 !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-list { display:flex !important; flex-direction:column; gap:8px; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-chip { display:grid !important; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:0 10px; padding:5px 12px 5px 5px !important; border-radius:999px !important; background:var(--surface) !important; border:1px solid var(--border) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-av { grid-row:1 / span 2; flex:none; width:32px !important; height:32px !important; display:grid; place-items:center; border-radius:50% !important; font:700 12px var(--font-display) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-name { min-width:0; word-break:normal !important; overflow-wrap:break-word; font:600 13.5px var(--font-body) !important; }
+html:root:root:root:root body.pro26.nova #todayCrew .away-tag { justify-self:start; margin:3px 0 0 !important; padding:2px 9px !important; font:700 10px var(--font-body) !important; }
+
+@keyframes nvPulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+html.lite:root:root:root:root body.pro26.nova .crew-live:before, html.lite:root:root:root:root body.pro26.nova .crew-card:after { animation:none !important; }
+
+/* PC lebar: 3 shift + kolom "Tidak bertugas" */
+@media (min-width:1100px) {
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-body { grid-template-columns:minmax(0,3fr) minmax(230px,1fr) !important; align-items:stretch; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-away { height:100%; }
+}
+@media (min-width:769px) and (max-width:1099px) {
+  html:root:root:root:root body.pro26.nova #todayCrew .away-list { flex-direction:row; flex-wrap:wrap; }
+  html:root:root:root:root body.pro26.nova #todayCrew .away-chip { flex:0 1 auto; min-width:200px; }
+}
+
+/* HP: tiap shift jadi satu baris ("lajur") — nama tidak lagi meluber */
+@media (max-width:768px) {
+  html:root:root:root:root body.pro26.nova #todayCrew { padding:16px 14px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-title { font-size:18px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-grid { grid-template-columns:1fr !important; gap:10px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card { display:grid !important; grid-template-columns:138px minmax(0,1fr); column-gap:12px; row-gap:12px; align-items:center; padding:14px 12px !important; border-radius:20px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card.active { padding:13px 11px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card:after { width:90px; height:90px; right:-10px; bottom:-14px; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-top { grid-column:1; grid-row:1; column-gap:10px; align-self:center; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-dot { width:40px; height:40px; border-radius:13px; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-dot:before { top:9px; right:9px; bottom:9px; left:9px; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-top b { font-size:16px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-top em { font-size:11px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card ul { grid-column:2; grid-row:1; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-note { grid-column:2; grid-row:2; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-prog { grid-column:1 / -1; grid-row:3; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card li { font-size:13px !important; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-away { padding:14px 12px !important; }
+}
+
+/* ---------- 5. TICKER, CARI, TABEL ---------- */
+html:root:root:root:root body.pro26.nova .live-indicator { border-radius:0 !important; }
+html:root:root:root:root body.pro26.nova .news-ticker { overflow:hidden; }
+html:root:root:root:root body.pro26.nova .quick-nav-btn { border-radius:12px !important; }
+html:root:root:root:root body.pro26.nova .table-wrapper { border-radius:24px !important; }
+html:root:root:root:root body.pro26.nova #scheduleTable th.today-col { background:var(--accent-dim) !important; box-shadow:inset 0 3px 0 var(--accent) !important; }
+html:root:root:root:root body.pro26.nova #scheduleTable tbody td.today-col { background:var(--accent-dim) !important; }
+html:root:root:root:root body.pro26.nova .shift-label { border-radius:12px !important; }
+html:root:root:root:root body.pro26.nova .staff-avatar { border-radius:50% !important; background:linear-gradient(135deg,var(--accent-dim),var(--surface-2)) !important; border:1px solid var(--border) !important; }
+html:root:root:root:root body.pro26.nova .staff-avatar.on-duty { box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ok) !important; }
+html:root:root:root:root body.pro26.nova .table-wrapper::-webkit-scrollbar { height:8px; }
+html:root:root:root:root body.pro26.nova .table-wrapper::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:8px; }
+
+/* ---------- 6. RINGKASAN ---------- */
+html:root:root:root:root body.pro26.nova .stat-card { position:relative; overflow:hidden; border-radius:20px !important; background:var(--nv-panel) !important; border:1px solid var(--border) !important; box-shadow:var(--nv-shadow) !important; }
+html:root:root:root:root body.pro26.nova .stat-card:before { display:block !important; content:"" !important; position:absolute; left:14px; right:14px; top:0; height:3px; border-radius:0 0 4px 4px; background:var(--sc,var(--accent)) !important; opacity:.9; }
+html:root:root:root:root body.pro26.nova .stat-p { --sc:var(--c-pagi); } html:root:root:root:root body.pro26.nova .stat-s { --sc:var(--c-sore); } html:root:root:root:root body.pro26.nova .stat-m { --sc:var(--c-malam); } html:root:root:root:root body.pro26.nova .stat-off { --sc:var(--c-off); } html:root:root:root:root body.pro26.nova .stat-total { --sc:var(--accent); }
+html:root:root:root:root body.pro26.nova .stat-value { font-family:var(--font-display) !important; letter-spacing:-.03em !important; }
+html:root:root:root:root body.pro26.nova .week-progress-fill { background:linear-gradient(90deg,var(--c-pagi),var(--c-sore),var(--c-malam)) !important; border-radius:99px !important; }
+html:root:root:root:root body.pro26.nova .week-progress-bar { border-radius:99px !important; }
+
+/* ---------- 7. NAV, FAB, FOOTER ---------- */
+html:root:root:root:root body.pro26.nova .mobile-bottom-nav { border-radius:26px !important; background:var(--nv-panel) !important; box-shadow:var(--shadow-md),0 0 0 1px var(--border) !important; }
+html:root:root:root:root body.pro26.nova .mobile-nav-item.active { background:linear-gradient(135deg,var(--accent-dim),transparent) !important; border-radius:18px !important; }
+html:root:root:root:root body.pro26.nova .chat-fab { background:linear-gradient(135deg,var(--accent),var(--c-malam)) !important; color:#fff !important; box-shadow:0 12px 26px -10px var(--accent) !important; }
+html:root:root:root:root body.pro26.nova footer.cyber-signature { position:relative; overflow:hidden; }
+html:root:root:root:root body.pro26.nova footer.cyber-signature:before { display:block !important; content:"" !important; position:absolute; left:0; right:0; top:0; height:3px; background:linear-gradient(90deg,var(--c-pagi) 0,var(--c-pagi) 33.33%,var(--c-sore) 33.33%,var(--c-sore) 66.66%,var(--c-malam) 66.66%) !important; opacity:.8; }
+
+@media (prefers-reduced-motion:reduce) { html:root:root:root:root body.pro26.nova .crew-live:before { animation:none !important; } }
