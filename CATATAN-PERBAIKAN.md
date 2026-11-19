@@ -38,3 +38,8 @@ Otomatis di Windows XP-8 / PC spek rendah. Paksa: tambahkan ?lite=1 di alamat, m
 - sw.js: ditambah `tema-nova.css`, VERSION v30nova0001.
 - Kembali ke v29: hapus <link> tema-nova.css & class `nova` (jd.js tetap kompatibel).
 - Pasang: upload SEMUA isi folder ke GitHub.
+
+## v30.1 — Perbaikan "Petugas hari ini" di PC
+- Layar PC/laptop sempit (±770–1339 px): kolom "Tidak bertugas" kini di bawah 3 kartu shift (sebelumnya di samping dan kartu jadi sempit, nama terpotong).
+- Layar ≥1340 px: 3 kartu shift + kolom "Tidak bertugas" di samping.
+- Penyebab: aturan lama `grid-auto-flow:column` di tema2026.css; kini dibatalkan di tema-nova.css.

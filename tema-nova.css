@@ -143,14 +143,20 @@ html:root:root:root:root body.pro26.nova #todayCrew .away-tag { justify-self:sta
 @keyframes nvPulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
 html.lite:root:root:root:root body.pro26.nova .crew-live:before, html.lite:root:root:root:root body.pro26.nova .crew-card:after { animation:none !important; }
 
-/* PC lebar: 3 shift + kolom "Tidak bertugas" */
-@media (min-width:1100px) {
-  html:root:root:root:root body.pro26.nova #todayCrew .crew-body { grid-template-columns:minmax(0,3fr) minmax(230px,1fr) !important; align-items:stretch; }
-  html:root:root:root:root body.pro26.nova #todayCrew .crew-away { height:100%; }
-}
-@media (min-width:769px) and (max-width:1099px) {
+/* PC: kolom "Tidak bertugas" di samping HANYA bila ruang cukup (menu samping 270px memakan lebar).
+   Di bawah itu, "Tidak bertugas" jadi baris di bawah 3 kartu shift supaya kartu tetap lebar. */
+@media (min-width:769px) {
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-body { grid-template-columns:minmax(0,1fr) !important; grid-auto-flow:row !important; grid-auto-columns:auto !important; }
   html:root:root:root:root body.pro26.nova #todayCrew .away-list { flex-direction:row; flex-wrap:wrap; }
-  html:root:root:root:root body.pro26.nova #todayCrew .away-chip { flex:0 1 auto; min-width:200px; }
+  html:root:root:root:root body.pro26.nova #todayCrew .away-chip { flex:0 1 auto; min-width:210px; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card li { font-size:13px !important; }
+}
+@media (min-width:1340px) {
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-body { grid-template-columns:minmax(0,3fr) minmax(240px,1fr) !important; align-items:stretch; }
+  html:root:root:root:root body.pro26.nova #todayCrew .away-list { flex-direction:column; flex-wrap:nowrap; }
+  html:root:root:root:root body.pro26.nova #todayCrew .away-chip { min-width:0; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-away { height:100%; }
+  html:root:root:root:root body.pro26.nova #todayCrew .crew-card li { font-size:13.5px !important; }
 }
 
 /* HP: tiap shift jadi satu baris ("lajur") — nama tidak lagi meluber */
